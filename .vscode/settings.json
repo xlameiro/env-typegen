@@ -2,7 +2,7 @@
     // Editor
     // Controls whether the editor shows CodeLens.
     "diffEditor.codeLens": false,
-    // 
+    //
     //  - legacy: Uses the legacy diffing algorithm.
     //  - advanced: Uses the advanced diffing algorithm.
     "diffEditor.diffAlgorithm": "advanced",
@@ -38,7 +38,7 @@
     "diffEditor.renderSideBySideInlineBreakpoint": 900,
     // If enabled and the editor width is too small, the inline view is used.
     "diffEditor.useInlineViewWhenSpaceIsLimited": true,
-    // 
+    //
     //  - off: Lines will never wrap.
     //  - on: Lines will wrap at the viewport width.
     //  - inherit: Lines will wrap according to the `editor.wordWrap` setting.
@@ -253,7 +253,7 @@
     // Controls whether you can drag and drop a file into a text editor by holding down the `Shift` key (instead of opening the file in an editor).
     "editor.dropIntoEditor.enabled": true,
     // Configures the preferred type of edit to use when dropping content.
-    // 
+    //
     // This is an ordered list of edit kinds. The first available edit of a preferred kind will be used.
     "editor.dropIntoEditor.preferences": [],
     // Controls if a widget is shown when dropping files into the editor. This widget lets you control how the file is dropped.
@@ -493,7 +493,7 @@
     //  - onCode: Show the code action menu when the cursor is on lines with code.
     //  - on: Show the code action menu when the cursor is on lines with code or on empty lines.
     "editor.lightbulb.enabled": "onCode",
-    // Controls the line height. 
+    // Controls the line height.
     //  - Use 0 to automatically compute the line height from the font size.
     //  - Values between 0 and 8 will be used as a multiplier with the font size.
     //  - Values greater than or equal to 8 will be used as effective values.
@@ -586,7 +586,7 @@
     // Controls whether you can paste content in different ways.
     "editor.pasteAs.enabled": true,
     // Configures the preferred type of edit to use when pasting content.
-    // 
+    //
     // This is an ordered list of edit kinds. The first available edit of a preferred kind will be used.
     "editor.pasteAs.preferences": [],
     // Controls if a widget is shown when pasting content in to the editor. This widget lets you control how the file is pasted.
@@ -864,7 +864,7 @@
     // Controls the wrapping column of the editor when `editor.wordWrap` is `wordWrapColumn` or `bounded`.
     "editor.wordWrapColumn": 80,
     // Controls whether literal `\n` shall trigger a wordWrap when `editor.wordWrap` is enabled.
-    // 
+    //
     // For example:
     // ```c
     // char* str="hello\nworld"
@@ -1029,7 +1029,7 @@
     //  - hidden: Hide the Activity Bar in the Primary and Secondary Side Bars.
     "workbench.activityBar.location": "default",
     // Controls how browser data (cookies, cache, storage) is shared between browser views.
-    // 
+    //
     // **Note**: In untrusted workspaces, this setting is ignored and `ephemeral` storage is always used.
     //  - global: All browser views share a single persistent session across all workspaces.
     //  - workspace: Browser views within the same workspace share a persistent session. If no workspace is opened, `ephemeral` storage is used.
@@ -1102,7 +1102,7 @@
     // - `${filename}`: name of the file without the file extension (e.g. `WORKSPACE_FOLDER/folder/file.txt -> file`).
     // - `${extname}`: the file extension (e.g. `WORKSPACE_FOLDER/folder/file.txt -> txt`).
     // - `${extname(N)}`: the nth extension of the file separated by '.' (e.g. `N=2: WORKSPACE_FOLDER/folder/file.ext1.ext2.ext3 -> ext1`). Extension can be picked from the start of the extension by using negative numbers (e.g. `N=-1: WORKSPACE_FOLDER/folder/file.ext1.ext2.ext3 -> ext2`).
-    // 
+    //
     // Example: `"**/static/**/*.html": "${filename} - ${dirname} (${extname})"` will render a file `WORKSPACE_FOLDER/static/folder/file.html` as `file - folder (html)`.
     "workbench.editor.customLabels.patterns": {},
     // Controls whether editor file decorations should use badges.
@@ -2095,9 +2095,9 @@
     //  - empty: Attribute value is not set.
     "html.completion.attributeDefaultValue": "doublequotes",
     // A list of relative file paths pointing to JSON files following the [custom data format](https://github.com/microsoft/vscode-html-languageservice/blob/master/docs/customData.md).
-    // 
+    //
     // VS Code loads custom data on startup to enhance its HTML support for the custom HTML tags, attributes and attribute values you specify in the JSON files.
-    // 
+    //
     // The file paths are relative to workspace and only workspace folder settings are considered.
     "html.customData": [],
     // List of tags, comma separated, where the content shouldn't be reformatted. `null` defaults to the `pre` tag.
@@ -2162,7 +2162,8 @@
         "https://raw.githubusercontent.com/": true,
         "https://www.schemastore.org/": true,
         "https://json.schemastore.org/": true,
-        "https://json-schema.org/": true
+        "https://json-schema.org/": true,
+        "https://ui.shadcn.com": true
     },
     // Associate schemas to JSON files in the current project.
     "json.schemas": [],
@@ -2172,9 +2173,9 @@
     "json.validate.enable": true,
     // Markdown
     // Configures the path and file name of files created by copy/paste or drag and drop. This is a map of globs that match against a Markdown document path to the destination path where the new file should be created.
-    // 
+    //
     // The destination path may use the following variables:
-    // 
+    //
     // - `${documentDirName}` — Absolute parent directory path of the Markdown document, e.g. `/Users/me/myProject/docs`.
     // - `${documentRelativeDirName}` — Relative parent directory path of the Markdown document, e.g. `docs`. This is the same as `${documentDirName}` if the file is not part of a workspace.
     // - `${documentFileName}` — The full filename of the Markdown document, e.g. `README.md`.
@@ -2193,7 +2194,7 @@
     //  - overwrite: If a file with the same name already exists, overwrite it.
     "markdown.copyFiles.overwriteBehavior": "nameIncrementally",
     // Controls if files outside of the workspace that are dropped into a Markdown editor should be copied into the workspace.
-    // 
+    //
     // Use `markdown.copyFiles.destination` to configure where copied dropped files should be created
     //  - mediaFiles: Try to copy external image and video files into the workspace.
     //  - never: Do not copy external files into the workspace.
@@ -2208,7 +2209,7 @@
     // - `${title}` — The title used for the audio. A snippet placeholder will automatically be created for this variable.
     "markdown.editor.filePaste.audioSnippet": "<audio controls src=\"${src}\" title=\"${title}\"></audio>",
     // Controls if files outside of the workspace that are pasted into a Markdown editor should be copied into the workspace.
-    // 
+    //
     // Use `markdown.copyFiles.destination` to configure where copied files should be created.
     //  - mediaFiles: Try to copy external image and video files into the workspace.
     //  - never: Do not copy external files into the workspace.
@@ -2229,7 +2230,7 @@
     //  - never: Never create Markdown links.
     "markdown.editor.pasteUrlAsFormattedLink.enabled": "smartWithSelection",
     // Enable/disable a paste option that updates links and reference in text that is copied and pasted between Markdown editors.
-    // 
+    //
     // To use this feature, after pasting text that contains updatable links, just click on the Paste Widget and select `Paste and update pasted links`.
     "markdown.editor.updateLinksOnPaste.enabled": true,
     // Controls where links in Markdown files should be opened.
@@ -2358,7 +2359,7 @@
     // Disables [automatic type acquisition](https://code.visualstudio.com/docs/nodejs/working-with-javascript#_typings-and-automatic-type-acquisition). Automatic type acquisition fetches `@types` packages from npm to improve IntelliSense for external libraries.
     "typescript.disableAutomaticTypeAcquisition": false,
     // Enables prompting of users to use the TypeScript version configured in the workspace for Intellisense.
-    "typescript.enablePromptUseWorkspaceTsdk": false,
+    "typescript.enablePromptUseWorkspaceTsdk": true,
     // Disables TypeScript and JavaScript language features to allow usage of the TypeScript Go experimental extension. Requires TypeScript Go to be installed and configured. Requires reloading extensions after changing this setting.
     "typescript.experimental.useTsgo": false,
     // Enable/disable implementations CodeLens. This CodeLens shows the implementers of an interface.
@@ -2397,10 +2398,10 @@
     //  - watch: Only create compile and watch tasks.
     "typescript.tsc.autoDetect": "on",
     // Specifies the folder path to the tsserver and `lib*.d.ts` files under a TypeScript install to use for IntelliSense, for example: `./node_modules/typescript/lib`.
-    // 
+    //
     // - When specified as a user setting, the TypeScript version from `typescript.tsdk` automatically replaces the built-in TypeScript version.
     // - When specified as a workspace setting, `typescript.tsdk` allows you to switch to use that workspace version of TypeScript for IntelliSense with the `TypeScript: Select TypeScript version` command.
-    // 
+    //
     // See the [TypeScript documentation](https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-newer-typescript-versions) for more detail about managing TypeScript versions.
     "typescript.tsdk": "node_modules/typescript/lib",
     // Enables region-based diagnostics in TypeScript. Requires using TypeScript 5.6+ in the workspace.
@@ -2424,7 +2425,7 @@
     // Specify glob patterns of files to exclude from auto imports. Relative paths are resolved relative to the workspace root. Patterns are evaluated using tsconfig.json [`exclude`](https://www.typescriptlang.org/tsconfig#exclude) semantics.
     "javascript.preferences.autoImportFileExcludePatterns": [],
     // Specify regular expressions to exclude auto imports with matching import specifiers. Examples:
-    // 
+    //
     // - `^node:`
     // - `lib/internal` (slashes don't need to be escaped...)
     // - `/lib\/internal/i` (...unless including surrounding slashes for `i` or `u` flags)
@@ -2461,7 +2462,7 @@
     // Specify glob patterns of files to exclude from auto imports. Relative paths are resolved relative to the workspace root. Patterns are evaluated using tsconfig.json [`exclude`](https://www.typescriptlang.org/tsconfig#exclude) semantics.
     "typescript.preferences.autoImportFileExcludePatterns": [],
     // Specify regular expressions to exclude auto imports with matching import specifiers. Examples:
-    // 
+    //
     // - `^node:`
     // - `lib/internal` (slashes don't need to be escaped...)
     // - `/lib\/internal/i` (...unless including surrounding slashes for `i` or `u` flags)
@@ -2558,7 +2559,7 @@
     //  - openOnTestStart: Open the test results view when tests start
     //  - openOnTestFailure: Open the test result view on any test failure
     //  - openExplorerOnTestStart: Open the test explorer when tests start
-    "testing.automaticallyOpenTestResults": "openOnTestStart",
+    "testing.automaticallyOpenTestResults": "neverOpen",
     // Controls the count badge on the Testing icon on the Activity Bar.
     //  - failed: Show the number of failed tests
     //  - off: Disable the testing count badge
@@ -2604,9 +2605,9 @@
     // By default, VS Code triggers property value completion after selecting a CSS property. Use this setting to disable this behavior.
     "css.completion.triggerPropertyValueCompletion": true,
     // A list of relative file paths pointing to JSON files following the [custom data format](https://github.com/microsoft/vscode-css-languageservice/blob/master/docs/customData.md).
-    // 
+    //
     // VS Code loads custom data on startup to enhance its CSS support for CSS custom properties (variables), at-rules, pseudo-classes, and pseudo-elements you specify in the JSON files.
-    // 
+    //
     // The file paths are relative to workspace and only workspace folder settings are considered.
     "css.customData": [],
     // Put braces on the same line as rules (`collapse`) or put braces on own line (`expand`).
@@ -2820,18 +2821,18 @@
     // Inlay Hints
     // Enable/disable inlay hints for implicit return types on function signatures:
     // ```typescript
-    // 
+    //
     // function foo() /* :number */ {
     // 	return Date.now();
-    // } 
-    //  
+    // }
+    //
     // ```
     "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
     // Enable/disable inlay hints for parameter names:
     // ```typescript
-    // 
+    //
     // parseInt(/* str: */ '123', /* radix: */ 8)
-    //  
+    //
     // ```
     //  - none: Disable parameter name hints.
     //  - literals: Enable parameter name hints only for literal arguments.
@@ -2841,53 +2842,53 @@
     "javascript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
     // Enable/disable inlay hints for implicit parameter types:
     // ```typescript
-    // 
+    //
     // el.addEventListener('click', e /* :MouseEvent */ => ...)
-    //  
+    //
     // ```
     "javascript.inlayHints.parameterTypes.enabled": false,
     // Enable/disable inlay hints for implicit types on property declarations:
     // ```typescript
-    // 
+    //
     // class Foo {
     // 	prop /* :number */ = Date.now();
     // }
-    //  
+    //
     // ```
     "javascript.inlayHints.propertyDeclarationTypes.enabled": false,
     // Enable/disable inlay hints for implicit variable types:
     // ```typescript
-    // 
+    //
     // const foo /* :number */ = Date.now();
-    //  
+    //
     // ```
     "javascript.inlayHints.variableTypes.enabled": false,
     // Suppress type hints on variables whose name is identical to the type name.
     "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
     // Enable/disable inlay hints for member values in enum declarations:
     // ```typescript
-    // 
+    //
     // enum MyValue {
     // 	A /* = 0 */;
     // 	B /* = 1 */;
     // }
-    //  
+    //
     // ```
     "typescript.inlayHints.enumMemberValues.enabled": false,
     // Enable/disable inlay hints for implicit return types on function signatures:
     // ```typescript
-    // 
+    //
     // function foo() /* :number */ {
     // 	return Date.now();
-    // } 
-    //  
+    // }
+    //
     // ```
     "typescript.inlayHints.functionLikeReturnTypes.enabled": false,
     // Enable/disable inlay hints for parameter names:
     // ```typescript
-    // 
+    //
     // parseInt(/* str: */ '123', /* radix: */ 8)
-    //  
+    //
     // ```
     //  - none: Disable parameter name hints.
     //  - literals: Enable parameter name hints only for literal arguments.
@@ -2897,25 +2898,25 @@
     "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
     // Enable/disable inlay hints for implicit parameter types:
     // ```typescript
-    // 
+    //
     // el.addEventListener('click', e /* :MouseEvent */ => ...)
-    //  
+    //
     // ```
     "typescript.inlayHints.parameterTypes.enabled": false,
     // Enable/disable inlay hints for implicit types on property declarations:
     // ```typescript
-    // 
+    //
     // class Foo {
     // 	prop /* :number */ = Date.now();
     // }
-    //  
+    //
     // ```
     "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
     // Enable/disable inlay hints for implicit variable types:
     // ```typescript
-    // 
+    //
     // const foo /* :number */ = Date.now();
-    //  
+    //
     // ```
     "typescript.inlayHints.variableTypes.enabled": false,
     // Suppress type hints on variables whose name is identical to the type name.
@@ -3133,15 +3134,15 @@
     "terminal.sourceControlRepositoriesKind": "integrated",
     // Integrated Terminal
     // A list of commands or regular expressions that control whether the run in terminal tool commands require explicit approval. These will be matched against the start of a command. A regular expression can be provided by wrapping the string in `/` characters followed by optional flags such as `i` for case-insensitivity.
-    // 
+    //
     // Set to `true` to automatically approve commands, `false` to always require explicit approval or `null` to unset the value.
-    // 
+    //
     // Note that these commands and regular expressions are evaluated for every _sub-command_ within the full _command line_, so `foo && bar` for example will need both `foo` and `bar` to match a `true` entry and must not match a `false` entry in order to auto approve. Inline commands such as `<(foo)` (process substitution) should also be detected.
-    // 
+    //
     // An object can be used to match against the full command line instead of matching sub-commands and inline commands, for example `{ approve: false, matchCommandLine: true }`. In order to be auto approved _both_ the sub-command and command line must not be explicitly denied, then _either_ all sub-commands or command line needs to be approved.
-    // 
+    //
     // Note that there's a default set of rules to allow and also deny commands. Consider setting `chat.tools.terminal.ignoreDefaultAutoApproveRules` to `true` to ignore all default rules to ensure there are no conflicts with your own rules. Do this at your own risk, the default denial rules are designed to protect you against running dangerous commands.
-    // 
+    //
     // Examples:
     // |Value|Description|
     // |---|---|
@@ -3160,11 +3161,11 @@
     // Whether to automatically approve npm, yarn, and pnpm run commands when the script is defined in a workspace package.json file. Since the workspace is trusted, scripts defined in package.json are considered safe to run without explicit approval.
     "chat.tools.terminal.autoApproveWorkspaceNpmScripts": true,
     // Whether to automatically respond to prompts in the terminal such as `Confirm? y/n`. This is an experimental feature and may not work in all scenarios.
-    // 
+    //
     // **This feature is inherently risky to use as you're deferring potentially sensitive decisions to an LLM. Use at your own risk.**
     "chat.tools.terminal.autoReplyToPrompts": true,
     // Controls whether detected file write operations are blocked in the run in terminal tool. When detected, this will require explicit approval regardless of whether the command would normally be auto approved. Note that this cannot detect all possible methods of writing files, this is what is currently detected:
-    // 
+    //
     // - File redirection (detected via the bash or PowerShell tree sitter grammar)
     // - `sed` in-place editing (`-i`, `-I`, `--in-place`)
     //  - never: Allow all detected file writes.
@@ -3232,7 +3233,7 @@
         "vscode-insiders"
     ],
     // Controls whether terminals can be created in an untrusted workspace.
-    // 
+    //
     // **This feature bypasses a security protection that prevents terminals from launching in untrusted workspaces. The reason this is a security risk is because shells are often set up to potentially execute code automatically based on the contents of the current working directory. This should be safe to use provided your shell is set up in such a way that code execution in the folder never happens.**
     "terminal.integrated.allowInUntrustedWorkspace": false,
     // Whether to allow menubar mnemonics (for example Alt+F) to trigger the open of the menubar. Note that this will cause all alt keystrokes to skip the shell when true. This does nothing on macOS.
@@ -3246,9 +3247,9 @@
     // The terminal profile to use for automation-related terminal usage like tasks and debug. This setting will currently be ignored if `terminal.integrated.automationShell.windows` (now deprecated) is set.
     "terminal.integrated.automationProfile.windows": null,
     // A set of messages that, when encountered in the terminal, will be automatically responded to. Provided the message is specific enough, this can help automate away common responses.
-    // 
+    //
     // Remarks:
-    // 
+    //
     // - Use `"Terminate batch job (Y/N)": "Y\r"` to automatically respond to the terminate batch job prompt on Windows.
     // - The message includes escape sequences so the reply might not happen with styled text.
     // - Each reply can only happen once every second.
@@ -3259,19 +3260,19 @@
     // The number of milliseconds to show the bell within a terminal tab when triggered.
     "terminal.integrated.bellDuration": 1000,
     // A set of command IDs whose keybindings will not be sent to the shell but instead always be handled by VS Code. This allows keybindings that would normally be consumed by the shell to act instead the same as when the terminal is not focused, for example `Ctrl+P` to launch Quick Open.
-    // 
+    //
     // &nbsp;
-    // 
+    //
     // Many commands are skipped by default. To override a default and pass that command's keybinding to the shell instead, add the command prefixed with the `-` character. For example add `-workbench.action.quickOpen` to allow `Ctrl+P` to reach the shell.
-    // 
+    //
     // &nbsp;
-    // 
+    //
     // The following list of default skipped commands is truncated when viewed in Settings Editor. To see the full list, [open the default settings JSON](command:workbench.action.openRawDefaultSettings 'Open Default Settings (JSON)') and search for the first command from the list below.
-    // 
+    //
     // &nbsp;
-    // 
+    //
     // Default Skipped Commands:
-    // 
+    //
     // - editor.action.accessibilityHelp
     // - editor.action.toggleTabFocusMode
     // - notification.acceptPrimaryAction
@@ -3456,7 +3457,7 @@
     // Controls the width of the cursor when `terminal.integrated.cursorStyle` is set to `line`.
     "terminal.integrated.cursorWidth": 1,
     // Whether to draw custom glyphs instead of using the font for the following unicode ranges:
-    // 
+    //
     // - Box Drawing (U+2500-U+257F)
     // - Block Elements (U+2580-U+259F)
     // - Braille Patterns (U+2800-U+28FF)
@@ -3464,7 +3465,7 @@
     // - Progress Indicators (U+EE00-U+EE0B, Private Use Area)
     // - Git Branch Symbols (U+F5D0-U+F60D, Private Use Area)
     // - Symbols for Legacy Computing (U+1FB00-U+1FBFF)
-    // 
+    //
     // This will typically result in better rendering with continuous lines, even when line height and letter spacing is used. This feature only works when `terminal.integrated.gpuAcceleration` is enabled.
     "terminal.integrated.customGlyphs": true,
     // An explicit start path where the terminal will be launched, this is used as the current working directory (cwd) for the shell process. This may be particularly useful in workspace settings if the root directory is not a convenient cwd.
@@ -3524,7 +3525,7 @@
     "terminal.integrated.enableKittyKeyboardProtocol": false,
     // Controls whether to show a warning dialog when pasting multiple lines into the terminal.
     //  - auto: Enable the warning but do not show it when:
-    // 
+    //
     // - Bracketed paste mode is enabled (the shell supports multi-line paste natively)
     // - The paste is handled by the shell's readline (in the case of pwsh)
     //  - always: Always show the warning if the text contains a new line.
@@ -3619,7 +3620,7 @@
         "<!---"
     ],
     // Controls what font feature settings are used when ligatures are enabled, in the format of the `font-feature-settings` CSS property. Some examples which may be valid depending on the font:
-    // 
+    //
     // - `"calt" off, "ss03"`
     // - `"liga" on`
     // - `"calt" off, "dlig" on`
@@ -3684,7 +3685,7 @@
     //  - paste: Paste on middle click.
     "terminal.integrated.middleClickBehavior": "default",
     // When set, the foreground color of each cell will change to try meet the contrast ratio specified. Note that this will not apply to `powerline` characters per #146406. Example values:
-    // 
+    //
     // - 1: Do nothing and use the standard theme colors.
     // - 4.5: [WCAG AA compliance (minimum)](https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html) (default).
     // - 7: [WCAG AAA compliance (enhanced)](https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast7.html).
@@ -3695,9 +3696,9 @@
     // Zoom the font of the terminal when using mouse wheel and holding `Cmd`.
     "terminal.integrated.mouseWheelZoom": false,
     // When the terminal process must be shut down (for example on window or application close), this determines when the previous terminal session contents/history should be restored and processes be recreated when the workspace is next opened.
-    // 
+    //
     // Caveats:
-    // 
+    //
     // - Restoring of the process current working directory depends on whether it is supported by the shell.
     // - Time to persist the session during shutdown is limited, so it may be aborted when using high-latency remote connections.
     //  - onExit: Revive the processes after the last window is closed on Windows/Linux or when the `workbench.action.quit` command is triggered (command palette, keybinding, menu).
@@ -3707,15 +3708,15 @@
     // Controls the maximum amount of lines that will be restored when reconnecting to a persistent terminal session. Increasing this will restore more lines of scrollback at the cost of more memory and increase the time it takes to connect to terminals on start up. This setting requires a restart to take effect and should be set to a value less than or equal to `terminal.integrated.scrollback`.
     "terminal.integrated.persistentSessionScrollback": 100,
     // A set of terminal profile customizations for Linux which allows adding, removing or changing how terminals are launched. Profiles are made up of a mandatory path, optional arguments and other presentation options.
-    // 
+    //
     // To override an existing profile use its profile name as the key, for example:
-    // 
+    //
     // ```json
     // "terminal.integrated.profile.linux": {
     //   "bash": null
     // }
     // ```
-    // 
+    //
     // [Read more about configuring profiles](https://code.visualstudio.com/docs/terminal/profiles).
     "terminal.integrated.profiles.linux": {
         "bash": {
@@ -3738,15 +3739,15 @@
         }
     },
     // A set of terminal profile customizations for Mac which allows adding, removing or changing how terminals are launched. Profiles are made up of a mandatory path, optional arguments and other presentation options.
-    // 
+    //
     // To override an existing profile use its profile name as the key, for example:
-    // 
+    //
     // ```json
     // "terminal.integrated.profile.osx": {
     //   "bash": null
     // }
     // ```
-    // 
+    //
     // [Read more about configuring profiles](https://code.visualstudio.com/docs/terminal/profiles).
     "terminal.integrated.profiles.osx": {
         "bash": {
@@ -3778,15 +3779,15 @@
         }
     },
     // A set of terminal profile customizations for Windows which allows adding, removing or changing how terminals are launched. Profiles are made up of a mandatory path, optional arguments and other presentation options.
-    // 
+    //
     // To override an existing profile use its profile name as the key, for example:
-    // 
+    //
     // ```json
     // "terminal.integrated.profile.windows": {
     //   "bash": null
     // }
     // ```
-    // 
+    //
     // [Read more about configuring profiles](https://code.visualstudio.com/docs/terminal/profiles).
     "terminal.integrated.profiles.windows": {
         "PowerShell": {
@@ -3825,17 +3826,17 @@
     //  - overviewRuler: Show overview ruler decorations to the right of the terminal
     //  - never: Do not show decorations
     "terminal.integrated.shellIntegration.decorationsEnabled": "both",
-    // Determines whether or not shell integration is auto-injected to support features like enhanced command tracking and current working directory detection. 
-    // 
+    // Determines whether or not shell integration is auto-injected to support features like enhanced command tracking and current working directory detection.
+    //
     // Shell integration works by injecting the shell with a startup script. The script gives VS Code insight into what is happening within the terminal.
-    // 
+    //
     // Supported shells:
-    // 
+    //
     // - Linux/macOS: bash, fish, pwsh, zsh
     //  - Windows: pwsh, git bash
-    // 
+    //
     // This setting applies only when terminals are created, so you will need to restart your terminals for it to take effect.
-    // 
+    //
     //  Note that the script injection may not work if you have custom arguments defined in the terminal profile, have enabled `editor.accessibilitySupport#`, have a [complex bash `PROMPT_COMMAND`](https://code.visualstudio.com/docs/editor/integrated-terminal#_complex-bash-promptcommand), or other unsupported setup. To disable decorations, see `#terminal.integrated.shellIntegration.decorationsEnabled`
     "terminal.integrated.shellIntegration.enabled": true,
     // Controls whether to report the shell environment, enabling its use in features such as `terminal.integrated.suggest.enabled`. This may cause a slowdown when printing your shell's prompt.
@@ -3911,9 +3912,9 @@
     // Determines whether the up arrow key navigates the command history when focus is on the first suggestion and navigation has not yet occurred. When set to false, the up arrow will move focus to the last suggestion instead.
     "terminal.integrated.suggest.upArrowNavigatesHistory": true,
     // A set of windows command executable extensions that will be included as suggestions in the terminal.
-    // 
+    //
     // Many executables are included by default, listed below:
-    // 
+    //
     // - bat
     // - cmd
     // - com
@@ -3927,9 +3928,9 @@
     // - rb
     // - sh
     // - vbs.
-    // 
+    //
     // To exclude an extension, set it to `false`
-    // 
+    //
     // . To include one not in the list, add it and set it to `true`.
     "terminal.integrated.suggest.windowsExecutableExtensions": {},
     // A codicon ID to associate with terminal icons by default.
@@ -4988,25 +4989,25 @@
     "telemetry.enableTelemetry": true,
     // Enable feedback mechanisms such as the issue reporter, surveys, and other feedback options.
     "telemetry.feedback.enabled": true,
-    // 
+    //
     // Controls Visual Studio Code telemetry, first-party extension telemetry, and participating third-party extension telemetry. Some third party extensions might not respect this setting. Consult the specific extension's documentation to be sure. Telemetry helps us better understand how Visual Studio Code is performing, where improvements need to be made, and how features are being used. Read more about the [data we collect](https://aka.ms/vscode-telemetry) and our [privacy statement](https://go.microsoft.com/fwlink/?LinkId=521839). A full restart of the application is necessary for crash reporting changes to take effect.
-    // 
+    //
     // &nbsp;
-    // 
+    //
     // The following table outlines the data sent with each setting:
-    // 
+    //
     // |       | Crash Reports | Error Telemetry | Usage Data |
     // |:------|:-------------:|:---------------:|:----------:|
     // | all   |       ✓       |        ✓        |     ✓      |
     // | error |       ✓       |        ✓        |     -      |
     // | crash |       ✓       |        -        |     -      |
     // | off   |       -       |        -        |     -      |
-    // 
-    // 
+    //
+    //
     // &nbsp;
-    // 
+    //
     // ****Note:*** If this setting is 'off', no telemetry will be sent regardless of other telemetry settings. If this setting is set to anything except 'off' and telemetry is disabled with deprecated settings, no telemetry will be sent.*
-    // 
+    //
     //  - all: Sends usage data, errors, and crash reports.
     //  - error: Sends general error telemetry and crash reports.
     //  - crash: Sends OS level crash reports.
@@ -5341,7 +5342,7 @@
     //  - fixedScrolling: Show thinking in a fixed-height streaming panel that auto-scrolls; click header to expand to full height.
     "chat.agent.thinkingStyle": "fixedScrolling",
     // Specify location(s) of custom agent files (`*.agent.md`). [Learn More](https://aka.ms/vscode-ghcp-custom-chat-modes).
-    // 
+    //
     // Relative paths are resolved from the root folder(s) of your workspace.
     "chat.agentFilesLocations": {
         ".github/agents": true,
@@ -5357,7 +5358,7 @@
     // Controls whether Agent Session Projection mode is enabled for reviewing agent sessions in a focused workspace.
     "chat.agentSessionProjection.enabled": false,
     // Specify location(s) of agent skills (`SKILL.md`) that can be used in Chat Sessions. [Learn More](https://aka.ms/vscode-agent-skills).
-    // 
+    //
     // Each path should contain skill subfolders with SKILL.md files (e.g., add `my-skills` if you have `my-skills/skillA/SKILL.md`). Relative paths are resolved from the root folder(s) of your workspace.
     "chat.agentSkillsLocations": {
         ".github/skills": true,
@@ -5420,7 +5421,7 @@
     // Controls the font size in pixels in chat messages.
     "chat.fontSize": 10,
     // Specify paths to hook configuration files that define custom shell commands to execute at strategic points in an agent's workflow. [Learn More](https://aka.ms/vscode-chat-hooks).
-    // 
+    //
     // Relative paths are resolved from the root folder(s) of your workspace. Supports Copilot hooks (`*.json`) and Claude Code hooks (`settings.json`, `settings.local.json`).
     "chat.hookFilesLocations": {
         ".github/hooks": true,
@@ -5443,7 +5444,7 @@
     //  - link: Display file and symbol references as simple blue links without icons.
     "chat.inlineReferences.style": "box",
     // Specify location(s) of instructions files (`*.instructions.md`) that can be attached in Chat sessions. [Learn More](https://aka.ms/vscode-ghcp-custom-instructions).
-    // 
+    //
     // Relative paths are resolved from the root folder(s) of your workspace.
     "chat.instructionsFilesLocations": {
         ".github/instructions": true,
@@ -5481,7 +5482,7 @@
     // Controls whether a chat session should present the user with an OS notification when a response is received while the window is not in focus. This includes a window badge as well as notification toast.
     "chat.notifyWindowOnResponseReceived": "windowNotFocused",
     // Specify location(s) of reusable prompt files (`*.prompt.md`) that can be run in Chat sessions. [Learn More](https://aka.ms/vscode-ghcp-prompt-snippets).
-    // 
+    //
     // Relative paths are resolved from the root folder(s) of your workspace.
     "chat.promptFilesLocations": {
         ".github/prompts": true
@@ -5507,7 +5508,7 @@
     // When enabled, tool failures are automatically expanded in the chat UI to show error details.
     "chat.tools.autoExpandFailures": true,
     // Controls whether edits made by chat are automatically approved. The default is to approve all edits except those made to certain files which have the potential to cause immediate unintended side-effects, such as `**/.vscode/*.json`.
-    // 
+    //
     // Set to `true` to automatically approve edits to matching files, `false` to always require explicit approval. The last pattern matching a given file will determine whether the edit is automatically approved.
     "chat.tools.edits.autoApprove": {
         "**/*": true
@@ -5515,13 +5516,13 @@
     // Controls which tools are eligible for automatic approval. Tools set to 'false' will always present a confirmation and will never offer the option to auto-approve. The default behavior (or setting a tool to 'true') may result in the tool offering auto-approval options.
     "chat.tools.eligibleForAutoApproval": {},
     // Global auto approve also known as "YOLO mode" disables manual approval completely for _all tools in all workspaces_, allowing the agent to act fully autonomously. This is extremely dangerous and is *never* recommended, even containerized environments like [Codespaces](https://github.com/features/codespaces) and [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) have user keys forwarded into the container that could be compromised.
-    // 
+    //
     // **This feature disables [critical security protections](https://code.visualstudio.com/docs/copilot/security) and makes it much easier for an attacker to compromise the machine.**
     "chat.tools.global.autoApprove": true,
     // Controls whether to show the todo list widget above the chat input. When enabled, the widget displays todo items created by the agent and updates as progress is made.
     "chat.tools.todos.showWidget": true,
     // Controls which URLs are automatically approved when requested by chat tools. Keys are URL patterns and values can be `true` to approve both requests and responses, `false` to deny, or an object with `approveRequest` and `approveResponse` properties for granular control.
-    // 
+    //
     // Examples:
     // - `"https://example.com": true` - Approve all requests to example.com
     // - `"https://*.example.com": true` - Approve all requests to any subdomain of example.com
@@ -5556,7 +5557,7 @@
     "chat.viewSessions.orientation": "sideBySide",
     // Controls if files that were part of a refactoring are saved automatically
     "files.refactoring.autoSave": true,
-    // 
+    //
     //  - legacy: Uses the legacy diffing algorithm.
     //  - advanced: Uses the advanced diffing algorithm.
     "mergeEditor.diffAlgorithm": "advanced",
@@ -5591,7 +5592,7 @@
     // Specifies the local host name that will be used for port forwarding.
     "remote.localPortHost": "localhost",
     // Set default properties that are applied to all ports that don't get properties from the setting `remote.portsAttributes`. For example:
-    // 
+    //
     // ```
     // {
     //   "onAutoForward": "ignore"
@@ -5599,7 +5600,7 @@
     // ```
     "remote.otherPortsAttributes": {},
     // Set properties that are applied when a specific port number is forwarded. For example:
-    // 
+    //
     // ```
     // "3000": {
     //   "label": "Application"
@@ -5634,11 +5635,11 @@
     "accessibility.replEditor.readLastExecutionOutput": true,
     // Whether or not position changes should be debounced
     "accessibility.signalOptions.debouncePositionChanges": false,
-    // 
+    //
     "accessibility.signalOptions.experimental.delays.errorAtPosition": {},
     // Delays for all signals besides error and warning at position
     "accessibility.signalOptions.experimental.delays.general": {},
-    // 
+    //
     "accessibility.signalOptions.experimental.delays.warningAtPosition": {},
     // The volume of the sounds in percent (0-100).
     "accessibility.signalOptions.volume": 70,
@@ -5892,7 +5893,7 @@
     // Controls whether the `window.title` should be optimized for screen readers when in screen reader mode. When enabled, the window title will have `activeEditorState` appended to the end.
     "accessibility.windowTitleOptimized": true,
     // Set the color mode for native UI elements such as native dialogs, menus and title bar. Even if your OS is configured in light color mode, you can select a dark system color theme for the window. You can also configure to automatically adjust based on the `workbench.colorTheme` setting.
-    // 
+    //
     // Note: This setting is ignored when `window.autoDetectColorScheme` is enabled.
     //  - default: Native widget colors match the system colors.
     //  - auto: Use light native widget colors for light color themes and dark for dark color themes.
@@ -5963,44 +5964,44 @@
     // Controls whether to show blame information in the editor using editor decorations.
     "git.blame.editorDecoration.enabled": false,
     // Template for the blame information editor decoration. Supported variables:
-    // 
+    //
     // * `hash`: Commit hash
-    // 
+    //
     // * `hashShort`: First N characters of the commit hash according to `git.commitShortHashLength`
-    // 
+    //
     // * `subject`: First line of the commit message
-    // 
+    //
     // * `authorName`: Author name
-    // 
+    //
     // * `authorEmail`: Author email
-    // 
+    //
     // * `authorDate`: Author date
-    // 
+    //
     // * `authorDateAgo`: Time difference between now and the author date
-    // 
-    // 
+    //
+    //
     "git.blame.editorDecoration.template": "${subject}, ${authorName} (${authorDateAgo})",
     // Controls whether to ignore whitespace changes when computing blame information.
     "git.blame.ignoreWhitespace": false,
     // Controls whether to show blame information in the status bar.
     "git.blame.statusBarItem.enabled": true,
     // Template for the blame information status bar item. Supported variables:
-    // 
+    //
     // * `hash`: Commit hash
-    // 
+    //
     // * `hashShort`: First N characters of the commit hash according to `git.commitShortHashLength`
-    // 
+    //
     // * `subject`: First line of the commit message
-    // 
+    //
     // * `authorName`: Author name
-    // 
+    //
     // * `authorEmail`: Author email
-    // 
+    //
     // * `authorDate`: Author date
-    // 
+    //
     // * `authorDateAgo`: Time difference between now and the author date
-    // 
-    // 
+    //
+    //
     "git.blame.statusBarItem.template": "${authorName} (${authorDateAgo})",
     // Prefix used when creating a new branch.
     "git.branchPrefix": "",
@@ -6242,11 +6243,11 @@
     // When true, uses Electron's built-in fetch function for HTTP requests. When false, uses the Node.js global fetch function. This setting only applies when running in the Electron environment. **Note:** A restart is required for this setting to take effect.
     "github-authentication.useElectronFetch": true,
     // The URI for your GHE.com or GitHub Enterprise Server instance.
-    // 
+    //
     // Examples:
     // * GHE.com: `https://octocat.ghe.com`
     // * GitHub Enterprise Server: `https://github.octocat.com`
-    // 
+    //
     // > **Note:** This should _not_ be set to a GitHub.com URI. If your account exists on GitHub.com or is a GitHub Enterprise Managed User, you do not need any additional configuration and can simply log in to GitHub.
     "github-enterprise.uri": "",
     // Grunt
@@ -6323,7 +6324,7 @@
     // Default options used when debugging a process through the `Debug: Attach to Node.js Process` command
     "debug.javascript.pickAndAttachOptions": {},
     // Request options to use when loading resources, such as source maps, in the debugger. You may need to configure this if your sourcemaps require authentication or use a self-signed certificate, for instance. Options are used to create a request using the [`got`](https://github.com/sindresorhus/got) library.
-    // 
+    //
     // A common case to disable certificate verification can be done by passing `{ "https": { "rejectUnauthorized": false } }`.
     "debug.javascript.resourceRequestOptions": {},
     // Default launch options for the JavaScript debug terminal and npm scripts.
@@ -6386,7 +6387,7 @@
     // Temperature setting for agent mode requests.
     "github.copilot.chat.agent.temperature": 0,
     // Enable the built-in agent customization skill.
-    "github.copilot.chat.agentCustomizationSkill.enabled": false,
+    "github.copilot.chat.agentCustomizationSkill.enabled": true,
     // Force GPT-4.1 for agent history summarization.
     "github.copilot.chat.agentHistorySummarizationForceGpt41": false,
     // Mode for agent history summarization.
@@ -6398,7 +6399,7 @@
     // Enables an experimental alternate prompt for GPT models instead of the default prompt.
     "github.copilot.chat.alternateGptPrompt.enabled": false,
     // Advanced configuration for Anthropic context editing. Customize trigger thresholds and behavior for automatic context management.
-    // 
+    //
     // - **triggerType**: `input_tokens` or `tool_uses`
     // - **triggerValue**: Threshold to trigger editing (default: 80000)
     // - **keepCount**: Number of recent tool uses to keep (default: 3)
@@ -6407,7 +6408,7 @@
     // - **clearInputs**: Whether to clear tool inputs (default: true)
     // - **thinkingKeepTurns**: Number of thinking turns to keep (default: 1)
     // Enable context editing for Anthropic models. Automatically manages conversation context as it grows, helping optimize costs and stay within context window limits.
-    // 
+    //
     // **Note**: This is an experimental feature. Context editing may cause additional cache rewrites. Enable with caution.
     "github.copilot.chat.anthropic.contextEditing.enabled": false,
     // Maximum number of tokens to allocate for extended thinking in Anthropic models. Setting this value enables extended thinking. Valid range is `1,024` to `max_tokens-1`.
@@ -6416,8 +6417,8 @@
     "github.copilot.chat.anthropic.tools.websearch.allowedDomains": [],
     // List of domains to exclude from web search results (e.g., `["untrustedsource.com"]`). Domains should not include the HTTP/HTTPS scheme. Subdomains are automatically excluded. Cannot be used together with allowed domains.
     "github.copilot.chat.anthropic.tools.websearch.blockedDomains": [],
-    // Enable Anthropic's native web search tool for BYOK Claude models. When enabled, allows Claude to search the web for current information. 
-    // 
+    // Enable Anthropic's native web search tool for BYOK Claude models. When enabled, allows Claude to search the web for current information.
+    //
     // **Note**: This is an experimental feature only available for BYOK Anthropic Claude models.
     "github.copilot.chat.anthropic.tools.websearch.enabled": false,
     // Maximum number of web searches allowed per request. Valid range is 1 to 20. Prevents excessive API calls within a single interaction. If Claude exceeds this limit, the response returns an error.
@@ -6425,7 +6426,7 @@
     // User location for personalizing web search results based on geographic context. All fields (city, region, country, timezone) are optional. Example: `{"city": "San Francisco", "region": "California", "country": "US", "timezone": "America/Los_Angeles"}`
     "github.copilot.chat.anthropic.tools.websearch.userLocation": null,
     // Enable tool search tool for Anthropic models. When enabled, tools are dynamically discovered and loaded on-demand using natural language search, reducing context window usage when many tools are available.
-    // 
+    //
     // **Note**: This is an experimental feature.
     "github.copilot.chat.anthropic.toolSearchTool.enabled": true,
     // Use the Messages API instead of the Chat Completions API when supported.
@@ -6446,12 +6447,12 @@
     "github.copilot.chat.cloudAgent.enabled": true,
     // Use instructions files instead. See https://aka.ms/vscode-ghcp-custom-instructions for more information.
     // A set of instructions that will be added to Copilot requests that generate code.
-    // Instructions can come from: 
+    // Instructions can come from:
     // - a file in the workspace: `{ "file": "fileName" }`
     // - text in natural language: `{ "text": "Use underscore for field names." }`
-    // 
+    //
     // Controls whether code instructions from `.github/copilot-instructions.md` are added to Copilot requests.
-    // 
+    //
     // Note: Keep your instructions short and precise. Poor instructions can degrade Copilot's quality and performance. [Learn more](https://aka.ms/github-copilot-custom-instructions) about customizing Copilot.
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
     // Enable code search capabilities in agent mode.
@@ -6459,12 +6460,14 @@
     // Whether to enable agentic codesearch when using `#codebase`.
     "github.copilot.chat.codesearch.enabled": true,
     // A set of instructions that will be added to Copilot requests that generate commit messages.
-    // Instructions can come from: 
+    // Instructions can come from:
     // - a file in the workspace: `{ "file": "fileName" }`
     // - text in natural language: `{ "text": "Use conventional commit message format." }`
-    // 
+    //
     // Note: Keep your instructions short and precise. Poor instructions can degrade Copilot's quality and performance.
-    "github.copilot.chat.commitMessageGeneration.instructions": [],
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        { "text": "Always use Conventional Commits format: type(scope): description. Types: feat, fix, chore, docs, style, refactor, test, perf, ci. Use present tense, lowercase, no period at end. Keep under 72 chars. Add body with 'why' for non-trivial changes." }
+    ],
     // Whether the `copilot-debug` command is enabled in the terminal.
     "github.copilot.chat.copilotDebugCommand.enabled": true,
     // Enable agentic memory for GitHub Copilot. When enabled, Copilot can store facts about your codebase conventions, structure, and preferences, and recall them in future conversations to provide more contextually relevant assistance. [Learn more](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/copilot-memory).
@@ -6472,7 +6475,7 @@
     // When enabled, custom instructions and mode instructions will be appended to the system message instead of a user message.
     "github.copilot.chat.customInstructionsInSystemMessage": true,
     // Override the chat model. This allows you to test with different models.
-    // 
+    //
     // **Note**: This is an advanced debugging setting and should not be used while self-hosting as it may lead to a different experience compared to end-users.
     "github.copilot.chat.debug.overrideChatEngine": "",
     // Maximum number of entries to keep in the request logger for debugging purposes.
@@ -6484,11 +6487,11 @@
     // Enable the modern `multi_replace_string_in_file` edit tool when generating edits with Gemini 3 models.
     "github.copilot.chat.edits.gemini3MultiReplaceString": false,
     // Enable remembering user preferences in agent mode.
-    "github.copilot.chat.enableUserPreferences": false,
+    "github.copilot.chat.enableUserPreferences": true,
     // Enable feedback collection on configuration changes.
     "github.copilot.chat.feedback.onChange": false,
     // Show 'Generate tests' code lens for symbols that are not covered by current test coverage information.
-    "github.copilot.chat.generateTests.codeLens": false,
+    "github.copilot.chat.generateTests.codeLens": true,
     // Enable built-in support for the GitHub MCP Server.
     "github.copilot.chat.githubMcpServer.enabled": false,
     // Enable lockdown mode for the GitHub MCP Server. When enabled, hides public issue details created by users without push access. [Learn more](https://aka.ms/vscode-gh-mcp-lockdown).
@@ -6524,9 +6527,9 @@
     // Model name for short context instant apply.
     "github.copilot.chat.instantApply.shortContextModelName": "gpt-4o-instant-apply-full-ft-v66-short",
     // Enables the TypeScript language context provider for /fix commands
-    "github.copilot.chat.languageContext.fix.typescript.enabled": false,
+    "github.copilot.chat.languageContext.fix.typescript.enabled": true,
     // Enables the TypeScript language context provider for inline chats (both generate and edit)
-    "github.copilot.chat.languageContext.inline.typescript.enabled": false,
+    "github.copilot.chat.languageContext.inline.typescript.enabled": true,
     // The cache population timeout for the TypeScript language context provider in milliseconds. The default is 500 milliseconds.
     "github.copilot.chat.languageContext.typescript.cacheTimeout": 500,
     // Enables the TypeScript language context provider for inline suggestions
@@ -6589,12 +6592,14 @@
     // Enable prompt file context provider.
     "github.copilot.chat.promptFileContextProvider.enabled": true,
     // A set of instructions that will be added to Copilot requests that generate pull request titles and descriptions.
-    // Instructions can come from: 
+    // Instructions can come from:
     // - a file in the workspace: `{ "file": "fileName" }`
     // - text in natural language: `{ "text": "Always include a list of key changes." }`
-    // 
+    //
     // Note: Keep your instructions short and precise. Poor instructions can degrade Copilot's quality and performance.
-    "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [],
+    "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+        { "text": "Structure PR descriptions with: ## Summary (what and why), ## Changes (bullet list of key changes), ## Testing (how it was tested), ## Breaking Changes (if any). Keep it concise. Link related issues with 'Closes #N'." }
+    ],
     // Sets the reasoning effort used for the Responses API. Requires `github.copilot.chat.useResponsesApi`.
     "github.copilot.chat.responsesApiReasoningEffort": "default",
     // Sets the reasoning summary style used for the Responses API. Requires `github.copilot.chat.useResponsesApi`.
@@ -6606,12 +6611,16 @@
     // Enables code review on current selection.
     "github.copilot.chat.reviewSelection.enabled": true,
     // A set of instructions that will be added to Copilot requests that provide code review for the current selection.
-    // Instructions can come from: 
+    // Instructions can come from:
     // - a file in the workspace: `{ "file": "fileName" }`
     // - text in natural language: `{ "text": "Use underscore for field names." }`
-    // 
+    //
     // Note: Keep your instructions short and precise. Poor instructions can degrade Copilot's effectiveness.
-    "github.copilot.chat.reviewSelection.instructions": [],
+    "github.copilot.chat.reviewSelection.instructions": [
+        { "file": ".github/instructions/security-and-owasp.instructions.md" },
+        { "file": ".github/instructions/a11y.instructions.md" },
+        { "text": "Flag: (1) TypeScript `any` or unsafe assertions, (2) missing Zod validation on inputs, (3) `use client` without justification, (4) hardcoded secrets, (5) file names not in kebab-case, (6) imports not using @/ alias, (7) inline styles instead of Tailwind, (8) code comments not in English. Use 🔴 CRITICAL / 🟡 IMPORTANT / 🟢 SUGGESTION prefixes." }
+    ],
     // Whether to prompt the user to select a specific symbol scope if the user uses `/explain` and the active editor has no selection.
     "github.copilot.chat.scopeSelection": false,
     // Enable the search subagent tool for iterative code exploration in the workspace.
@@ -6635,10 +6644,10 @@
     "github.copilot.chat.terminalChatLocation": "chatView",
     // Use instructions files instead. See https://aka.ms/vscode-ghcp-custom-instructions for more information.
     // A set of instructions that will be added to Copilot requests that generate tests.
-    // Instructions can come from: 
+    // Instructions can come from:
     // - a file in the workspace: `{ "file": "fileName" }`
     // - text in natural language: `{ "text": "Use underscore for field names." }`
-    // 
+    //
     // Group default tools in prompts.
     "github.copilot.chat.tools.defaultToolsGrouped": false,
     // Use relevant GitHub projects as starter projects when using `/new`
@@ -6646,7 +6655,7 @@
     // Use Responses API for truncation.
     "github.copilot.chat.useResponsesApiTruncation": false,
     // This setting defines the tool count over which virtual tools should be used. Virtual tools group similar sets of tools together and they allow the model to activate them on-demand. Certain tool groups will optimistically be pre-activated. We are actively developing this feature and you experience degraded tool calling once the threshold is hit.
-    // 
+    //
     // May be set to `0` to disable virtual tools.
     "github.copilot.chat.virtualTools.threshold": 128,
     // Enable code search in workspace context.
@@ -6673,7 +6682,7 @@
     // Whether to allow whitespace-only changes be proposed by next edit suggestions (NES).
     "github.copilot.nextEditSuggestions.allowWhitespaceOnlyChanges": true,
     // Whether to enable next edit suggestions (NES).
-    // 
+    //
     // NES can propose a next edit based on your recent changes. [Learn more](https://aka.ms/vscode-nes) about next edit suggestions.
     "github.copilot.nextEditSuggestions.enabled": true,
     // Whether to allow next edit suggestions (NES) to modify code farther away from the cursor position.
@@ -6686,6 +6695,6 @@
     "github.copilot.renameSuggestions.triggerAutomatically": true,
     // The currently selected completion model ID. To select from a list of available models, use the __"Change Completions Model"__ command or open the model picker (from the Copilot menu in the VS Code title bar, select __"Configure Code Completions"__ then __"Change Completions Model"__. The value must be a valid model ID. An empty value indicates that the default model will be used.
     "github.copilot.selectedCompletionModel": "",
-    // 
+    //
     "github.copilot.advanced": {},
 }

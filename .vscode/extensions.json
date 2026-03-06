@@ -1,0 +1,33 @@
+{
+  "recommendations": [
+    // GitHub Copilot
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+
+    // TypeScript / JavaScript
+    "yoavbls.pretty-ts-errors",
+    "usernamehw.errorlens",
+
+    // Next.js / React
+    "bradlc.vscode-tailwindcss",
+
+    // Linting / Formatting
+    "dbaeumer.vscode-eslint",
+
+    // Testing
+    "vitest.explorer",
+    "ms-playwright.playwright",
+
+    // Environment & Config
+    "mikestead.dotenv",
+
+    // Git & GitHub
+    "github.vscode-github-actions",
+    "eamodio.gitlens",
+
+    // DX utilities
+    "aaron-bond.better-comments",
+    "christian-kohler.path-intellisense",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}
