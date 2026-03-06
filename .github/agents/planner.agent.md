@@ -1,6 +1,7 @@
 ---
 name: 'Planner'
 description: "Generate a detailed implementation plan for new features or refactoring. Read-only — no code edits."
+argument-hint: "Describe the feature or refactoring task to plan"
 handoffs:
   - label: Implement Feature
     agent: Feature Builder

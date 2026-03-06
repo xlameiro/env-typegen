@@ -1,6 +1,7 @@
 ---
 name: 'GitHub Actions'
 description: "GitHub Actions CI/CD specialist: secure workflows, action pinning, OIDC, least-privilege permissions, and supply-chain safety"
+argument-hint: "Describe the CI/CD workflow to create or the issue to fix"
 handoffs:
   - label: Review Workflow Changes
     agent: Code Reviewer

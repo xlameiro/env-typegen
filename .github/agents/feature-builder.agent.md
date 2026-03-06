@@ -1,6 +1,7 @@
 ---
 name: 'Feature Builder'
 description: "Build new features following project conventions: Server Components, Zod validation, kebab-case naming, and TDD"
+argument-hint: "Describe the feature or user story to implement"
 handoffs:
   - label: Review My Changes
     agent: Code Reviewer
@@ -75,3 +76,21 @@ npx tsc --noEmit # TypeScript — zero type errors
 pnpm test        # Vitest — all tests passing
 pnpm build       # Next.js production build — successful
 ```
+
+<success_criteria>
+- [ ] TypeScript types and Zod schemas defined before implementation
+- [ ] Server Components used by default; "use client" justified with a comment
+- [ ] All user inputs validated with Zod at boundaries
+- [ ] pnpm lint passes with zero errors
+- [ ] npx tsc --noEmit passes
+- [ ] pnpm test passes
+- [ ] pnpm build succeeds
+- [ ] Completion marker written at end of response
+</success_criteria>
+
+## Completion protocol
+
+End every session with exactly one of these markers:
+
+- `## FEATURE COMPLETE ✅` — all 4 quality gates pass; feature is production-ready
+- `## FEATURE BLOCKED` — blocked by ambiguous requirements or a dependency issue; state exactly what is needed to continue
