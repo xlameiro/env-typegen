@@ -5,6 +5,8 @@ description: Zod schema validation best practices for type safety, parsing, and 
 
 # Zod Best Practices
 
+> **Version note:** This skill targets **Zod v4**. Rules in the `perf-` category (e.g., `perf-zod-mini`) are v4-only. If your project uses Zod v3, skip those rules.
+
 Comprehensive schema validation guide for Zod in TypeScript applications. Contains 43 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
 
 ## When to Apply
@@ -103,15 +105,11 @@ Reference these guidelines when:
 
 ## How to Use
 
-Read individual reference files for detailed explanations and code examples:
-
-- [Section definitions](references/_sections.md) - Category structure and impact levels
-- [Rule template](assets/templates/_template.md) - Template for adding new rules
-- Individual rules: `references/{prefix}-{slug}.md`
-
-## Full Compiled Document
-
-For the complete guide with all rules expanded: `AGENTS.md`
+- **Quick reference:** this file — rule names and categories
+- **Full guide** with all code examples: [`AGENTS.md`](AGENTS.md)
+- **Category definitions** (impact levels, rule lists per section): [`references/_sections.md`](references/_sections.md)
+- **Template** for authoring new rules: [`assets/templates/_template.md`](assets/templates/_template.md)
+- **Individual rules:** `references/{prefix}-{slug}.md` (e.g. `references/parse-use-safeparse.md`)
 
 ## Related Skills
 

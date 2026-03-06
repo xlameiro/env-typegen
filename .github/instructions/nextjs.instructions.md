@@ -85,9 +85,10 @@ Always move client-only UI into a Client Component and import it directly in you
   - If a section of a page is complex or self-contained.
   - If it improves readability or testability.
 - **Naming Conventions:**
-  - Use `PascalCase` for component files and exports (e.g., `UserCard.tsx`).
-  - Use `camelCase` for hooks (e.g., `useUser.ts`).
-  - Use `snake_case` or `kebab-case` for static assets (e.g., `logo_dark.svg`).
+  - Use **`kebab-case` for all file names** (e.g., `user-card.tsx`, `use-auth.ts`) — this is the project-wide convention.
+  - Use `PascalCase` for component **function/class name** exports (e.g., `export function UserCard`).
+  - Use `camelCase` for hooks (e.g., `useUser.ts`, `export function useUser`).
+  - Use `snake_case` or `kebab-case` for static assets (e.g., `logo-dark.svg`).
   - Name context providers as `XyzProvider` (e.g., `ThemeProvider`).
 - **File Naming:**
   - Match the component name to the file name.
@@ -105,7 +106,8 @@ Always move client-only UI into a Client Component and import it directly in you
 ## 4. Naming Conventions (General)
 
 - **Folders:** `kebab-case` (e.g., `user-profile/`)
-- **Files:** `PascalCase` for components, `camelCase` for utilities/hooks, `kebab-case` for static assets
+- **Files:** `kebab-case` for **all files** (e.g., `user-card.tsx`, `use-auth.ts`, `format-date.ts`) — project-wide rule
+- **Component exports:** `PascalCase` function/class names (e.g., `export function UserCard`)
 - **Variables/Functions:** `camelCase`
 - **Types/Interfaces:** `PascalCase`
 - **Constants:** `UPPER_SNAKE_CASE`

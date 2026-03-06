@@ -1,7 +1,6 @@
 {
   "recommendations": [
     // GitHub Copilot
-    "GitHub.copilot",
     "GitHub.copilot-chat",
 
     // TypeScript / JavaScript
@@ -23,7 +22,6 @@
 
     // Git & GitHub
     "github.vscode-github-actions",
-    "eamodio.gitlens",
 
     // DX utilities
     "aaron-bond.better-comments",

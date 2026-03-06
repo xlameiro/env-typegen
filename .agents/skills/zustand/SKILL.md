@@ -3,177 +3,174 @@ name: zustand
 description: Zustand state management guide. Use when working with store code (src/store/**), implementing actions, managing state, or creating slices. Triggers on Zustand store development, state management questions, or action implementation.
 ---
 
-# LobeHub Zustand State Management
+# Zustand State Management
 
-## Action Type Hierarchy
+Zustand is a lightweight, unopinionated state management library for React. In this project, Zustand is used for **client-side UI state only** — keep server data in Server Components and use Next.js caching primitives for fetched data.
 
-### 1. Public Actions
+## Core Pattern (TypeScript)
 
-Main interfaces for UI components:
-
-- Naming: Verb form (`createTopic`, `sendMessage`)
-- Responsibilities: Parameter validation, flow orchestration
-
-### 2. Internal Actions (`internal_*`)
-
-Core business logic implementation:
-
-- Naming: `internal_` prefix (`internal_createTopic`)
-- Responsibilities: Optimistic updates, service calls, error handling
-- Should not be called directly by UI
-
-### 3. Dispatch Methods (`internal_dispatch*`)
-
-State update handlers:
-
-- Naming: `internal_dispatch` + entity (`internal_dispatchTopic`)
-- Responsibilities: Calling reducers, updating store
-
-## When to Use Reducer vs Simple `set`
-
-**Use Reducer Pattern:**
-
-- Managing object lists/maps (`messagesMap`, `topicMaps`)
-- Optimistic updates
-- Complex state transitions
-
-**Use Simple `set`:**
-
-- Toggling booleans
-- Updating simple values
-- Setting single state fields
-
-## Optimistic Update Pattern
-
-```typescript
-internal_createTopic: async (params) => {
-  const tmpId = Date.now().toString();
-
-  // 1. Immediately update frontend (optimistic)
-  get().internal_dispatchTopic(
-    { type: 'addTopic', value: { ...params, id: tmpId } },
-    'internal_createTopic'
-  );
-
-  // 2. Call backend service
-  const topicId = await topicService.createTopic(params);
-
-  // 3. Refresh for consistency
-  await get().refreshTopic();
-  return topicId;
-},
-```
-
-**Delete operations**: Don't use optimistic updates (destructive, complex recovery)
-
-## Naming Conventions
-
-**Actions:**
-
-- Public: `createTopic`, `sendMessage`
-- Internal: `internal_createTopic`, `internal_updateMessageContent`
-- Dispatch: `internal_dispatchTopic`
-- Toggle: `internal_toggleMessageLoading`
-
-**State:**
-
-- ID arrays: `messageLoadingIds`, `topicEditingIds`
-- Maps: `topicMaps`, `messagesMap`
-- Active: `activeTopicId`
-- Init flags: `topicsInit`
-
-## Detailed Guides
-
-- Action patterns: `references/action-patterns.md`
-- Slice organization: `references/slice-organization.md`
-
-## Class-Based Action Implementation
-
-We are migrating slices from plain `StateCreator` objects to **class-based actions**.
-
-### Pattern
-
-- Define a class that encapsulates actions and receives `(set, get, api)` in the constructor.
-- Use `#private` fields (e.g., `#set`, `#get`) to avoid leaking internals.
-- Prefer shared typing helpers:
-  - `StoreSetter<T>` from `@/store/types` for `set`.
-  - `Pick<ActionImpl, keyof ActionImpl>` to expose only public methods.
-- Export a `create*Slice` helper that returns a class instance.
+Always use the curried `create<State>()()` syntax. This ensures correct type inference with TypeScript:
 
 ```ts
-type Setter = StoreSetter<HomeStore>;
-export const createRecentSlice = (set: Setter, get: () => HomeStore, _api?: unknown) =>
-  new RecentActionImpl(set, get, _api);
+import { create } from 'zustand'
 
-export class RecentActionImpl {
-  readonly #get: () => HomeStore;
-  readonly #set: Setter;
-
-  constructor(set: Setter, get: () => HomeStore, _api?: unknown) {
-    void _api;
-    this.#set = set;
-    this.#get = get;
-  }
-
-  useFetchRecentTopics = () => {
-    // ...
-  };
+interface BearStore {
+  bears: number
+  increase: (by: number) => void
+  reset: () => void
 }
 
-export type RecentAction = Pick<RecentActionImpl, keyof RecentActionImpl>;
+const useBearStore = create<BearStore>()((set) => ({
+  bears: 0,
+  increase: (by) => set((state) => ({ bears: state.bears + by })),
+  reset: () => set({ bears: 0 }),
+}))
 ```
 
-### Composition
+## Selectors — avoid subscribing to the full store
 
-- In store files, merge class instances with `flattenActions` (do not spread class instances).
-- `flattenActions` binds methods to the original class instance and supports prototype methods and class fields.
+Select only what a component needs to prevent unnecessary re-renders:
 
 ```ts
-const createStore: StateCreator<HomeStore, [['zustand/devtools', never]]> = (...params) => ({
-  ...initialState,
-  ...flattenActions<HomeStoreAction>([
-    createRecentSlice(...params),
-    createHomeInputSlice(...params),
-  ]),
-});
+// ✅ Select a primitive — component only re-renders when `bears` changes
+const bears = useBearStore((state) => state.bears)
+
+// ✅ Shallow equality for objects/arrays
+import { useShallow } from 'zustand/react/shallow'
+const { bears, increase } = useBearStore(
+  useShallow((state) => ({ bears: state.bears, increase: state.increase }))
+)
+
+// ❌ Avoid — subscribes to entire store, re-renders on any change
+const store = useBearStore()
 ```
 
-### Multi-Class Slices
+## Accessing the store outside React
 
-- For large slices that need multiple action classes, compose them in the slice entry using `flattenActions`.
-- Use a local `PublicActions<T>` helper if you need to combine multiple classes and hide private fields.
+Use the static methods on the store hook:
 
 ```ts
-type PublicActions<T> = { [K in keyof T]: T[K] };
+// Read state
+const { bears } = useBearStore.getState()
 
-export type ChatGroupAction = PublicActions<
-  ChatGroupInternalAction & ChatGroupLifecycleAction & ChatGroupMemberAction & ChatGroupCurdAction
->;
+// Write state
+useBearStore.setState({ bears: 5 })
 
-export const chatGroupAction: StateCreator<
-  ChatGroupStore,
-  [['zustand/devtools', never]],
-  [],
-  ChatGroupAction
-> = (...params) =>
-  flattenActions<ChatGroupAction>([
-    new ChatGroupInternalAction(...params),
-    new ChatGroupLifecycleAction(...params),
-    new ChatGroupMemberAction(...params),
-    new ChatGroupCurdAction(...params),
-  ]);
+// Subscribe to changes (always unsubscribe to avoid leaks)
+const unsub = useBearStore.subscribe(
+  (state) => state.bears,
+  (bears) => console.log('bears:', bears)
+)
+unsub()
 ```
 
-### Store-Access Types
+## Slices pattern — organizing large stores
 
-- For class methods that depend on actions in other classes, define explicit store augmentations:
-  - `ChatGroupStoreWithSwitchTopic` for lifecycle `switchTopic`
-  - `ChatGroupStoreWithRefresh` for member refresh
-  - `ChatGroupStoreWithInternal` for curd `internal_dispatchChatGroup`
+Split large stores into focused slices using `StateCreator`:
 
-### Do / Don't
+```ts
+import { create, StateCreator } from 'zustand'
 
-- **Do**: keep constructor signature aligned with `StateCreator` params `(set, get, api)`.
-- **Do**: use `#private` to avoid `set/get` being exposed.
-- **Do**: use `flattenActions` instead of spreading class instances.
-- **Don't**: keep both old slice objects and class actions active at the same time.
+interface BearSlice {
+  bears: number
+  addBear: () => void
+}
+
+interface FishSlice {
+  fishes: number
+  addFish: () => void
+}
+
+type StoreState = BearSlice & FishSlice
+
+const createBearSlice: StateCreator<StoreState, [], [], BearSlice> = (set) => ({
+  bears: 0,
+  addBear: () => set((state) => ({ bears: state.bears + 1 })),
+})
+
+const createFishSlice: StateCreator<StoreState, [], [], FishSlice> = (set) => ({
+  fishes: 0,
+  addFish: () => set((state) => ({ fishes: state.fishes + 1 })),
+})
+
+const useStore = create<StoreState>()((...args) => ({
+  ...createBearSlice(...args),
+  ...createFishSlice(...args),
+}))
+```
+
+## devtools middleware
+
+Wrap with `devtools` to enable Redux DevTools integration. Pass a human-readable label as the third `set` argument for readable action logs:
+
+```ts
+import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
+import type {} from '@redux-devtools/extension' // required for devtools typing
+
+const useBearStore = create<BearStore>()(
+  devtools(
+    (set) => ({
+      bears: 0,
+      increase: (by) =>
+        set((state) => ({ bears: state.bears + by }), undefined, 'bear/increase'),
+      reset: () => set({ bears: 0 }, undefined, 'bear/reset'),
+    }),
+    { name: 'bear-store' }
+  )
+)
+```
+
+## persist middleware — localStorage persistence
+
+```ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface SettingsStore {
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
+}
+
+const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set) => ({
+      theme: 'light',
+      setTheme: (theme) => set({ theme }),
+    }),
+    { name: 'settings' } // localStorage key
+  )
+)
+```
+
+> **v5 breaking change:** The initial state is **no longer written to storage** on store creation. To seed persisted state on first load, call `useSettingsStore.setState({ ... })` after the store is defined.
+
+## Combining middlewares
+
+Apply in innermost-to-outermost order — `devtools` wraps `persist`:
+
+```ts
+import { create } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
+import type {} from '@redux-devtools/extension'
+
+const useBearStore = create<BearState>()(
+  devtools(
+    persist(
+      (set) => ({
+        bears: 0,
+        increase: (by) => set((state) => ({ bears: state.bears + by })),
+      }),
+      { name: 'bear-storage' }
+    )
+  )
+)
+```
+
+## Rules for this project
+
+- **Client UI state only.** Do not duplicate server data in Zustand; fetch in Server Components and pass as props.
+- **No data fetching in stores.** Stores contain state and synchronous actions. Use Server Actions or Route Handlers for mutations.
+- **One store per feature domain.** Prefer focused stores (`useCartStore`, `useUIStore`) over a single monolithic store.
+- **Co-locate store files** near the feature they serve, e.g., `src/features/cart/cart-store.ts`.
+- **`useShallow` for object selectors.** Always use `useShallow` when selecting object/array values to avoid spurious re-renders.

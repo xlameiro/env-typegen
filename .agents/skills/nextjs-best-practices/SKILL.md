@@ -1,9 +1,9 @@
 ---
 name: nextjs-best-practices
 description: "Next.js App Router principles. Server Components, data fetching, routing patterns."
-risk: unknown
-source: community
-date_added: "2026-02-27"
+metadata:
+  source: community
+  date_added: "2026-02-27"
 ---
 
 # Next.js Best Practices
@@ -25,7 +25,7 @@ Does it need...?
 ├── Direct data fetching, no interactivity
 │   └── Server Component (default)
 │
-└── Both? 
+└── Both?
     └── Split: Server parent + Client child
 ```
 
@@ -42,11 +42,16 @@ Does it need...?
 
 ### Fetch Strategy
 
-| Pattern | Use |
-|---------|-----|
-| **Default** | Static (cached at build) |
-| **Revalidate** | ISR (time-based refresh) |
-| **No-store** | Dynamic (every request) |
+> **Next.js 16 breaking change:** `fetch()` is **not cached by default** anymore.
+> The default `auto` behavior fetches fresh on every request unless you explicitly opt in.
+
+| Pattern | How | Use |
+|---------|-----|-----|
+| **`use cache`** (preferred) | `'use cache'` directive + `cacheLife` | Caching in Next.js 16; works for components, functions, data |
+| **Force-cache** | `fetch(url, { cache: 'force-cache' })` | Explicitly cache a single fetch call |
+| **Revalidate** | `fetch(url, { next: { revalidate: 60 } })` | ISR (time-based refresh) |
+| **No-store** | `fetch(url, { cache: 'no-store' })` | Always fetch fresh (dynamic) |
+| **No cache (default)** | `fetch(url)` | Not cached — runs on every request |
 
 ### Data Flow
 
@@ -96,7 +101,8 @@ Does it need...?
 - Validate input with Zod
 - Return proper status codes
 - Handle errors gracefully
-- Use Edge runtime when possible
+- Use **Node.js runtime** (default); prefer Edge runtime only for ultra-low latency needs where its feature restrictions are acceptable
+- Do not call your own Route Handlers from Server Components — extract shared logic into `lib/` modules and call directly
 
 ---
 
@@ -135,23 +141,49 @@ Does it need...?
 
 ---
 
-## 7. Caching Strategy
+## 7. Caching Strategy (Next.js 16)
+
+### Recommended: `use cache` Directive (Cache Components)
+
+Next.js 16 introduces Cache Components as the **primary caching mechanism**. Enable it in `next.config.ts`:
+
+```typescript
+const nextConfig: NextConfig = { cacheComponents: true }
+```
+
+Then use the `'use cache'` directive in components, Server Actions, or utility functions:
+
+```typescript
+import { cacheLife, cacheTag } from 'next/cache'
+
+async function getProducts() {
+  'use cache'
+  cacheLife('hours')        // built-in profile: seconds / minutes / hours / days / max
+  cacheTag('products')      // tag for on-demand invalidation
+  return db.query('SELECT * FROM products')
+}
+```
 
 ### Cache Layers
 
 | Layer | Control |
-|-------|---------|
-| Request | fetch options |
-| Data | revalidate/tags |
-| Full route | route config |
+|-------|--------|
+| Component/Function | `'use cache'` directive + `cacheLife` + `cacheTag` |
+| Individual fetch | `fetch(url, { cache: 'force-cache' })` |
+| Data tags | `cacheTag` / `revalidateTag` / `updateTag` |
+| Full route | route segment config |
 
 ### Revalidation
 
-| Method | Use |
-|--------|-----|
-| Time-based | `revalidate: 60` |
-| On-demand | `revalidatePath/Tag` |
-| No cache | `no-store` |
+| Method | Where | Use |
+|--------|-------|-----|
+| `revalidateTag(tag, 'max')` | Server Actions, Route Handlers | Stale-while-revalidate |
+| `updateTag(tag)` | Server Actions **only** | Immediate expiry (read-your-own-writes) |
+| `revalidatePath(path)` | Server Actions, Route Handlers | Invalidate a route's full cache |
+| `cacheLife('hours')` | inside `'use cache'` scope | Time-based TTL |
+| `fetch(url, { cache: 'no-store' })` | Server Components | Dynamic, never cached |
+
+> **Legacy patterns still work** (`unstable_cache`, `fetch` with `next.revalidate`) but prefer `use cache` for new code.
 
 ---
 

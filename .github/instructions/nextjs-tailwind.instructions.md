@@ -37,15 +37,16 @@ Instructions for high-quality Next.js applications with Tailwind CSS styling and
 
 ### State Management
 - React Server Components for server state
-- React hooks for client state
+- `useState` / `useReducer` / `useContext` for simple local client state
+- **Zustand** for complex client UI state (project convention — one store per feature domain; do not use Redux)
 - Proper loading and error states
 - Optimistic updates where appropriate
 
 ### Data Fetching
 - Server Components for direct database queries
-- React Suspense for loading states
-- Proper error handling and retry logic
-- Cache invalidation strategies
+- React `Suspense` + `loading.tsx` for loading states
+- Proper error handling with `error.tsx` boundaries
+- Cache invalidation via `updateTag()` inside Server Actions (immediate consistency) or `revalidateTag(tag, 'max')` for stale-while-revalidate — see `nextjs.instructions.md` §7
 
 ### Security
 - Input validation and sanitization

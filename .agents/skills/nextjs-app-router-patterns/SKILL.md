@@ -1,11 +1,11 @@
 ---
 name: nextjs-app-router-patterns
-description: Master Next.js 14+ App Router with Server Components, streaming, parallel routes, and advanced data fetching. Use when building Next.js applications, implementing SSR/SSG, or optimizing React Server Components.
+description: Master Next.js 16 App Router with Server Components, streaming, Cache Components (use cache), parallel routes, and advanced data fetching. Use when building Next.js applications, implementing SSR/SSG, or optimizing React Server Components.
 ---
 
 # Next.js App Router Patterns
 
-Comprehensive patterns for Next.js 14+ App Router architecture, Server Components, and modern full-stack React development.
+Comprehensive patterns for Next.js 16 App Router architecture, Server Components, Cache Components, and modern full-stack React development.
 
 ## When to Use This Skill
 
@@ -72,12 +72,23 @@ export default function RootLayout({
 }
 
 // app/page.tsx - Server Component by default
+// Preferred in Next.js 16: use cache directive (requires cacheComponents: true in next.config)
+import { cacheLife } from 'next/cache'
+
 async function getProducts() {
-  const res = await fetch('https://api.example.com/products', {
-    next: { revalidate: 3600 }, // ISR: revalidate every hour
-  })
+  'use cache'
+  cacheLife('hours') // cache for ~1 hour; 'seconds' | 'minutes' | 'hours' | 'days' | 'max'
+  const res = await fetch('https://api.example.com/products')
   return res.json()
 }
+
+// Alternatively, using fetch cache option (still valid):
+// async function getProducts() {
+//   const res = await fetch('https://api.example.com/products', {
+//     next: { revalidate: 3600 }, // ISR: revalidate every hour
+//   })
+//   return res.json()
+// }
 
 export default async function HomePage() {
   const products = await getProducts()
@@ -201,7 +212,7 @@ export function AddToCartButton({ productId }: { productId: string }) {
 // app/actions/cart.ts
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache"; // updateTag for Server Actions (immediate expiry)
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -220,7 +231,9 @@ export async function addToCart(productId: string) {
       create: { sessionId, productId, quantity: 1 },
     });
 
-    revalidateTag("cart");
+    // updateTag: immediate cache expiry (read-your-own-writes). Only in Server Actions.
+    // Use revalidateTag('cart', 'max') instead when stale-while-revalidate is acceptable.
+    updateTag("cart");
     return { success: true };
   } catch (error) {
     return { error: "Failed to add item to cart" };
@@ -507,14 +520,87 @@ fetch(url, { next: { revalidate: 60 } });
 // Tag-based invalidation
 fetch(url, { next: { tags: ["products"] } });
 
-// Invalidate via Server Action
-("use server");
-import { revalidateTag, revalidatePath } from "next/cache";
+// Invalidate via Server Action (use cache + updateTag — preferred in Next.js 16)
+"use server";
+import { updateTag, revalidateTag, revalidatePath } from "next/cache";
 
 export async function updateProduct(id: string, data: ProductData) {
   await db.product.update({ where: { id }, data });
-  revalidateTag("products");
-  revalidatePath("/products");
+  // updateTag: immediate expiry in Server Actions (read-your-own-writes)
+  updateTag("products");
+  // OR for stale-while-revalidate (serves stale while regenerating in background):
+  // revalidateTag("products", "max"); // second arg is a cacheLife profile
+  revalidatePath("/products"); // also invalidate the full route cache
+}
+```
+
+### Pattern 9: Cache Components with `use cache` (Next.js 16)
+
+```typescript
+// Enable in next.config.ts:
+// const nextConfig: NextConfig = { cacheComponents: true }
+
+import { cacheLife, cacheTag } from 'next/cache'
+
+// Cache a Server Component
+export default async function ProductsPage() {
+  'use cache'
+  cacheLife('hours')         // 'seconds' | 'minutes' | 'hours' | 'days' | 'max'
+  cacheTag('products')       // tag for on-demand invalidation
+
+  const products = await db.query('SELECT * FROM products')
+  return <ProductList products={products} />
+}
+
+// Cache a shared data function
+async function getProductById(id: string) {
+  'use cache'
+  cacheLife('days')
+  cacheTag(`product-${id}`, 'products')
+  return db.product.findUnique({ where: { id } })
+}
+
+// Invalidate on mutation (Server Action)
+'use server'
+import { updateTag } from 'next/cache'
+
+export async function deleteProduct(id: string) {
+  await db.product.delete({ where: { id } })
+  updateTag('products')        // immediate expiry (read-your-own-writes)
+  updateTag(`product-${id}`)
+}
+
+// Or allow stale-while-revalidate (Route Handlers or Server Actions):
+// import { revalidateTag } from 'next/cache'
+// revalidateTag('products', 'max') // serves stale, regenerates in background
+```
+
+### Pattern 10: `after()` for Non-Blocking Post-Response Work
+
+```typescript
+// app/layout.tsx or any Server Component / Route Handler
+import { after } from 'next/server'
+import { logAnalytics } from '@/lib/analytics'
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  after(() => {
+    // Runs after response is sent — does not block the user
+    logAnalytics({ event: 'page_view' })
+  })
+  return <>{children}</>
+}
+
+// In a Route Handler
+export async function POST(request: Request) {
+  const data = await request.json()
+  const result = await processData(data)
+
+  after(async () => {
+    // e.g. send a webhook, update audit log without blocking the response
+    await notifyWebhook(result)
+  })
+
+  return Response.json(result)
 }
 ```
 
@@ -523,21 +609,28 @@ export async function updateProduct(id: string, data: ProductData) {
 ### Do's
 
 - **Start with Server Components** - Add 'use client' only when needed
+- **Use `use cache` for Next.js 16** - Prefer it over `unstable_cache` or manual `fetch` cache options
 - **Colocate data fetching** - Fetch data where it's used
 - **Use Suspense boundaries** - Enable streaming for slow data
 - **Leverage parallel routes** - Independent loading states
 - **Use Server Actions** - For mutations with progressive enhancement
+- **Use `after()`** - For analytics, webhooks, and logging that shouldn't block the response
 
 ### Don'ts
 
-- **Don't pass serializable data** - Server → Client boundary limitations
+- **Don't pass non-serializable data** - Server → Client boundary only accepts serializable values
 - **Don't use hooks in Server Components** - No useState, useEffect
-- **Don't fetch in Client Components** - Use Server Components or React Query
+- **Don't fetch in Client Components** - Use Server Components; for client-side data use SWR or React Query
 - **Don't over-nest layouts** - Each layout adds to the component tree
 - **Don't ignore loading states** - Always provide loading.tsx or Suspense
+- **Don't call your own Route Handlers from Server Components** - Extract shared logic into `lib/` modules
+- **Don't use `unstable_cache` for new code** - Use `use cache` directive instead
 
 ## Resources
 
-- [Next.js App Router Documentation](https://nextjs.org/docs/app)
-- [Server Components RFC](https://github.com/reactjs/rfcs/blob/main/text/0188-server-components.md)
+- [Next.js 16 App Router Documentation](https://nextjs.org/docs/app)
+- [Cache Components (use cache)](https://nextjs.org/docs/app/api-reference/directives/use-cache)
+- [cacheTag / cacheLife / updateTag](https://nextjs.org/docs/app/api-reference/functions/cacheTag)
+- [after() function](https://nextjs.org/docs/app/api-reference/functions/after)
+- [Upgrading to Next.js 16](https://nextjs.org/docs/app/guides/upgrading/version-16)
 - [Vercel Templates](https://vercel.com/templates/next.js)
