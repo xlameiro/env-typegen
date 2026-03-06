@@ -22,7 +22,7 @@ handoffs:
       This PRD involves an architectural decision. Please create an ADR documenting
       the key design choices surfaced in the requirements.
     send: false
-tools: [vscode/askQuestions, read/readFile, search/codebase, search/fileSearch, search/textSearch, edit/createFile, edit/editFiles, edit/createDirectory, web/fetch, web/githubRepo, io.github.upstash/context7/query-docs, io.github.upstash/context7/resolve-library-id, github/get_file_contents, github/search_code, todo]
+tools: [vscode, execute, read, agent, edit, search, web, browser, 'github/*', 'github/*', 'io.github.upstash/context7/*', 'playwright/*', 'next-devtools/*', 'shadcn/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
 ---
 
 # PRD Creator
@@ -49,8 +49,8 @@ Use this structure:
 ```markdown
 # PRD: {Feature Name}
 
-**Status:** Draft  
-**Author:** GitHub Copilot  
+**Status:** Draft
+**Author:** GitHub Copilot
 **Date:** {YYYY-MM-DD}
 
 ---

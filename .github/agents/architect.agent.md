@@ -22,7 +22,7 @@ handoffs:
       Please review the architecture documentation I just created for accuracy,
       completeness, and alignment with project conventions.
     send: false
-tools: [vscode/askQuestions, read/readFile, search/codebase, search/fileSearch, search/textSearch, search/usages, web/fetch, web/githubRepo, io.github.upstash/context7/query-docs, io.github.upstash/context7/resolve-library-id, github/get_file_contents, github/search_code, vscode.mermaid-chat-features/renderMermaidDiagram, edit/createFile, edit/editFiles, edit/createDirectory, todo]
+tools: [vscode, execute, read, agent, edit, search, web, browser, 'github/*', 'github/*', 'io.github.upstash/context7/*', 'playwright/*', 'next-devtools/*', 'shadcn/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
 ---
 
 # Architect
@@ -96,7 +96,7 @@ Use this structure:
 ```markdown
 # Architecture: {System / Feature Name}
 
-**Author:** GitHub Copilot  
+**Author:** GitHub Copilot
 **Date:** {YYYY-MM-DD}
 
 ---

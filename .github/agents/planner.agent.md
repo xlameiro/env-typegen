@@ -16,7 +16,7 @@ handoffs:
     agent: Test Generator
     prompt: Based on this plan, please generate the test structure that will be needed.
     send: false
-tools: [vscode/getProjectSetupInfo, vscode/askQuestions, read/readFile, read/problems, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, io.github.upstash/context7/query-docs, io.github.upstash/context7/resolve-library-id, github/get_file_contents, github/search_code, todo]
+tools: [vscode, execute, read, agent, edit, search, web, browser, 'github/*', 'github/*', 'io.github.upstash/context7/*', 'playwright/*', 'next-devtools/*', 'shadcn/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
 ---
 
 # Planner

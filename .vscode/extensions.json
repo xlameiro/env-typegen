@@ -25,7 +25,6 @@
 
     // DX utilities
     "aaron-bond.better-comments",
-    "christian-kohler.path-intellisense",
-    "streetsidesoftware.code-spell-checker"
+    "christian-kohler.path-intellisense"
   ]
 }

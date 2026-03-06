@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "agent-governance": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "6106aa97a33ff7ba0755fcfcdb1069ee5041dc60729e7a672924d770a60fa775"
+    },
+    "agentic-eval": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "40771d7d389c1542e6cb995d75e516893466f01c3b66bc040b158ceb793d4bed"
+    },
     "api-design-principles": {
       "source": "wshobson/agents",
       "sourceType": "github",
@@ -15,6 +25,21 @@
       "source": "gocallum/nextjs16-agent-skills",
       "sourceType": "github",
       "computedHash": "43ae8a1f2ddafc02ac2d4d8fc952ec73c54bc8ac3411d589091dfd81d01151cb"
+    },
+    "context-map": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "cca0523289057f0f6fbff2c3ead5063359dd2482a451bf8694eac0f282185786"
+    },
+    "copilot-instructions-blueprint-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "45fd25e507349b05f80a0cafc159109071ed6c24ac5f014b9c749fd6846bd62b"
+    },
+    "create-llms": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "2eea327b7f6ad67d91addd334a864f545cd5a1474dd8b03f7a00abc70b2715e2"
     },
     "error-handling-patterns": {
       "source": "wshobson/agents",
@@ -35,6 +60,11 @@
       "source": "github/awesome-copilot",
       "sourceType": "github",
       "computedHash": "2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21"
+    },
+    "memory-merger": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3"
     },
     "nextjs-app-router-patterns": {
       "source": "wshobson/agents",
@@ -70,6 +100,16 @@
       "source": "github/awesome-copilot",
       "sourceType": "github",
       "computedHash": "8f963da3e25f705ff39755b8b990f20da0c0320cb86ac83fcc4d2d4eca91f6e4"
+    },
+    "readme-blueprint-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "e2c7dabf2e455794260f1516e2ceda6a82dc92a409578cc184fcb0f45bddca54"
+    },
+    "remember": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "fdbc1d3eca3219bfbdfca7309036aa78f52ea0ac845c0a1e2fb66284365bc637"
     },
     "skill-creator": {
       "source": "anthropics/skills",

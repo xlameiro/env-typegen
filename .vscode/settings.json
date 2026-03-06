@@ -6269,7 +6269,7 @@
     // Enable context editing for Anthropic models. Automatically manages conversation context as it grows, helping optimize costs and stay within context window limits.
     //
     // **Note**: This is an experimental feature. Context editing may cause additional cache rewrites. Enable with caution.
-    "github.copilot.chat.anthropic.contextEditing.enabled": false,
+    "github.copilot.chat.anthropic.contextEditing.enabled": true,
     // Maximum number of tokens to allocate for extended thinking in Anthropic models. Setting this value enables extended thinking. Valid range is `1,024` to `max_tokens-1`.
     "github.copilot.chat.anthropic.thinking.budgetTokens": 16000,
     // List of domains to restrict web search results to (e.g., `["example.com", "docs.example.com"]`). Domains should not include the HTTP/HTTPS scheme. Subdomains are automatically included. Cannot be used together with blocked domains.
@@ -6301,7 +6301,7 @@
     // Enable Custom Agents for Background Agents.
     "github.copilot.chat.cli.customAgents.enabled": true,
     // Enable Model Context Protocol (MCP) server for Background Agents.
-    "github.copilot.chat.cli.mcp.enabled": false,
+    "github.copilot.chat.cli.mcp.enabled": true,
     // Enable the Cloud Agent. When disabled, the Cloud Agent will not be available in 'Continue In' context menus.
     "github.copilot.chat.cloudAgent.enabled": true,
     // Use instructions files instead. See https://aka.ms/vscode-ghcp-custom-instructions for more information.
@@ -6352,7 +6352,7 @@
     // Show 'Generate tests' code lens for symbols that are not covered by current test coverage information.
     "github.copilot.chat.generateTests.codeLens": true,
     // Enable built-in support for the GitHub MCP Server.
-    "github.copilot.chat.githubMcpServer.enabled": false,
+    "github.copilot.chat.githubMcpServer.enabled": true,
     // Enable lockdown mode for the GitHub MCP Server. When enabled, hides public issue details created by users without push access. [Learn more](https://aka.ms/vscode-gh-mcp-lockdown).
     "github.copilot.chat.githubMcpServer.lockdown": false,
     // Enable read-only mode for the GitHub MCP Server. When enabled, only read tools are available. [Learn more](https://aka.ms/vscode-gh-mcp-readonly).
@@ -6372,7 +6372,7 @@
     // Enable chat session context provider for next edit suggestions.
     "github.copilot.chat.inlineEdits.chatSessionContextProvider.enabled": false,
     // Enable diagnostics context provider for next edit suggestions.
-    "github.copilot.chat.inlineEdits.diagnosticsContextProvider.enabled": false,
+    "github.copilot.chat.inlineEdits.diagnosticsContextProvider.enabled": true,
     // Maximum tokens for current file in next cursor prediction.
     "github.copilot.chat.inlineEdits.nextCursorPrediction.currentFileMaxTokens": 2000,
     // Display predicted cursor line for next edit suggestions.
@@ -6495,7 +6495,7 @@
     // Threshold for summarizing agent conversation history.
     //"github.copilot.chat.summarizeAgentConversationHistoryThreshold": 0,
     // Allow agent to switch to the Plan agent for research, exploration, and planning tasks.
-    "github.copilot.chat.switchAgent.enabled": false,
+    "github.copilot.chat.switchAgent.enabled": true,
     // Controls where chat queries from the terminal should be opened.
     //  - chatView: Open the chat view.
     //  - quickChat: Open quick chat.
@@ -6556,10 +6556,4 @@
     "github.copilot.selectedCompletionModel": "",
     //
     "github.copilot.advanced": {},
-    "cSpell.words": [
-        "nextjs",
-        "safeparse",
-        "superrefine",
-        "Unvalidated"
-    ],
 }

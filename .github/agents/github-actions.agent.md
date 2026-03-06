@@ -12,7 +12,7 @@ handoffs:
     agent: Planner
     prompt: This CI/CD change is complex and needs a detailed plan first.
     send: false
-tools: [vscode/getProjectSetupInfo, vscode/askQuestions, read/readFile, edit/editFiles, edit/createFile, search/codebase, search/fileSearch, search/textSearch, web/fetch, web/githubRepo, io.github.upstash/context7/query-docs, io.github.upstash/context7/resolve-library-id, github/get_file_contents, github/search_code, github/list_branches, execute/runInTerminal, execute/getTerminalOutput, todo]
+tools: [vscode, execute, read, agent, edit, search, web, browser, 'github/*', 'github/*', 'io.github.upstash/context7/*', 'playwright/*', 'next-devtools/*', 'shadcn/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
 ---
 
 # GitHub Actions
