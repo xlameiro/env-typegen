@@ -1,0 +1,47 @@
+{
+	"inputs": [
+		{
+			"id": "CONTEXT7_API_KEY",
+			"type": "promptString",
+			"description": "API key for authentication",
+			"password": true
+		},
+		{
+			"id": "Authorization",
+			"type": "promptString",
+			"description": "Authentication token (PAT or App token)",
+			"password": true
+		}
+	],
+	"servers": {
+		"io.github.upstash/context7": {
+			"type": "stdio",
+			"command": "/Users/xlameiro/Library/pnpm/context7-mcp",
+			"env": {
+				"CONTEXT7_API_KEY": "${input:CONTEXT7_API_KEY}"
+			}
+		},
+		"shadcn": {
+			"command": "/Users/xlameiro/Library/pnpm/shadcn",
+			"args": [
+				"mcp"
+			],
+			"type": "stdio"
+		},
+		"microsoft/playwright-mcp": {
+			"command": "/Users/xlameiro/Library/pnpm/mcp-server-playwright",
+			"type": "stdio"
+		},
+		"next-devtools": {
+			"command": "/Users/xlameiro/Library/pnpm/next-devtools-mcp",
+			"type": "stdio"
+		},
+		"io.github.github/github-mcp-server": {
+			"type": "http",
+			"url": "https://api.githubcopilot.com/mcp/",
+			"headers": {
+				"Authorization": "${input:Authorization}"
+			}
+		}
+	}
+}
