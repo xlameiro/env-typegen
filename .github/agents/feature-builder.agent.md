@@ -2,6 +2,7 @@
 name: 'Feature Builder'
 description: "Build new features following project conventions: Server Components, Zod validation, kebab-case naming, and TDD"
 argument-hint: "Describe the feature or user story to implement"
+model: "Claude Sonnet 4.6 (copilot)"
 handoffs:
   - label: Review My Changes
     agent: Code Reviewer

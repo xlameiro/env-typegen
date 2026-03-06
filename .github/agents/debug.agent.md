@@ -2,6 +2,7 @@
 name: 'Debug'
 description: "Systematically find and fix bugs with a 4-phase approach: assess, investigate, resolve, and verify"
 argument-hint: "Paste the error message, stack trace, or describe the unexpected behavior"
+model: "Claude Sonnet 4.6 (copilot)"
 handoffs:
   - label: Review the Fix
     agent: Code Reviewer

@@ -2,6 +2,7 @@
 name: 'ADR Generator'
 description: 'Creates Architectural Decision Records (ADRs) documenting important design choices, tradeoffs, and their context. Use when making a significant architectural, library, or infrastructure decision.'
 argument-hint: "Describe the architectural decision to document — e.g., 'adopt Zustand for client state' or 'switch from REST to tRPC'"
+model: "Claude Sonnet 4.6 (copilot)"
 tools:
   - search
   - read

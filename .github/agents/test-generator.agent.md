@@ -2,6 +2,7 @@
 name: 'Test Generator'
 description: "Generate Vitest unit tests and Playwright E2E tests for existing code"
 argument-hint: "Paste the file path or function you want tests for"
+model: "Claude Sonnet 4.6 (copilot)"
 handoffs:
   - label: Review Test Quality
     agent: Code Reviewer

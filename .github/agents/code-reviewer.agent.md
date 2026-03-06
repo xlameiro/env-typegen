@@ -2,6 +2,7 @@
 name: 'Code Reviewer'
 description: "Review code for quality, security, accessibility, performance, and project convention compliance"
 argument-hint: "Paste a file path, diff, or describe what to review"
+model: "Claude Sonnet 4.6 (copilot)"
 handoffs:
   - label: Fix Issues
     agent: Feature Builder
