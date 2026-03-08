@@ -17,14 +17,6 @@
         "timeoutSec": 10
       }
     ],
-    "postToolUse": [
-      {
-        "type": "command",
-        "bash": "./.github/hooks/scripts/post-tool-check.sh",
-        "cwd": ".",
-        "timeoutSec": 60
-      }
-    ],
     "sessionEnd": [
       {
         "type": "command",

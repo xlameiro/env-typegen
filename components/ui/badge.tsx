@@ -9,9 +9,9 @@ type BadgeVariant =
   | "danger"
   | "outline";
 
-interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant;
-}
+};
 
 const variantClasses: Record<BadgeVariant, string> = {
   default: "border-transparent bg-foreground text-background",

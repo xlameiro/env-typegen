@@ -98,7 +98,7 @@ Always move client-only UI into a Client Component and import it directly in you
   - Place shared components in `components/`.
   - Place route-specific components inside the relevant route folder.
 - **Props:**
-  - Use TypeScript interfaces for props.
+  - Use TypeScript `type` for props — **never `interface`**. Use intersections to extend library types: `type CardProps = HTMLAttributes<HTMLDivElement> & { variant?: string }`. (ESLint enforced — see `copilot-instructions.md`).
   - Prefer explicit prop types and default values.
 - **Testing:**
   - Co-locate tests with components (e.g., `UserCard.test.tsx`).
@@ -109,7 +109,7 @@ Always move client-only UI into a Client Component and import it directly in you
 - **Files:** `kebab-case` for **all files** (e.g., `user-card.tsx`, `use-auth.ts`, `format-date.ts`) — project-wide rule
 - **Component exports:** `PascalCase` function/class names (e.g., `export function UserCard`)
 - **Variables/Functions:** `camelCase`
-- **Types/Interfaces:** `PascalCase`
+- **Types:** `PascalCase` (never use `interface` — always `type`; never use `enum` — always string union types)
 - **Constants:** `UPPER_SNAKE_CASE`
 
 ## 5. API Routes (Route Handlers)

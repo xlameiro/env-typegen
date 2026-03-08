@@ -16,6 +16,9 @@ This is a professional Next.js 16 starter template. Use it as the foundation for
 - **Authentication**: Auth.js v5 (NextAuth)
 - **Validation**: Zod v4
 - **State Management**: Zustand (client state)
+- **Cloud Provider**: AWS (preferred ecosystem — see § Infrastructure below)
+- **AI/ML**: Amazon Bedrock (Claude / Titan) — preferred over direct OpenAI dependency
+- **HTML Parsing / Scraping**: Cheerio v1 — server-side only (Route Handlers, Server Components, Lambda)
 
 ## Project Structure
 
@@ -44,13 +47,13 @@ public/                 # Static assets
 - No abbreviations in variable names — write `user` not `u`, `fieldMetadata` not `fm`, `event` not `e`
 - Use descriptive lowercase names for generic type parameters instead of single uppercase letters — prefer `function map<item, result>(…)` over `function map<T, R>(…)`; reserve `T` only for utilities where a single-letter convention is widespread (e.g., `Array<T>`, `Promise<T>`)
 - Prefix intentionally unused parameters or locals with `_` (e.g., `_event`, `_index`) — signals the omission is deliberate and satisfies `noUnusedLocals` / `noUnusedParameters` compiler checks
-- Prefer string union types over TypeScript enums — e.g., `type Status = 'active' | 'inactive'` instead of `enum Status { Active, Inactive }`
+- Never use TypeScript enums — always use string union types: `type Status = 'active' | 'inactive'` instead of `enum Status { Active, Inactive }`
 - Use early returns for readability — prefer guard clauses over deeply nested conditions
 - Prefer destructuring over direct property access — `const { id, name } = user` not `user.id`, `user.name`
 - Prefer `readonly` and `as const` for immutable data structures
 - Avoid non-null assertion operators (`!`) — use type narrowing or guards instead
 - Use `Boolean(value)` instead of `!!value` for explicit boolean coercion — clarifies intent and avoids double-negation confusion
-- Prefer `type` over `interface` for type definitions — use `interface` only when explicitly extending external library types or defining class contracts
+- Always use `type`; **never** use `interface`. To extend HTML attributes or library types, use intersections: `type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { isLoading?: boolean }` — the intersection pattern eliminates all valid reasons to reach for `interface`
 - Infer types from Zod schemas using `z.infer<typeof schema>` — do not duplicate as separate interfaces
 - Don't export types or interfaces that are only used within the same file
 - Organize module contents top-down: place exported/public functions before internal helpers — readers see the module's public API before implementation details
@@ -115,6 +118,7 @@ public/                 # Static assets
 - Write error messages that explain: (1) what happened, (2) why it's a problem, and (3) how to fix it — vague messages like `"Invalid input"` waste debugging time
 - Keep async logic linear — avoid nested `try/catch` blocks; prefer early returns from `catch` to reduce nesting
 - No floating promises — always `await` or explicitly handle every async call; never fire-and-forget
+  > Note: `@typescript-eslint/no-floating-promises` is intentionally disabled in ESLint — it produces false positives with `router.push()`, async event handlers, and Server Actions in Next.js. Enforce this rule manually via code review.
 
 ### Testing
 
@@ -170,6 +174,8 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 **For AI/Copilot**: Always use the `read_file` tool to read the relevant instruction file(s) before analyzing, modifying, or creating code in these directories. This ensures adherence to project patterns and prevents architectural violations.
 
+> **Conflict resolution**: Rules in this file (`copilot-instructions.md`) are always canonical. Directory-specific instruction files add context for their domain — they never override base rules. If a directory file contradicts this file, this file wins.
+
 ### Required Reading by Directory
 
 | Directory        | Instruction File                                                                             | When to Read                                                                                   |
@@ -212,6 +218,8 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 ### Never do
 
+- Use `class` for business logic, services, utilities, or scrapers — always use functions and types; the only permitted classes are `Error` subclasses in `lib/errors.ts`
+- Use `enum` — always use string union types instead: `type Status = 'active' | 'inactive'`
 - Hardcode secrets, API keys, or credentials — always use `process.env.*`
 - Prefix env vars with `NEXT_PUBLIC_` unless the value is safe to expose to every browser user — `NEXT_PUBLIC_*` vars are bundled into the client JavaScript bundle and visible to anyone; never use them for tokens, secrets, or cron keys
 - Use `any` in TypeScript — use proper types, `unknown`, or a Zod-parsed result
@@ -380,6 +388,7 @@ if (!apiKey) throw new Error("THIRD_PARTY_API_KEY is not set");
 - All terminal commands must target **macOS** (use `open`, `pbcopy`, `brew`, etc.)
 - Do not suggest Linux-only or Windows-only commands
 - Use `~` for home directory, macOS paths and conventions
+- **Chain sequential commands with `&&` in a single terminal call** — e.g., `pnpm lint && pnpm type-check && pnpm test` instead of three separate calls. VS Code creates one "Chat Terminal" per `run_in_terminal` invocation; chaining minimises terminal proliferation in the Chat Terminals panel.
 
 ### Session Completion Checklist
 
@@ -480,10 +489,11 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 
 | Event          | Use for                                                     |
 | -------------- | ----------------------------------------------------------- |
-| `PostToolUse`  | Auto-run `pnpm lint` and `pnpm type-check` after file edits |
 | `PreToolUse`   | Block destructive operations (`rm -rf`, `DROP TABLE`)       |
 | `SessionStart` | Inject branch/Node version context into every session       |
 | `SessionEnd`   | Require full quality gate to pass before the agent finishes |
+
+> **`PostToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `SessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):
 
@@ -512,6 +522,106 @@ Routing logic and the full intent-to-agent decision table live in `.github/agent
 Available specialist agents: **Feature Builder**, **Debug**, **Planner**, **Code Reviewer**, **Test Generator**, **Architect**, **ADR Generator**, **GitHub Actions**, **PRD Creator**.
 
 If already inside a specialist agent context, skip routing and proceed directly with the work.
+
+## Infrastructure & Cloud
+
+### AWS as Default Cloud Ecosystem
+
+**Before reaching for a standalone SaaS tool, always check if AWS provides an equivalent managed service.** The goal is a unified ecosystem: single IAM control plane, one billing account, native VPC networking, and CloudWatch for all observability.
+
+| Need                 | AWS Service                    | Non-AWS alternative (avoid unless justified) |
+| -------------------- | ------------------------------ | -------------------------------------------- |
+| Relational DB        | RDS Aurora Serverless v2       | PlanetScale, Supabase, Neon                  |
+| NoSQL / Document     | DynamoDB                       | MongoDB Atlas, Firebase                      |
+| Cache / sessions     | ElastiCache Serverless (Redis) | Upstash, Redis Cloud                         |
+| Object storage       | S3                             | Cloudinary (media only OK), Uploadthing      |
+| Queues               | SQS                            | BullMQ (local only), Inngest                 |
+| Cron / scheduling    | EventBridge Scheduler          | Vercel Cron, EasyCron                        |
+| Serverless functions | Lambda                         | Vercel Edge Functions, Cloudflare Workers    |
+| AI text generation   | Amazon Bedrock (Claude/Titan)  | Direct OpenAI, Anthropic API                 |
+| Vector search        | OpenSearch Serverless          | Pinecone, Weaviate                           |
+| Email                | SES                            | Resend, SendGrid                             |
+| Secrets              | Secrets Manager                | Vercel Env Vars (dev only)                   |
+
+**AWS CLI is required** — use it for all infra operations; never click through the console for repeatable tasks.
+
+```bash
+# Verify setup
+aws sts get-caller-identity
+
+# Use named profiles for multi-account
+export AWS_PROFILE=dev
+```
+
+**SDK**: Use AWS SDK v3 (`@aws-sdk/client-*`) — modular, tree-shakeable. Never import from the deprecated `aws-sdk` v2 package.
+
+**IAM**: Assign IAM Roles to Lambda/ECS tasks — never use `AWS_ACCESS_KEY_ID` in production environment variables.
+
+See the `aws-ecosystem` skill (`.agents/skills/aws-ecosystem/SKILL.md`) for full CLI patterns and SDK code examples.
+
+### Web Scraping — Cheerio
+
+When a feature requires parsing HTML from external URLs, extracting data from web pages, reading RSS/Atom feeds, or transforming HTML content, use **Cheerio v1**.
+
+- Server-side only — never import Cheerio in Client Components
+- Prefer `$.extract({ ... })` over manual `.each()` traversal for structured data
+- Always validate the target URL with Zod before scraping to prevent SSRF
+- Cache scraped results — wrap in `'use cache'` or `unstable_cache` to avoid repeated fetches
+- At scale, run scrapers in AWS Lambda triggered by EventBridge and store results in DynamoDB/S3
+
+See the `cheerio` skill (`.agents/skills/cheerio/SKILL.md`) for full patterns.
+
+```bash
+pnpm add cheerio
+```
+
+## Convention Health Audit
+
+Run this checklist before any template release or major merge to catch convention regressions before they reach downstream projects.
+
+### Automated (must all pass)
+
+```bash
+pnpm lint --max-warnings=0   # catches all ESLint-enforced rules (including interface usage)
+pnpm type-check              # catches structural type errors
+```
+
+### Manual spot-checks (conventions without lint enforcement)
+
+| Convention                                      | Command                                                      | Expected                        |
+| ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------- |
+| No `interface` declarations                     | `grep -r "^interface " app/ components/ lib/ store/ types/`  | Zero results                    |
+| No `enum` declarations                          | `grep -r "^enum " app/ components/ lib/ store/`              | Zero results                    |
+| No `default export` outside Next.js conventions | `grep -rn "^export default " components/ lib/ hooks/ store/` | Zero results (pages/layouts OK) |
+| No barrel re-exports used as import source      | `grep -rn "from \"@/components\"" app/ components/`          | Zero results                    |
+
+### Instruction consistency check (when modifying instruction files)
+
+Before changing a convention rule in any instruction file:
+
+1. `grep -ri "interface\|type " .github/instructions/` — find all files that mention the topic
+2. Update **all** files that reference the same rule — never change just one
+3. Verify the change doesn't conflict with `copilot-instructions.md` (canonical)
+
+### Convention compliance table
+
+| Convention                                    | ESLint enforced                                          | Compliance target |
+| --------------------------------------------- | -------------------------------------------------------- | ----------------- |
+| No `any`                                      | ✅ `@typescript-eslint/no-explicit-any`                  | 100%              |
+| `import type` for type-only imports           | ✅ `@typescript-eslint/consistent-type-imports`          | 100%              |
+| `type` not `interface`                        | ✅ `@typescript-eslint/consistent-type-definitions`      | 100%              |
+| No `enum` — use string union types            | ✅ `no-restricted-syntax` TSEnumDeclaration              | 100%              |
+| No `class` outside `lib/errors.ts`            | ✅ `no-restricted-syntax` ClassDeclaration               | 100%              |
+| No `React.FC` / `React.FunctionComponent`     | ✅ `no-restricted-imports`                               | 100%              |
+| `export type` for type-only exports           | ✅ `@typescript-eslint/consistent-type-exports`          | 100%              |
+| Function params ≤ 3                           | ✅ `max-params`                                          | 100%              |
+| No non-null assertions (`!`)                  | ✅ `@typescript-eslint/no-non-null-assertion`            | 100%              |
+| `Boolean(value)` not `!!value`                | ✅ `no-implicit-coercion`                                | 100%              |
+| No `eval()` / `new Function()`                | ✅ `no-eval` + `no-implied-eval`                         | 100%              |
+| Boolean prefix (`is`, `has`, `can`, `should`) | ❌ manual                                                | ~100%             |
+| No abbreviations in names                     | ❌ manual                                                | ~100%             |
+| `@/` path alias for internal imports          | ❌ manual                                                | 100%              |
+| No floating promises                          | ❌ manual (lint rule disabled — Next.js false positives) | 100%              |
 
 ## Learnings
 

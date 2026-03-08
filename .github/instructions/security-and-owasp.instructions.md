@@ -37,6 +37,7 @@ Your primary directive is to ensure all code you generate, review, or refactor i
 
 - **No Raw SQL Queries:** For database interactions, you must use parameterized queries (prepared statements). Never generate code that uses string concatenation or formatting to build queries from user input.
 - **Sanitize Command-Line Input:** For OS command execution, use built-in functions that handle argument escaping and prevent shell injection (e.g., `shlex` in Python).
+- **Never use `eval()` or `new Function()`:** Dynamic code execution from user-supplied data is a critical injection vector. ESLint rules `no-eval` and `no-implied-eval` are both enforced — any violation blocks the build.
 - **Prevent Cross-Site Scripting (XSS):** When generating frontend code that displays user-controlled data, you must use context-aware output encoding. Prefer methods that treat data as text by default (`.textContent`) over those that parse HTML (`.innerHTML`). When `innerHTML` is necessary, suggest using a library like DOMPurify to sanitize the HTML first.
 
 ### 4. A04: Insecure Design

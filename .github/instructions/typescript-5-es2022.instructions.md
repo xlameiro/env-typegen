@@ -12,7 +12,7 @@ applyTo: "**/*.ts"
 - Respect the existing architecture and coding standards.
 - Prefer readable, explicit solutions over clever shortcuts.
 - Extend current abstractions before inventing new ones.
-- Prioritize maintainability and clarity, short methods and classes, clean code.
+- Prioritize maintainability and clarity, short focused functions, clean code.
 
 ## General Guardrails
 
@@ -32,8 +32,8 @@ applyTo: "**/*.ts"
 
 > Follow the naming conventions defined in `.github/copilot-instructions.md` §Core Conventions (kebab-case files, boolean prefixes, no abbreviations, descriptive generics). The rules below are TypeScript-specific additions.
 
-- Use PascalCase for classes, interfaces, enums, and type aliases; camelCase for everything else.
-- Skip interface prefixes like `I`; rely on descriptive names.
+- Use PascalCase for type aliases (and only for `Error` subclasses in `lib/errors.ts`); camelCase for everything else. **Never use `interface`, `enum`, or `class` outside `lib/errors.ts`** — use `type`, string union types, and functions instead. ESLint enforces all three.
+- Avoid `interface` entirely — use `type` instead; avoid `enum` entirely — use string union types instead.
 - Name things for their behavior or domain meaning, not implementation.
 
 ## Formatting & Style

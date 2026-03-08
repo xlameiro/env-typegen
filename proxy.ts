@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  const isLoggedIn = Boolean(req.auth);
 
   const isProtectedRoute =
     nextUrl.pathname.startsWith("/dashboard") ||

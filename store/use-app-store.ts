@@ -2,7 +2,7 @@ import type { Theme } from "@/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface AppState {
+type AppState = {
   // UI State
   theme: Theme;
   sidebarOpen: boolean;
@@ -11,7 +11,7 @@ interface AppState {
   setTheme: (theme: Theme) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-}
+};
 
 export const useAppStore = create<AppState>()(
   persist(

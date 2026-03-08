@@ -63,5 +63,6 @@ When a decision relies on retrieved docs, cite: `title + URL`. If docs conflict,
 | Zustand      | `/pmndrs/zustand`           |
 | Vitest       | `/vitest-dev/vitest`        |
 | Playwright   | `/microsoft/playwright`     |
+| Cheerio      | `/cheeriojs/cheerio`        |
 
 ## Learnings

@@ -4,9 +4,9 @@ import type { HTMLAttributes } from "react";
 type CardProps = HTMLAttributes<HTMLDivElement>;
 type CardHeaderProps = HTMLAttributes<HTMLDivElement>;
 
-interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
+type CardTitleProps = HTMLAttributes<HTMLHeadingElement> & {
   as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-}
+};
 
 type CardDescriptionProps = HTMLAttributes<HTMLParagraphElement>;
 type CardContentProps = HTMLAttributes<HTMLDivElement>;

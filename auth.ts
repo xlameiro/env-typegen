@@ -19,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     authorized({ auth: session, request: { nextUrl } }) {
-      const isLoggedIn = !!session?.user;
+      const isLoggedIn = Boolean(session?.user);
       const isProtectedRoute = nextUrl.pathname.startsWith("/dashboard");
       return !(isProtectedRoute && !isLoggedIn);
     },

@@ -16,20 +16,20 @@ export type ApiResponse<T> =
   | { success: false; error: string; code?: string };
 
 /** Pagination metadata */
-export interface PaginationMeta {
+export type PaginationMeta = {
   page: number;
   pageSize: number;
   total: number;
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
-}
+};
 
 /** Paginated API response */
-export interface PaginatedResponse<T> {
+export type PaginatedResponse<T> = {
   data: T[];
   meta: PaginationMeta;
-}
+};
 
 // ──────────────────────────────────────────
 // App-specific types (extend as needed)

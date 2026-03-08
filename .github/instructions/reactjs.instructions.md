@@ -34,11 +34,11 @@ Instructions for building high-quality ReactJS applications with modern patterns
 
 ### TypeScript Integration
 
-- Use TypeScript interfaces for props, state, and component definitions
+- **Always use `type` for props, state, and component definitions — never `interface`.** When extending HTML attributes or library types, use intersections: `type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { isLoading?: boolean }`. This rule follows `.github/copilot-instructions.md` as the canonical source.
 - Define proper types for event handlers and refs
 - Implement generic components where appropriate
 - Use strict mode in `tsconfig.json` for type safety
-- Prefer direct prop type annotations over `React.FC` (e.g., `({ name }: { name: string }) => JSX.Element`); the React community discourages `React.FC` as it adds implicit `children` and obscures return-type issues
+- **Never use `React.FC` or `React.FunctionComponent`** — write `function MyComponent({ prop }: { prop: string })` directly; `React.FC` adds implicit `children`, obscures return-type issues, and is banned in this project (ESLint enforced via `no-restricted-imports`)
 - Leverage `React.ComponentProps` and `React.ComponentPropsWithRef` when extending native element props
 - Create union types for component variants and states
 

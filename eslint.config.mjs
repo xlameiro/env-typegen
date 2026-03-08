@@ -1,9 +1,9 @@
-import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import sonarjs from "eslint-plugin-sonarjs";
-import tseslint from "typescript-eslint";
 import unicorn from "eslint-plugin-unicorn";
+import { defineConfig, globalIgnores } from "eslint/config";
+import tseslint from "typescript-eslint";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -41,11 +41,17 @@ const eslintConfig = defineConfig([
       // "@typescript-eslint/no-unsafe-call": "warn",
       // "@typescript-eslint/no-unsafe-return": "warn",
 
+      // Forbid non-null assertion operator (!) — use type narrowing or guards instead
+      "@typescript-eslint/no-non-null-assertion": "error",
+
       // Consistent type imports (better tree-shaking)
       "@typescript-eslint/consistent-type-imports": ["error", {
         "prefer": "type-imports",
         "fixStyle": "inline-type-imports"
       }],
+
+      // Enforce `type` over `interface` — intersection types eliminate all valid reasons for interface
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
 
       // React hooks dependency array (prevent stale closures)
       "react-hooks/exhaustive-deps": "error",
@@ -61,11 +67,19 @@ const eslintConfig = defineConfig([
       // Complexity limits
       "complexity": ["error", 15],
       "max-depth": ["error", 4],
+      "max-params": ["error", 3],
 
       // Prevent unnecessary code
       "prefer-const": "error",
       "no-var": "error",
       "no-console": ["error", { "allow": ["warn", "error"] }],
+
+      // Enforce Boolean(value) over !!value — copilot-instructions.md
+      "no-implicit-coercion": ["error", { "boolean": true }],
+
+      // Prevent dynamic code execution — security-and-owasp.instructions.md
+      "no-eval": "error",
+      "no-implied-eval": "error",
 
       // TypeScript readonly rules (require type checking setup - see TypeScript files config below)
       "@typescript-eslint/prefer-readonly": "off",
@@ -91,12 +105,20 @@ const eslintConfig = defineConfig([
         "object": true
       }],
 
-      // Enforce proper export patterns (prevents S7763) - Warning only to not break builds
+      // Block class declarations outside lib/errors.ts, enum declarations, and other restricted syntax
       "no-restricted-syntax": [
-        "off",  // Disabled - causes too many warnings in existing codebase
+        "error",
         {
-          "selector": "ImportDeclaration[source.value=/^\\./] ~ ExportNamedDeclaration[source=null]",
-          "message": "Use 'export { X } from ...' instead of 'import { X } from ...'; export { X };"
+          selector: "TSEnumDeclaration",
+          message: "Never use TypeScript enums. Use string union types instead: type Status = 'active' | 'inactive'"
+        },
+        {
+          selector: "ClassDeclaration",
+          message: "Never use classes for business logic. Use functions and types. Only lib/errors.ts may define Error subclasses."
+        },
+        {
+          selector: "ClassExpression",
+          message: "Never use class expressions. Use functions and types instead."
         }
       ],
 
@@ -140,6 +162,13 @@ const eslintConfig = defineConfig([
             {
               "group": ["fs", "path", "http", "https", "crypto", "stream", "util", "os", "events", "buffer", "child_process"],
               "message": "Import Node.js built-in modules with 'node:' prefix (e.g., 'node:fs' instead of 'fs')"
+            }
+          ],
+          "paths": [
+            {
+              "name": "react",
+              "importNames": ["FC", "FunctionComponent"],
+              "message": "Never use React.FC or React.FunctionComponent. Write function MyComponent({ prop }: { prop: string }) directly."
             }
           ]
         }
@@ -241,8 +270,18 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/unbound-method": "off",
+
+      // Enforce explicit `export type { Foo }` for type-only exports
+      "@typescript-eslint/consistent-type-exports": ["error", { "fixMixedExportsWithInlineTypeSpecifier": true }],
     }
   }),
+  // lib/errors.ts — the only file permitted to define class declarations (Error subclasses)
+  {
+    files: ["lib/errors.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -284,6 +323,6 @@ const eslintConfig = defineConfig([
       "no-console": "off",
     },
   },
-]);  
+]);
 
 export default eslintConfig;

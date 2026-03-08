@@ -14,9 +14,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   Default: "An unexpected authentication error occurred. Please try again.",
 };
 
-interface PageProps {
+type PageProps = {
   searchParams: Promise<{ error?: string }>;
-}
+};
 
 export default async function AuthErrorPage({
   searchParams,

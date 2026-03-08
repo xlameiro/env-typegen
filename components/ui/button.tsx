@@ -4,11 +4,11 @@ import type { ButtonHTMLAttributes } from "react";
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
-}
+};
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
