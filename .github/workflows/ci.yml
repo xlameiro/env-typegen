@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
@@ -46,6 +46,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Security audit
+        run: pnpm audit --audit-level=moderate
+
+      - name: Check for deprecated packages
+        run: |
+          node -e "
+          const https = require('https');
+          const pkg = require('./package.json');
+          const deps = [
+            ...Object.keys(pkg.dependencies || {}),
+            ...Object.keys(pkg.devDependencies || {}),
+          ];
+          let found = 0;
+          const check = (name) => new Promise((resolve) => {
+            const url = 'https://registry.npmjs.org/' + encodeURIComponent(name) + '/latest';
+            https.get(url, (res) => {
+              let data = '';
+              res.on('data', (c) => (data += c));
+              res.on('end', () => {
+                try {
+                  const meta = JSON.parse(data);
+                  if (meta.deprecated) {
+                    console.error('DEPRECATED: ' + name + '@' + meta.version + ': ' + meta.deprecated);
+                    found++;
+                  }
+                } catch (e) {}
+                resolve();
+              });
+            }).on('error', resolve);
+          });
+          Promise.all(deps.map(check)).then(() => process.exit(found > 0 ? 1 : 0));
+          "
+
       - name: Lint
         run: pnpm lint
 
@@ -66,10 +99,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
