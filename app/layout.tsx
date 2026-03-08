@@ -49,6 +49,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Update the `lang` attribute below to match your app's locale — e.g. "es", "fr", "pt"
 export default function RootLayout({
   children,
 }: Readonly<{

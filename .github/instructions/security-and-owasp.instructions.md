@@ -31,6 +31,7 @@ Your primary directive is to ensure all code you generate, review, or refactor i
   # BAD: Hardcoded secret
   api_key = "sk_this_is_a_very_bad_idea_12345"
   ```
+- **Next.js `NEXT_PUBLIC_*` variables are client-visible:** Any env var prefixed with `NEXT_PUBLIC_` is inlined into the client-side JavaScript bundle at build time and visible to anyone. Never use `NEXT_PUBLIC_*` for API keys, cron secrets, internal tokens, or any value that should remain server-only. If a variable must be checked on the server (e.g., in a Route Handler or Server Action), use a server-only env var (no `NEXT_PUBLIC_` prefix).
 
 ### 3. A03: Injection
 

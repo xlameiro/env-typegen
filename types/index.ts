@@ -10,9 +10,6 @@ export type RequiredKeys<T, K extends keyof T> = Omit<T, K> &
 export type PartialKeys<T, K extends keyof T> = Omit<T, K> &
   Partial<Pick<T, K>>;
 
-/** Extract the value type of a promise */
-export type Awaited<T> = T extends Promise<infer U> ? U : T;
-
 /** A standard API response envelope */
 export type ApiResponse<T> =
   | { success: true; data: T }

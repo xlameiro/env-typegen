@@ -5,6 +5,7 @@ test.describe("Home Page", () => {
     await page.goto("/");
   });
 
+  // TEMPLATE: Update this regex when you change APP_NAME in lib/constants.ts
   test("has correct page title", async ({ page }) => {
     await expect(page).toHaveTitle(/Next\.js Starter/);
   });

@@ -213,6 +213,7 @@ Quick entry point: `.github/instructions/INDEX.md`.
 ### Never do
 
 - Hardcode secrets, API keys, or credentials — always use `process.env.*`
+- Prefix env vars with `NEXT_PUBLIC_` unless the value is safe to expose to every browser user — `NEXT_PUBLIC_*` vars are bundled into the client JavaScript bundle and visible to anyone; never use them for tokens, secrets, or cron keys
 - Use `any` in TypeScript — use proper types, `unknown`, or a Zod-parsed result
 - Disable ESLint rules (`// eslint-disable`) to suppress a lint error — fix the code instead
 - Add `"use client"` without a clear reason — always default to Server Components
