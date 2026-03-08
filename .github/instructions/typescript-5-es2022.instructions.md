@@ -30,6 +30,8 @@ applyTo: "**/*.ts"
 
 ## Naming & Style
 
+> Follow the naming conventions defined in `.github/copilot-instructions.md` §Core Conventions (kebab-case files, boolean prefixes, no abbreviations, descriptive generics). The rules below are TypeScript-specific additions.
+
 - Use PascalCase for classes, interfaces, enums, and type aliases; camelCase for everything else.
 - Skip interface prefixes like `I`; rely on descriptive names.
 - Name things for their behavior or domain meaning, not implementation.

@@ -1,5 +1,5 @@
 ---
-applyTo: "*"
+applyTo: "**/*.tsx, **/*.ts, **/*.jsx, **/*.js, **/*.css"
 description: "Performance optimization guidelines for this Next.js 16 / React 19 / TypeScript stack. Covers rendering, caching, bundle size, and API patterns."
 ---
 

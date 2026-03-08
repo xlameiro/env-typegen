@@ -1,7 +1,6 @@
 ---
 description: "Standards for writing and editing Markdown files in this project"
 applyTo: "**/*.md"
-name: Markdown-Content-Standards
 ---
 
 ## Markdown Content Rules
@@ -29,3 +28,5 @@ name: Markdown-Content-Standards
 - Be concise — prefer bullet lists over long paragraphs for instructions
 - Use imperative mood for instructions: "Run `pnpm build`", not "You should run..."
 - Keep line length reasonable (max ~120 chars) for easy diff review in PRs
+
+## Learnings

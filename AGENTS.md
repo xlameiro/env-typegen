@@ -6,21 +6,11 @@ This file is automatically discovered by AI agent runtimes (OpenAI, GitHub Copil
 
 > **Living document**: If you discover something about this codebase that would help future tasks (e.g., a convention, a quirk, a gotcha), update `.github/copilot-instructions.md` immediately under `## Learnings` or the relevant section.
 
-## Allowed Operations
+## Operations & Conventions
 
-- Read and edit files in this repository freely
-- Run: `pnpm lint`, `pnpm type-check`, `pnpm test`, `pnpm build`
-- Install packages with `pnpm add` or `pnpm add -D`
+> **Allowed/prohibited operations, quality gates, branching strategy, and git best practices**: See `.github/copilot-instructions.md` §Boundaries, §Personal Preferences, and §Session Completion Checklist. The rules below are AGENTS.md-specific additions.
+
 - Read hook configurations in `.github/hooks/*.json` — these run automatically at agent lifecycle events (PostToolUse, SessionStart, SessionEnd, etc.)
-
-## Prohibited Operations
-
-- Do NOT run `rm -rf`, `git push --force`, or `git reset --hard` without explicit user confirmation
-- Do NOT hardcode secrets or API keys — use `process.env.*`
-- Do NOT use long-lived branches (`develop`, `release`, `hotfix`) — this project follows **Trunk-Based Development (TBD)**
-
-## Git Best Practices
-
 - Use `git add <filename>` instead of `git add .` — avoids accidentally staging unintended files
 - Create PRs as drafts first: `gh pr create --draft` — lets the requester verify correctness before involving reviewers
 - When remote has new changes, prefer `git fetch && git rebase origin/main` over merge commits
@@ -34,15 +24,6 @@ This file is automatically discovered by AI agent runtimes (OpenAI, GitHub Copil
 - Split large changes by layer: schema/DB changes → service logic → UI components
 - Do preparatory refactoring in a separate PR before adding new functionality that depends on it
 - Lock files, auto-generated files, and documentation are excluded from the size count
-
-## Branching Strategy — Trunk-Based Development (TBD)
-
-- **Trunk is `main`** — it must always be in a releasable state
-- Commit small, complete changes directly to `main`, or use **short-lived feature branches** (merged within 1 day)
-- Branch names follow: `<type>/<short-description>` (e.g. `fix/login-redirect`, `feat/user-avatar`)
-- No long-lived branches — no `develop`, no `release/*`, no `hotfix/*`
-- Use **feature flags** to ship incomplete features safely to trunk
-- Every push to `main` must pass the full quality gate: lint + typecheck + tests + build
 
 ## Task Execution Protocol
 

@@ -48,7 +48,7 @@ You are a senior Next.js engineer specialized in building production-ready featu
 
 0. **Read relevant instructions first** — Identify which directories you'll be working in and check the "Required Reading by Directory" table in `.github/copilot-instructions.md`. Read the relevant instruction files before writing any code.
 1. **Understand the requirement** — Ask clarifying questions if the scope is unclear before writing any code.
-2. **Plan the structure** — Identify which files to create/modify, what data shapes are needed, and whether the feature touches auth or external APIs.
+2. **Plan the structure** — Identify which files to create/modify, what data shapes are needed, and whether the feature touches auth or external APIs. If auth is involved, follow the Authorization Placement Matrix (`page.tsx` or `proxy.ts` — **never `layout.tsx`**).
 3. **Write types and schemas first** — Define TypeScript types and Zod schemas before implementation.
 4. **Implement Server Components by default** — Only add `"use client"` when strictly required (event handlers, browser APIs, hooks).
 5. **Write the unit tests** — Co-locate Vitest tests alongside the implementation.

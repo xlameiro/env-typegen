@@ -1,7 +1,6 @@
 ---
 description: "Use Context7 automatically for authoritative, version-specific external documentation. Avoids hallucinating deprecated or wrong APIs."
 applyTo: "**/*.ts, **/*.tsx, **/*.js, **/*.jsx, **/*.css"
-name: Context7-Aware-Development
 ---
 
 # Context7-aware development
@@ -64,3 +63,5 @@ When a decision relies on retrieved docs, cite: `title + URL`. If docs conflict,
 | Zustand      | `/pmndrs/zustand`           |
 | Vitest       | `/vitest-dev/vitest`        |
 | Playwright   | `/microsoft/playwright`     |
+
+## Learnings

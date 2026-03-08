@@ -184,6 +184,10 @@ Quick entry point: `.github/instructions/INDEX.md`.
 | `store/**`       | Use `zustand` skill                                                                          | Before modifying Zustand stores — load skill for store patterns                                |
 | `*.test.ts(x)`   | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              | Before writing or modifying Vitest unit tests                                                  |
 | `tests/**`       | `.github/instructions/playwright-typescript.instructions.md`                                 | Before writing or modifying Playwright E2E tests                                               |
+| `**/*.css`       | `.github/instructions/nextjs-tailwind.instructions.md`                                       | Before modifying styles — Tailwind v4 CSS-first config, design tokens                          |
+| `**/*.md`        | `.github/instructions/markdown.instructions.md`                                              | Before writing or editing Markdown documentation                                               |
+| Any code file    | `.github/instructions/performance-optimization.instructions.md`                              | Before performance-sensitive changes — rendering, caching, bundle size                         |
+| Any code file    | `.github/instructions/context7.instructions.md`                                              | Loaded automatically — provides Context7 MCP lookup guidance for external docs                 |
 
 ## Boundaries
 

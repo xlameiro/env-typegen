@@ -147,6 +147,7 @@ Always move client-only UI into a Client Component and import it directly in you
   - Use HTTPS in production.
   - Set secure HTTP headers.
   - Prefer server-side authorization for Server Actions and Route Handlers; never trust client input.
+  - Place authorization checks in `page.tsx` or `proxy.ts` — **never in `layout.tsx`** (layouts can be bypassed). See the Authorization Placement Matrix in `.github/copilot-instructions.md`.
 - **Documentation:**
   - Write clear README and code comments.
   - Document public APIs and components.

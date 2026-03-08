@@ -1,7 +1,6 @@
 ---
 description: "Index of instruction files and when to read each one"
 applyTo: "**"
-name: Instructions-Index
 ---
 
 ## Instructions Index

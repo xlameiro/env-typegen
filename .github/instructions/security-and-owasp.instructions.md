@@ -1,5 +1,5 @@
 ---
-applyTo: "*"
+applyTo: "**/*.ts, **/*.tsx, **/*.js, **/*.jsx"
 description: "Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices."
 ---
 

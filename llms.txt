@@ -56,7 +56,7 @@ pnpm dev          # Start dev server (Turbopack)
 pnpm build        # Production build
 pnpm test         # Vitest unit tests
 pnpm lint         # ESLint
-npx tsc --noEmit  # TypeScript type check
+pnpm type-check   # TypeScript type check
 ```
 
 ## Quality Gate
@@ -64,7 +64,7 @@ npx tsc --noEmit  # TypeScript type check
 All four commands below must pass before any task is considered done:
 
 ```bash
-pnpm lint && npx tsc --noEmit && pnpm test && pnpm build
+pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
 ## AI Infrastructure
