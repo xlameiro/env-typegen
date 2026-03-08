@@ -64,6 +64,14 @@ PATTERNS=(
   "Authorization.*Bearer\s+[a-zA-Z0-9+/=_\-]{20,}"
   # Private keys
   "-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY"
+  # Vercel tokens
+  "VERCEL_TOKEN\s*=\s*[\"'][\"']?[a-zA-Z0-9_\-]{20,}"
+  # Supabase service role key
+  "SUPABASE_SERVICE_ROLE_KEY\s*=\s*[\"'][^\"']{30,}"
+  # Resend API keys
+  "re_[a-zA-Z0-9]{20,}"
+  # SendGrid API keys
+  "SG\.[a-zA-Z0-9_\-]{22}\.[a-zA-Z0-9_\-]{43}"
 )
 
 for pattern in "${PATTERNS[@]}"; do

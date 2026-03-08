@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "lastUpdated": "2026-03-08",
   "skills": {
     "agent-governance": {
       "source": "github/awesome-copilot",
@@ -145,11 +146,6 @@
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "computedHash": "3462ec83f862abb2d532953df33a4dbf87f4616849da5d4b5cc7c13601aaf997"
-    },
-    "vercel-react-native-skills": {
-      "source": "vercel-labs/agent-skills",
-      "sourceType": "github",
-      "computedHash": "2e9088a7333666d8c2833b8ff58bd51b955501c42b4c7244f72b4cbf22dafcc4"
     },
     "vitest": {
       "source": "antfu/skills",

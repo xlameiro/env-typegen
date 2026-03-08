@@ -1,20 +1,20 @@
 ---
-name: 'ADR Generator'
-description: 'Creates Architectural Decision Records (ADRs) documenting important design choices, tradeoffs, and their context. Use when making a significant architectural, library, or infrastructure decision.'
+name: "ADR Generator"
+description: "Creates Architectural Decision Records (ADRs) documenting important design choices, tradeoffs, and their context. Use when making a significant architectural, library, or infrastructure decision."
 argument-hint: "Describe the architectural decision to document — e.g., 'adopt Zustand for client state' or 'switch from REST to tRPC'"
-model: "Claude Sonnet 4.6 (copilot)"
+model: ["Claude Sonnet 4.6 (copilot)", "GPT-4.1 (copilot)"]
 tools:
   - search
   - read
   - edit
 handoffs:
-  - agent: 'Code Reviewer'
-    label: 'Review ADR'
-    prompt: 'Please review the ADR I just created for clarity, completeness, and accuracy. Focus on whether the context, decision, and consequences are well-reasoned and actionable.'
+  - agent: "Code Reviewer"
+    label: "Review ADR"
+    prompt: "Please review the ADR I just created for clarity, completeness, and accuracy. Focus on whether the context, decision, and consequences are well-reasoned and actionable."
     send: false
-  - agent: 'Planner'
-    label: 'Plan implementation'
-    prompt: 'Based on the ADR I just created, generate a detailed implementation plan. The ADR describes the decision context and consequences; now create the step-by-step plan to execute it.'
+  - agent: "Planner"
+    label: "Plan implementation"
+    prompt: "Based on the ADR I just created, generate a detailed implementation plan. The ADR describes the decision context and consequences; now create the step-by-step plan to execute it."
     send: false
 ---
 
@@ -33,14 +33,14 @@ Each ADR file starts with this YAML front matter:
 
 ```yaml
 ---
-title: '<Short imperative title>'
-status: 'proposed'   # proposed | accepted | deprecated | superseded-by: adr-NNNN
-date: 'YYYY-MM-DD'
+title: "<Short imperative title>"
+status: "proposed" # proposed | accepted | deprecated | superseded-by: adr-NNNN
+date: "YYYY-MM-DD"
 authors:
   - GitHub Copilot
 tags:
-  - '<technology>'
-  - '<domain>'
+  - "<technology>"
+  - "<domain>"
 ---
 ```
 
@@ -56,7 +56,7 @@ Describe the situation as it exists **today**: forces at play, constraints, the 
 
 ### Decision
 
-State the decision clearly in one sentence starting with **"We will…"**. Then give 2–4 bullet points explaining *why* this option was chosen over the alternatives.
+State the decision clearly in one sentence starting with **"We will…"**. Then give 2–4 bullet points explaining _why_ this option was chosen over the alternatives.
 
 ### Consequences
 
@@ -74,6 +74,7 @@ State the decision clearly in one sentence starting with **"We will…"**. Then 
 For each rejected alternative:
 
 **Option name** — one-line description.
+
 - Rejected because: …
 
 ### Implementation notes
@@ -106,13 +107,14 @@ Include file paths or commands when relevant to this project.
 - Do not include implementation code unless it's a 3-line example that clarifies the decision
 
 <success_criteria>
+
 - [ ] `/docs/adr/` directory exists
 - [ ] File created at correct path with sequential number
 - [ ] YAML front matter is valid and complete (title, status, date, authors, tags)
 - [ ] All required sections present: Context, Decision, Consequences, Alternatives, Implementation notes, References
 - [ ] Decision statement starts with "We will…"
 - [ ] Completion marker written at end of response
-</success_criteria>
+      </success_criteria>
 
 ## Completion protocol
 

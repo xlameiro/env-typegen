@@ -1,15 +1,39 @@
 ---
-name: 'Create Schema'
-agent: 'agent'
-description: 'Create a Zod schema with full type inference and validation utilities'
-tools: [vscode, execute, read, agent, edit, search, web, browser, 'io.github.upstash/context7/*', 'shadcn/*', 'playwright/*', 'next-devtools/*', 'github/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
+name: "Create Schema"
+agent: "agent"
+description: "Create a Zod schema with full type inference and validation utilities"
+tools:
+  [
+    vscode,
+    execute,
+    read,
+    agent,
+    edit,
+    search,
+    web,
+    browser,
+    "io.github.upstash/context7/*",
+    "shadcn/*",
+    "playwright/*",
+    "next-devtools/*",
+    "github/*",
+    vscode.mermaid-chat-features/renderMermaidDiagram,
+    todo,
+  ]
 ---
 
 Create a Zod schema for the described data structure, following the project conventions.
 
+## Rule precedence
+
+- Use `.github/copilot-instructions.md` as the canonical source for cross-cutting repository conventions.
+- Use `.github/instructions/INDEX.md` to load directory-specific instructions before creating files.
+- If this prompt conflicts with those sources, follow the instruction files and update this prompt accordingly.
+
 ## Required inputs
 
 Ask for these if not provided:
+
 - **Schema name and purpose** (e.g. "user registration form", "API response from /api/products")
 - **Fields and their types/constraints**
 - **Is this for a form, API request body, or API response?**
@@ -28,40 +52,42 @@ Ask for these if not provided:
 ## Common patterns
 
 ```ts
-import { z } from 'zod'
+import { z } from "zod";
 
 // Form schema with transformation
-export const registerSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100).trim(),
-  email: z.string().email().toLowerCase().trim(),
-  password: z.string().min(8).max(128),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-})
+export const registerSchema = z
+  .object({
+    name: z.string().min(1, "Name is required").max(100).trim(),
+    email: z.string().email().toLowerCase().trim(),
+    password: z.string().min(8).max(128),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
-export type RegisterInput = z.infer<typeof registerSchema>
+export type RegisterInput = z.infer<typeof registerSchema>;
 
 // API response schema
 export const productSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   price: z.number().nonnegative(),
-  category: z.enum(['electronics', 'clothing', 'food']),
+  category: z.enum(["electronics", "clothing", "food"]),
   tags: z.array(z.string()),
   createdAt: z.string().datetime(),
-})
+});
 
-export type Product = z.infer<typeof productSchema>
+export type Product = z.infer<typeof productSchema>;
 
 // Reusable at API boundary
 export function parseProduct(data: unknown): Product {
-  const result = productSchema.safeParse(data)
+  const result = productSchema.safeParse(data);
   if (!result.success) {
-    throw new Error(`Invalid product data: ${result.error.message}`)
+    throw new Error(`Invalid product data: ${result.error.message}`);
   }
-  return result.data
+  return result.data;
 }
 ```
 

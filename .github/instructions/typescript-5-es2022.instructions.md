@@ -1,6 +1,6 @@
 ---
-description: 'Guidelines for TypeScript Development targeting TypeScript 5.x and ES2022 output'
-applyTo: '**/*.ts'
+description: "Guidelines for TypeScript Development targeting TypeScript 5.x and ES2022 output"
+applyTo: "**/*.ts"
 ---
 
 # TypeScript Development
@@ -112,3 +112,5 @@ applyTo: '**/*.ts'
 - Add JSDoc to public APIs; include `@remarks` or `@example` when helpful.
 - Write comments that capture intent, and remove stale notes during refactors.
 - Update architecture or design docs when introducing significant patterns.
+
+## Learnings

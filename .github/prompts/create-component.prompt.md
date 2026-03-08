@@ -1,15 +1,39 @@
 ---
-name: 'Create Component'
-agent: 'agent'
-description: 'Scaffold a new React Server Component following project conventions'
-tools: [vscode, execute, read, agent, edit, search, web, browser, 'io.github.upstash/context7/*', 'shadcn/*', 'playwright/*', 'next-devtools/*', 'github/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
+name: "Create Component"
+agent: "agent"
+description: "Scaffold a new React Server Component following project conventions"
+tools:
+  [
+    vscode,
+    execute,
+    read,
+    agent,
+    edit,
+    search,
+    web,
+    browser,
+    "io.github.upstash/context7/*",
+    "shadcn/*",
+    "playwright/*",
+    "next-devtools/*",
+    "github/*",
+    vscode.mermaid-chat-features/renderMermaidDiagram,
+    todo,
+  ]
 ---
 
 Create a new React component following the project conventions for this Next.js 16 starter template.
 
+## Rule precedence
+
+- Use `.github/copilot-instructions.md` as the canonical source for cross-cutting repository conventions.
+- Use `.github/instructions/INDEX.md` to load directory-specific instructions before creating files.
+- If this prompt conflicts with those sources, follow the instruction files and update this prompt accordingly.
+
 ## Required inputs
 
 Ask for these if not provided:
+
 - **Component name** (PascalCase, e.g. `UserCard`)
 - **Location** (e.g. `app/components/`, `app/(dashboard)/components/`)
 - **Is it interactive?** (needs `"use client"`? e.g. has onClick, useState, useEffect)
@@ -37,16 +61,16 @@ Ask for these if not provided:
 // app/components/user-card.tsx
 
 type Props = {
-  name: string
-  email: string
-  avatarUrl?: string
-}
+  name: string;
+  email: string;
+  avatarUrl?: string;
+};
 
 export function UserCard({ name, email, avatarUrl }: Props) {
   return (
     <article className="rounded-lg border border-border p-4">
       {/* ... */}
     </article>
-  )
+  );
 }
 ```

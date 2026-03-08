@@ -1,6 +1,6 @@
 ---
-description: 'ReactJS development standards and best practices'
-applyTo: '**/*.jsx, **/*.tsx, **/*.js, **/*.ts, **/*.css, **/*.scss'
+description: "ReactJS development standards and best practices"
+applyTo: "**/*.jsx, **/*.tsx, **/*.js, **/*.ts, **/*.css, **/*.scss"
 ---
 
 # ReactJS Development Instructions
@@ -9,8 +9,10 @@ Instructions for building high-quality ReactJS applications with modern patterns
 
 > **This file covers React component patterns (architecture, hooks, composition, styling, testing).**
 > For this Next.js project, all data fetching, routing, caching, and server/client boundary decisions are governed by `nextjs.instructions.md` and `nextjs-tailwind.instructions.md`. When any rule here conflicts with those files, **the Next.js instructions take precedence**.
+> For cross-cutting repository conventions (naming, imports, auth placement, security defaults, and quality gates), use `.github/copilot-instructions.md` as the canonical source.
 
 ## Project Context
+
 - Latest React version (React 19+)
 - TypeScript for type safety (when applicable)
 - Functional components with hooks as default
@@ -22,6 +24,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 ## Development Standards
 
 ### Architecture
+
 - Use functional components with hooks as the primary pattern
 - Implement component composition over inheritance
 - Organize components by feature or domain for scalability
@@ -30,6 +33,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Implement proper component hierarchies with clear data flow
 
 ### TypeScript Integration
+
 - Use TypeScript interfaces for props, state, and component definitions
 - Define proper types for event handlers and refs
 - Implement generic components where appropriate
@@ -39,6 +43,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Create union types for component variants and states
 
 ### Component Design
+
 - Follow the single responsibility principle for components
 - Use descriptive and consistent naming conventions
 - Implement proper prop validation with TypeScript or PropTypes
@@ -47,6 +52,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use composition patterns (render props, children as functions)
 
 ### State Management
+
 - Use `useState` for local component state
 - Implement `useReducer` for complex state logic
 - Leverage `useContext` for sharing state across component trees
@@ -55,6 +61,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - **Do not use React Query, SWR, or `useEffect` for server data fetching.** Data that can be fetched server-side must be fetched in Server Components or Server Actions (see `nextjs.instructions.md`)
 
 ### Hooks and Effects
+
 - Use `useEffect` with proper dependency arrays to avoid infinite loops
 - Implement cleanup functions in effects to prevent memory leaks
 - Use `useMemo` and `useCallback` for performance optimization when needed
@@ -63,6 +70,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use `useRef` for accessing DOM elements and storing mutable values
 
 ### Styling
+
 - Use Tailwind CSS utility classes — this project uses Tailwind CSS v4 with CSS-first configuration (`@theme {}`); avoid CSS Modules, Styled Components, and CSS-in-JS
 - Implement responsive design with Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`)
 - Use Tailwind design tokens (CSS custom properties via `@theme`) for consistent theming; avoid scattered inline hex values
@@ -70,6 +78,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Ensure accessibility with proper ARIA attributes and semantic HTML
 
 ### Performance Optimization
+
 - Use `React.memo` for component memoization when appropriate
 - Use `next/dynamic` for component-level lazy loading — **do not use `React.lazy`** in Next.js (it is not supported in Server Components; `next/dynamic` is the correct abstraction for both Server and Client Components)
 - Use `useMemo` and `useCallback` judiciously to prevent unnecessary re-renders
@@ -87,6 +96,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use Next.js `loading.tsx`, `Suspense`, and `error.tsx` for async UI states instead of manual loading/error state variables.
 
 ### Error Handling
+
 - Implement Error Boundaries for component-level error handling
 - Use proper error states in data fetching
 - Implement fallback UI for error scenarios
@@ -95,6 +105,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Provide meaningful error messages to users
 
 ### Forms and Validation
+
 - Use controlled components for form inputs
 - Implement proper form validation with React Hook Form + Zod (project convention); avoid Formik
 - Handle form submission and error states appropriately
@@ -103,14 +114,16 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Handle file uploads and complex form scenarios
 
 ### Routing
+
 - This project uses **Next.js App Router** for all routing — do not install React Router
 - Use `<Link>` from `next/link` for client-side navigation
-- Protect routes via `middleware.ts` with Auth.js session checks
+- Protect routes via `proxy.ts` with Auth.js session checks (this project uses `proxy.ts` instead of the standard `middleware.ts`)
 - Use Next.js dynamic segments (`[id]`, `[[...slug]]`) for parameterized routes
 - Route-based code splitting is automatic; use `dynamic()` from `next/dynamic` for component-level lazy loading
 - Use `useRouter`, `usePathname`, and `useSearchParams` from `next/navigation` (not `next/router`)
 
 ### Testing
+
 - Write unit tests for components using React Testing Library
 - Test component behavior, not implementation details
 - Use **Vitest** as the test runner (project convention); its API is Jest-compatible — do not install Jest
@@ -119,6 +132,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Test accessibility features and keyboard navigation
 
 ### Security
+
 - Sanitize user inputs to prevent XSS attacks
 - Validate and escape data before rendering
 - Use HTTPS for all external API calls
@@ -127,6 +141,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use Content Security Policy (CSP) headers
 
 ### Accessibility
+
 - Use semantic HTML elements appropriately
 - Implement proper ARIA attributes and roles
 - Ensure keyboard navigation works for all interactive elements
@@ -135,6 +150,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Test with screen readers and accessibility tools
 
 ## Implementation Process
+
 1. Plan component architecture and data flow
 2. Set up project structure with proper folder organization
 3. Define TypeScript interfaces and types
@@ -143,11 +159,12 @@ Instructions for building high-quality ReactJS applications with modern patterns
 6. Add form handling and validation
 7. Implement error handling with `error.tsx` boundaries and loading states with `loading.tsx` / `Suspense`
 8. Add testing coverage for components and functionality
-10. Optimize performance and bundle size
-11. Ensure accessibility compliance
-12. Add documentation and code comments
+9. Optimize performance and bundle size
+10. Ensure accessibility compliance
+11. Add documentation and code comments
 
 ## Additional Guidelines
+
 - Follow React's naming conventions (PascalCase for components, camelCase for functions)
 - Use meaningful commit messages and maintain clean git history
 - Implement proper code splitting and lazy loading strategies
@@ -158,9 +175,12 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use React Developer Tools for debugging and performance analysis
 
 ## Common Patterns
+
 - Higher-Order Components (HOCs) for cross-cutting concerns
 - Render props pattern for component composition
 - Compound components for related functionality
 - Provider pattern for context-based state sharing
 - **Server/Client boundary** — the App Router equivalent of container/presentational: Server Components own data access and async logic; Client Components own event handling and reactive UI
 - Custom hooks for reusable logic extraction
+
+## Learnings

@@ -1,6 +1,7 @@
 {
   "recommendations": [
     // GitHub Copilot
+    "GitHub.copilot",
     "GitHub.copilot-chat",
 
     // TypeScript / JavaScript
@@ -12,6 +13,7 @@
 
     // Linting / Formatting
     "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
 
     // Testing
     "vitest.explorer",

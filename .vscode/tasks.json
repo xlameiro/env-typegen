@@ -4,7 +4,7 @@
     {
       "label": "TypeScript: type check",
       "type": "shell",
-      "command": "npx tsc --noEmit",
+      "command": "pnpm type-check",
       "problemMatcher": ["$tsc"],
       "group": {
         "kind": "build",
@@ -42,8 +42,24 @@
       }
     },
     {
+      "label": "Next.js: build",
+      "type": "shell",
+      "command": "pnpm build",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "clear": true,
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Health check: lint + typecheck + test + build",
-      "dependsOn": ["TypeScript: type check", "ESLint: lint", "Vitest: run tests"],
+      "dependsOn": [
+        "TypeScript: type check",
+        "ESLint: lint",
+        "Vitest: run tests",
+        "Next.js: build"
+      ],
       "dependsOrder": "sequence",
       "group": "build",
       "presentation": {

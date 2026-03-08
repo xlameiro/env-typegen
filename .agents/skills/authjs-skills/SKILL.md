@@ -16,10 +16,10 @@ description: Auth.js v5 setup for Next.js authentication including Google OAuth,
 ## Installation
 
 ```sh
-pnpm add next-auth@beta
+pnpm add next-auth
 ```
 
-**Note**: Auth.js v5 is currently in beta. Use `next-auth@beta` to install the latest v5 version.
+**Note**: Auth.js v5 is stable (released 2024, stable as of 2025/2026). Install with `next-auth` — no `@beta` tag needed.
 
 ## What's New in Auth.js v5?
 
@@ -72,9 +72,9 @@ pnpm dlx auth secret
 Create `auth.ts` at the project root (next to `package.json`):
 
 ```typescript
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -91,35 +91,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // TODO: Implement your authentication logic here
         // This is a basic example - see Credentials Provider section below for complete implementation
         if (!credentials?.email || !credentials?.password) {
-          return null
+          return null;
         }
 
         // Example: validate against database (placeholder)
         // See "Credentials Provider" section for full implementation with bcrypt
-        const user = { id: "1", email: credentials.email, name: "User" } // Replace with actual DB lookup
-        
+        const user = { id: "1", email: credentials.email, name: "User" }; // Replace with actual DB lookup
+
         if (!user) {
-          return null
+          return null;
         }
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-        }
+        };
       },
     }),
   ],
   pages: {
-    signIn: '/auth/signin',
+    signIn: "/auth/signin",
   },
   callbacks: {
     authorized: async ({ auth }) => {
       // Return true if user is authenticated
-      return !!auth
+      return !!auth;
     },
   },
-})
+});
 ```
 
 **Note**: This is a basic setup example. For production-ready credentials authentication, see the "Credentials Provider" section below which includes proper password hashing with bcrypt and database integration.
@@ -129,9 +129,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 Create `app/api/auth/[...nextauth]/route.ts`:
 
 ```typescript
-import { handlers } from "@/auth"
+import { handlers } from "@/auth";
 
-export const { GET, POST } = handlers
+export const { GET, POST } = handlers;
 ```
 
 ### 3. Add Middleware (Optional but Recommended)
@@ -139,30 +139,30 @@ export const { GET, POST } = handlers
 Create `middleware.ts` at the project root:
 
 ```typescript
-export { auth as middleware } from "@/auth"
+export { auth as middleware } from "@/auth";
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-}
+};
 ```
 
 For more control:
 
 ```typescript
-import { auth } from "@/auth"
+import { auth } from "@/auth";
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const isOnDashboard = req.nextUrl.pathname.startsWith('/dashboard')
-  
+  const isLoggedIn = !!req.auth;
+  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
+
   if (isOnDashboard && !isLoggedIn) {
-    return Response.redirect(new URL('/auth/signin', req.url))
+    return Response.redirect(new URL("/auth/signin", req.url));
   }
-})
+});
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/profile/:path*'],
-}
+  matcher: ["/dashboard/:path*", "/profile/:path*"],
+};
 ```
 
 ## Google OAuth Provider
@@ -182,8 +182,8 @@ export const config = {
 ### 2. Configuration
 
 ```typescript
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -194,12 +194,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
-        }
-      }
+          response_type: "code",
+        },
+      },
     }),
   ],
-})
+});
 ```
 
 ### 3. Google Provider Options
@@ -213,11 +213,11 @@ Google({
     params: {
       scope: "openid email profile",
       prompt: "select_account", // Force account selection
-    }
+    },
   },
   // Allow specific domains only
   allowDangerousEmailAccountLinking: false,
-})
+});
 ```
 
 ## Credentials Provider (Username/Password)
@@ -233,42 +233,49 @@ pnpm add -D @types/bcryptjs
 ### 1. Basic Configuration
 
 ```typescript
-import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
-import { z } from "zod"
-import bcrypt from "bcryptjs"
-import { prisma } from "@/lib/prisma"
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-})
+});
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "user@example.com" },
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "user@example.com",
+        },
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
         try {
-          const { email, password } = credentialsSchema.parse(credentials)
-          
+          const { email, password } = credentialsSchema.parse(credentials);
+
           // Fetch user from database
           const user = await prisma.user.findUnique({
             where: { email },
-          })
+          });
 
           if (!user) {
-            throw new Error("User not found")
+            throw new Error("User not found");
           }
 
           // Verify password
-          const isValidPassword = await bcrypt.compare(password, user.hashedPassword)
-          
+          const isValidPassword = await bcrypt.compare(
+            password,
+            user.hashedPassword,
+          );
+
           if (!isValidPassword) {
-            throw new Error("Invalid password")
+            throw new Error("Invalid password");
           }
 
           // Return user object (must include id)
@@ -277,10 +284,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             name: user.name,
             image: user.image,
-          }
+          };
         } catch (error) {
-          console.error("Authentication error:", error)
-          return null
+          console.error("Authentication error:", error);
+          return null;
         }
       },
     }),
@@ -288,43 +295,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt", // Required for credentials provider
   },
-})
+});
 ```
 
 ### 2. User Registration Example
 
 ```typescript
 // app/api/auth/register/route.ts
-import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
 
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().min(2),
-})
+});
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { email, password, name } = registerSchema.parse(body)
+    const body = await req.json();
+    const { email, password, name } = registerSchema.parse(body);
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
-    })
+    });
 
     if (existingUser) {
       return NextResponse.json(
         { error: "User already exists" },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const user = await prisma.user.create({
@@ -333,18 +340,18 @@ export async function POST(req: Request) {
         name,
         hashedPassword,
       },
-    })
+    });
 
     return NextResponse.json(
       { message: "User created successfully", userId: user.id },
-      { status: 201 }
-    )
+      { status: 201 },
+    );
   } catch (error) {
-    console.error("Registration error:", error)
+    console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Failed to register user" },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
 }
 ```
@@ -375,28 +382,28 @@ export default async function ProfilePage() {
 ### Server Actions
 
 ```typescript
-"use server"
+"use server";
 
-import { auth } from "@/auth"
-import { revalidatePath } from "next/cache"
-import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
 
 export async function updateProfile(formData: FormData) {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user) {
-    throw new Error("Not authenticated")
+    throw new Error("Not authenticated");
   }
 
-  const name = formData.get("name") as string
+  const name = formData.get("name") as string;
 
   // Update database
   await prisma.user.update({
     where: { id: session.user.id },
     data: { name },
-  })
+  });
 
-  revalidatePath("/profile")
+  revalidatePath("/profile");
 }
 ```
 
@@ -469,24 +476,24 @@ export function UserProfile() {
 ### Programmatic Sign In
 
 ```typescript
-import { signIn } from "@/auth"
+import { signIn } from "@/auth";
 
 // Server Action
 export async function handleSignIn(provider: string) {
-  "use server"
-  await signIn(provider)
+  "use server";
+  await signIn(provider);
 }
 
 // With credentials
 export async function handleCredentialsSignIn(formData: FormData) {
-  "use server"
-  await signIn("credentials", formData)
+  "use server";
+  await signIn("credentials", formData);
 }
 
 // With redirect
 export async function handleGoogleSignIn() {
-  "use server"
-  await signIn("google", { redirectTo: "/dashboard" })
+  "use server";
+  await signIn("google", { redirectTo: "/dashboard" });
 }
 ```
 
@@ -500,7 +507,7 @@ export default function SignInPage() {
   return (
     <div>
       <h1>Sign In</h1>
-      
+
       {/* Google OAuth */}
       <form
         action={async () => {
@@ -562,21 +569,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
-})
+});
 ```
 
 ### Extending the Session
 
 ```typescript
-import NextAuth from "next-auth"
-import type { DefaultSession } from "next-auth"
+import NextAuth from "next-auth";
+import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
     user: {
-      id: string
-      role: string
-    } & DefaultSession["user"]
+      id: string;
+      role: string;
+    } & DefaultSession["user"];
   }
 }
 
@@ -584,20 +591,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
+        token.id = user.id;
+        token.role = user.role;
       }
-      return token
+      return token;
     },
     session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
-      return session
+      return session;
     },
   },
-})
+});
 ```
 
 ## Callbacks
@@ -612,51 +619,51 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Return true to allow sign in, false to deny
       // Example: Check if email is verified
       if (account?.provider === "google") {
-        return profile?.email_verified === true
+        return profile?.email_verified === true;
       }
-      return true
+      return true;
     },
 
     // Called whenever a JWT is created or updated
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id;
       }
       if (account) {
-        token.accessToken = account.access_token
+        token.accessToken = account.access_token;
       }
-      return token
+      return token;
     },
 
     // Called whenever a session is checked
     async session({ session, token }) {
-      session.user.id = token.id as string
-      session.accessToken = token.accessToken as string
-      return session
+      session.user.id = token.id as string;
+      session.accessToken = token.accessToken as string;
+      return session;
     },
 
     // Called on middleware and server-side auth checks
     async authorized({ auth, request }) {
-      const isLoggedIn = !!auth?.user
-      const isOnDashboard = request.nextUrl.pathname.startsWith("/dashboard")
-      
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = request.nextUrl.pathname.startsWith("/dashboard");
+
       if (isOnDashboard) {
-        return isLoggedIn
+        return isLoggedIn;
       }
-      
-      return true
+
+      return true;
     },
 
     // Called when user is redirected
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
-})
+});
 ```
 
 ## Database Adapter (Optional)
@@ -670,9 +677,9 @@ pnpm add @auth/prisma-adapter
 Then configure it in your `auth.ts`:
 
 ```typescript
-import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -682,7 +689,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     // ... providers
   ],
-})
+});
 ```
 
 Required Prisma schema:
@@ -731,22 +738,19 @@ model Session {
 
 ```typescript
 // app/api/user/route.ts
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   return NextResponse.json({
     user: session.user,
-  })
+  });
 }
 ```
 
@@ -754,30 +758,27 @@ export async function GET() {
 
 ```typescript
 // lib/auth-helpers.ts
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
-import type { Session } from "next-auth"
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
+import type { Session } from "next-auth";
 
 export async function withAuth(
-  handler: (session: Session) => Promise<NextResponse>
+  handler: (session: Session) => Promise<NextResponse>,
 ) {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return handler(session)
+  return handler(session);
 }
 
 // Usage
 export async function GET() {
   return withAuth(async (session) => {
-    return NextResponse.json({ userId: session.user.id })
-  })
+    return NextResponse.json({ userId: session.user.id });
+  });
 }
 ```
 
@@ -838,50 +839,50 @@ export async function GET() {
 ### Protected Pages with Middleware
 
 ```typescript
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const { pathname } = req.nextUrl
+  const isLoggedIn = !!req.auth;
+  const { pathname } = req.nextUrl;
 
   // Public routes
-  const publicRoutes = ['/auth/signin', '/auth/register', '/']
+  const publicRoutes = ["/auth/signin", "/auth/register", "/"];
   if (publicRoutes.includes(pathname)) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Protected routes
   if (!isLoggedIn) {
-    const signInUrl = new URL('/auth/signin', req.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
+    const signInUrl = new URL("/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   // Role-based access
-  const adminRoutes = ['/admin']
-  if (adminRoutes.some(route => pathname.startsWith(route))) {
-    if (req.auth.user.role !== 'admin') {
-      return NextResponse.redirect(new URL('/unauthorized', req.url))
+  const adminRoutes = ["/admin"];
+  if (adminRoutes.some((route) => pathname.startsWith(route))) {
+    if (req.auth.user.role !== "admin") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
   }
 
-  return NextResponse.next()
-})
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-}
+};
 ```
 
 ### Multi-Provider Setup
 
 ```typescript
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
-import GitHub from "next-auth/providers/github"
-import Credentials from "next-auth/providers/credentials"
-import { prisma } from "@/lib/prisma"
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -903,8 +904,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.provider !== "credentials") {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
-        })
-        
+        });
+
         if (existingUser) {
           // Link account to existing user
           await prisma.account.create({
@@ -916,13 +917,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               access_token: account.access_token,
               refresh_token: account.refresh_token,
             },
-          })
+          });
         }
       }
-      return true
+      return true;
     },
   },
-})
+});
 ```
 
 ### Custom Sign In Page
@@ -943,7 +944,7 @@ export default function SignInPage({
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md space-y-8 p-8">
         <h1 className="text-2xl font-bold text-center">Sign In</h1>
-        
+
         {/* OAuth Providers */}
         <div className="space-y-4">
           <form
@@ -952,7 +953,7 @@ export default function SignInPage({
               await signIn("google", { redirectTo: callbackUrl })
             }}
           >
-            <button 
+            <button
               type="submit"
               className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-50"
             >
@@ -1033,7 +1034,7 @@ export type Role = "admin" | "user" | "guest"
 
 export async function checkRole(allowedRoles: Role[]) {
   const session = await auth()
-  
+
   if (!session?.user) {
     return false
   }
@@ -1045,7 +1046,7 @@ export async function checkRole(allowedRoles: Role[]) {
 // Usage in Server Component
 export default async function AdminPage() {
   const hasAccess = await checkRole(["admin"])
-  
+
   if (!hasAccess) {
     redirect("/unauthorized")
   }
@@ -1056,9 +1057,9 @@ export default async function AdminPage() {
 // Usage in Server Action
 export async function deleteUser(userId: string) {
   "use server"
-  
+
   const hasAccess = await checkRole(["admin"])
-  
+
   if (!hasAccess) {
     throw new Error("Unauthorized")
   }
@@ -1081,33 +1082,33 @@ export async function deleteUser(userId: string) {
 
 ```typescript
 // v4 (old)
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 }
 
 // v5 (new)
-import { auth } from "@/auth"
+import { auth } from "@/auth";
 
 export async function GET() {
-  const session = await auth()
+  const session = await auth();
 }
 ```
 
 ```typescript
 // v4 middleware (old)
-import { withAuth } from "next-auth/middleware"
+import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
   callbacks: {
     authorized: ({ token }) => !!token,
   },
-})
+});
 
 // v5 middleware (new)
-export { auth as middleware } from "@/auth"
+export { auth as middleware } from "@/auth";
 ```
 
 ## Troubleshooting
@@ -1115,27 +1116,34 @@ export { auth as middleware } from "@/auth"
 ### Common Issues
 
 **AUTH_SECRET not set**:
+
 ```
 Error: AUTH_SECRET environment variable is not set
 ```
+
 Generate and set `AUTH_SECRET` in `.env.local`
 
 **Google OAuth redirect mismatch**:
+
 ```
 Error: redirect_uri_mismatch
 ```
+
 Ensure redirect URI in Google Console matches: `http://localhost:3000/api/auth/callback/google`
 
 **Session not persisting**:
+
 - Check `AUTH_URL` is set correctly
 - Verify cookies are not blocked
 - Ensure `sessionToken` cookie is being set (check browser DevTools)
 
 **TypeScript errors with session**:
+
 - Extend the `Session` and `JWT` types using module augmentation
 - Run `pnpm tsc --noEmit` to check for type errors
 
 **Credentials provider not working**:
+
 - Ensure `session.strategy` is set to `"jwt"`
 - Check `authorize` function returns correct user object with `id` field
 - Verify password hashing/comparison logic

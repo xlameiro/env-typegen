@@ -18,20 +18,20 @@ description: >
 
 ```ts
 // next.config.ts
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // options here
-}
+};
 
-export default nextConfig
+export default nextConfig;
 ```
 
 ```js
 // next.config.js (CommonJS)
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
-module.exports = nextConfig
+const nextConfig = {};
+module.exports = nextConfig;
 ```
 
 ---
@@ -41,7 +41,7 @@ module.exports = nextConfig
 ### `basePath`
 
 ```ts
-basePath: '/docs'
+basePath: "/docs";
 // All routes and Link hrefs are automatically prefixed
 // Cannot be changed at runtime — baked into client bundles
 ```
@@ -49,7 +49,7 @@ basePath: '/docs'
 ### `trailingSlash`
 
 ```ts
-trailingSlash: true
+trailingSlash: true;
 // /about → /about/ (adds trailing slash)
 // false (default) → /about/index.html redirects to /about
 ```
@@ -57,7 +57,7 @@ trailingSlash: true
 ### `assetPrefix`
 
 ```ts
-assetPrefix: 'https://cdn.example.com'
+assetPrefix: "https://cdn.example.com";
 // Prefix for static asset URLs (_next/static/...)
 // Does NOT prefix public/ directory files
 ```
@@ -65,7 +65,7 @@ assetPrefix: 'https://cdn.example.com'
 ### `skipTrailingSlashRedirect`
 
 ```ts
-skipTrailingSlashRedirect: true
+skipTrailingSlashRedirect: true;
 // Disables the built-in redirect for trailing slashes
 // Useful when you handle trailing slashes manually in proxy.ts
 ```
@@ -75,7 +75,7 @@ skipTrailingSlashRedirect: true
 > **Next.js 16**: Previously `skipMiddlewareUrlNormalize`.
 
 ```ts
-skipProxyUrlNormalize: true
+skipProxyUrlNormalize: true;
 // Disables URL normalization for direct URL visits vs client-nav
 // Allows proxy.ts to see the original URL without normalization
 ```
@@ -102,14 +102,14 @@ async headers() {
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `source` | `string` | Path pattern (supports `:param`, `:param*`, `:param?`) |
-| `headers` | `{ key: string; value: string }[]` | Headers to add |
-| `has` | `RouteHas[]` | Match only if conditions present |
-| `missing` | `RouteHas[]` | Match only if conditions absent |
-| `basePath` | `false` | Opt out of basePath prefix |
-| `locale` | `false` | Opt out of locale prefix |
+| Field      | Type                               | Description                                            |
+| ---------- | ---------------------------------- | ------------------------------------------------------ |
+| `source`   | `string`                           | Path pattern (supports `:param`, `:param*`, `:param?`) |
+| `headers`  | `{ key: string; value: string }[]` | Headers to add                                         |
+| `has`      | `RouteHas[]`                       | Match only if conditions present                       |
+| `missing`  | `RouteHas[]`                       | Match only if conditions absent                        |
+| `basePath` | `false`                            | Opt out of basePath prefix                             |
+| `locale`   | `false`                            | Opt out of locale prefix                               |
 
 ### `redirects()`
 
@@ -122,15 +122,15 @@ async redirects() {
 }
 ```
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `source` | `string` | — | Incoming path pattern |
-| `destination` | `string` | — | Redirect target |
-| `permanent` | `boolean` | — | `true` → 308, `false` → 307 |
-| `statusCode` | `number` | — | Custom code (overrides `permanent`) |
-| `has` | `RouteHas[]` | — | Conditional matching |
-| `missing` | `RouteHas[]` | — | Conditional absence matching |
-| `basePath` | `false` | — | Opt out of basePath prefix |
+| Field         | Type         | Default | Description                         |
+| ------------- | ------------ | ------- | ----------------------------------- |
+| `source`      | `string`     | —       | Incoming path pattern               |
+| `destination` | `string`     | —       | Redirect target                     |
+| `permanent`   | `boolean`    | —       | `true` → 308, `false` → 307         |
+| `statusCode`  | `number`     | —       | Custom code (overrides `permanent`) |
+| `has`         | `RouteHas[]` | —       | Conditional matching                |
+| `missing`     | `RouteHas[]` | —       | Conditional absence matching        |
+| `basePath`    | `false`      | —       | Opt out of basePath prefix          |
 
 ### `rewrites()`
 
@@ -152,51 +152,51 @@ async rewrites() {
 ### `distDir`
 
 ```ts
-distDir: '.next'           // default
-distDir: 'build'           // custom output directory
+distDir: ".next"; // default
+distDir: "build"; // custom output directory
 ```
 
 ### `output`
 
 ```ts
-output: 'standalone'   // Self-contained server (includes only needed node_modules)
-output: 'export'       // Static HTML export (no server required)
+output: "standalone"; // Self-contained server (includes only needed node_modules)
+output: "export"; // Static HTML export (no server required)
 // undefined (default) → standard server mode
 ```
 
 ### `cleanDistDir`
 
 ```ts
-cleanDistDir: true   // default — clears distDir on each build
-cleanDistDir: false  // keep previous build artifacts
+cleanDistDir: true; // default — clears distDir on each build
+cleanDistDir: false; // keep previous build artifacts
 ```
 
 ### `generateBuildId`
 
 ```ts
 generateBuildId: async () => {
-  return process.env.GIT_COMMIT_SHA ?? 'local'
-}
+  return process.env.GIT_COMMIT_SHA ?? "local";
+};
 ```
 
 ### `compress`
 
 ```ts
-compress: true   // default — enables gzip compression for SSR responses
-compress: false  // disable if reverse proxy handles compression (nginx, Cloudflare)
+compress: true; // default — enables gzip compression for SSR responses
+compress: false; // disable if reverse proxy handles compression (nginx, Cloudflare)
 ```
 
 ### `poweredByHeader`
 
 ```ts
-poweredByHeader: false  // removes X-Powered-By: Next.js header
+poweredByHeader: false; // removes X-Powered-By: Next.js header
 ```
 
 ### `pageExtensions`
 
 ```ts
-pageExtensions: ['tsx', 'ts', 'jsx', 'js']  // default
-pageExtensions: ['page.tsx', 'page.ts']      // require .page suffix
+pageExtensions: ["tsx", "ts", "jsx", "js"]; // default
+pageExtensions: ["page.tsx", "page.ts"]; // require .page suffix
 ```
 
 ---
@@ -231,21 +231,21 @@ images: {
 }
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `remotePatterns` | `RemotePattern[]` | `[]` | Allowlisted remote image sources |
-| `localPatterns` | `LocalPattern[]` | — | Restrict local image paths |
-| `deviceSizes` | `number[]` | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images |
-| `imageSizes` | `number[]` | `[16,32,48,64,96,128,256,384]` | Sizes for partial-width images |
-| `formats` | `string[]` | `['image/avif', 'image/webp']` | Accepted format order |
-| `minimumCacheTTL` | `number` | `14400` | Seconds to cache optimized images |
-| `dangerouslyAllowSVG` | `boolean` | `false` | Allow SVG optimization (XSS risk) |
-| `contentSecurityPolicy` | `string` | — | CSP for SVG responses |
-| `contentDispositionType` | `string` | `'inline'` | Content-Disposition header |
-| `unoptimized` | `boolean` | `false` | Bypass optimization pipeline |
-| `loader` | `string` | `'default'` | Custom image loader |
-| `loaderFile` | `string` | — | Path to custom loader (when `loader: 'custom'`) |
-| `qualities` | `number[]` | — | Restrict allowed quality values |
+| Option                   | Type              | Default                                  | Description                                     |
+| ------------------------ | ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `remotePatterns`         | `RemotePattern[]` | `[]`                                     | Allowlisted remote image sources                |
+| `localPatterns`          | `LocalPattern[]`  | —                                        | Restrict local image paths                      |
+| `deviceSizes`            | `number[]`        | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images               |
+| `imageSizes`             | `number[]`        | `[16,32,48,64,96,128,256,384]`           | Sizes for partial-width images                  |
+| `formats`                | `string[]`        | `['image/avif', 'image/webp']`           | Accepted format order                           |
+| `minimumCacheTTL`        | `number`          | `14400`                                  | Seconds to cache optimized images               |
+| `dangerouslyAllowSVG`    | `boolean`         | `false`                                  | Allow SVG optimization (XSS risk)               |
+| `contentSecurityPolicy`  | `string`          | —                                        | CSP for SVG responses                           |
+| `contentDispositionType` | `string`          | `'inline'`                               | Content-Disposition header                      |
+| `unoptimized`            | `boolean`         | `false`                                  | Bypass optimization pipeline                    |
+| `loader`                 | `string`          | `'default'`                              | Custom image loader                             |
+| `loaderFile`             | `string`          | —                                        | Path to custom loader (when `loader: 'custom'`) |
+| `qualities`              | `number[]`        | —                                        | Restrict allowed quality values                 |
 
 ---
 
@@ -254,7 +254,7 @@ images: {
 ### `reactStrictMode`
 
 ```ts
-reactStrictMode: true   // Enables React's development-mode double-invoking checks
+reactStrictMode: true; // Enables React's development-mode double-invoking checks
 ```
 
 ---
@@ -264,7 +264,7 @@ reactStrictMode: true   // Enables React's development-mode double-invoking chec
 ### `cacheComponents` (Next.js 16)
 
 ```ts
-cacheComponents: true
+cacheComponents: true;
 // Replaces experimental.dynamicIO from Next.js 15
 // Enables automatic caching of React components
 // Unlocks the 'use cache' directive
@@ -355,14 +355,14 @@ turbopack: {
 },
 ```
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `rules` | `Record<string, TurboRule>` | Custom loader rules for file patterns |
-| `resolveAlias` | `Record<string, string \| { browser: string }>` | Module aliases |
-| `resolveExtensions` | `string[]` | File extensions to resolve (overwrites defaults) |
-| `moduleIdStrategy` | `'deterministic' \| 'named'` | Module ID generation |
-| `treeShaking` | `boolean` | Enable/disable tree shaking |
-| `memoryLimit` | `number` | Memory limit in MB |
+| Option              | Type                                            | Description                                      |
+| ------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| `rules`             | `Record<string, TurboRule>`                     | Custom loader rules for file patterns            |
+| `resolveAlias`      | `Record<string, string \| { browser: string }>` | Module aliases                                   |
+| `resolveExtensions` | `string[]`                                      | File extensions to resolve (overwrites defaults) |
+| `moduleIdStrategy`  | `'deterministic' \| 'named'`                    | Module ID generation                             |
+| `treeShaking`       | `boolean`                                       | Enable/disable tree shaking                      |
+| `memoryLimit`       | `number`                                        | Memory limit in MB                               |
 
 > **Note**: Turbopack is used by `next dev --turbopack` (default in Next.js 16) and `next build --turbopack` (stable from 16.2+). Does not apply to webpack builds.
 
@@ -373,7 +373,7 @@ turbopack: {
 ### `serverExternalPackages`
 
 ```ts
-serverExternalPackages: ['@prisma/client', 'bcrypt', 'sharp']
+serverExternalPackages: ["@prisma/client", "bcrypt", "sharp"];
 // Excludes packages from Server Component bundling
 // Must be used for native modules or packages with binary dependencies
 ```
@@ -381,7 +381,7 @@ serverExternalPackages: ['@prisma/client', 'bcrypt', 'sharp']
 ### `transpilePackages`
 
 ```ts
-transpilePackages: ['@acme/ui', 'some-esm-only-package']
+transpilePackages: ["@acme/ui", "some-esm-only-package"];
 // Force transpilation of packages from node_modules
 // Useful for monorepo packages and ESM-only third-party packages
 ```
@@ -389,7 +389,7 @@ transpilePackages: ['@acme/ui', 'some-esm-only-package']
 ### `bundlePagesRouterDependencies`
 
 ```ts
-bundlePagesRouterDependencies: true
+bundlePagesRouterDependencies: true;
 // Bundle node_modules for Pages Router (like serverComponentsExternalPackages inverse)
 ```
 
@@ -408,7 +408,7 @@ typescript: {
 
 ## ESLint
 
-> **Next.js 16**: The `eslint` config option has been **removed** from `next.config.js`. Use the ESLint CLI directly (`eslint .`) with an `eslint.config.mjs` file. Run `npx @next/codemod@canary next-lint-to-eslint-cli .` to migrate automatically.
+> **Next.js 16**: The `eslint` config option has been **removed** from `next.config.js`. Use the ESLint CLI directly (`eslint .`) with an `eslint.config.mjs` file. Run `pnpm dlx @next/codemod@canary next-lint-to-eslint-cli .` to migrate automatically.
 
 ```bash
 # Replaced by direct ESLint CLI usage
@@ -420,16 +420,19 @@ typescript: {
 ## Testing Config with `unstable_getResponseFromNextConfig`
 
 ```ts
-import { getRedirectUrl, unstable_getResponseFromNextConfig } from 'next/experimental/testing/server'
+import {
+  getRedirectUrl,
+  unstable_getResponseFromNextConfig,
+} from "next/experimental/testing/server";
 
 const response = await unstable_getResponseFromNextConfig({
-  url: 'https://example.com/test',
+  url: "https://example.com/test",
   nextConfig: {
     async redirects() {
-      return [{ source: '/test', destination: '/new', permanent: false }]
+      return [{ source: "/test", destination: "/new", permanent: false }];
     },
   },
-})
+});
 // response.status === 307
 // getRedirectUrl(response) === 'https://example.com/new'
 ```
@@ -438,34 +441,34 @@ const response = await unstable_getResponseFromNextConfig({
 
 ## Quick Reference
 
-| Option | Category | Notes |
-|--------|----------|-------|
-| `basePath` | Routing | Build-time only |
-| `trailingSlash` | Routing | Affects all routes |
-| `assetPrefix` | Routing | CDN prefix for static assets |
-| `headers()` | Routing | Custom response headers |
-| `redirects()` | Routing | 307/308 redirects |
-| `rewrites()` | Routing | URL rewrites (no redirect) |
-| `output` | Build | `'standalone'` / `'export'` |
-| `distDir` | Build | Build output directory |
-| `compress` | Build | gzip for SSR (disable for proxy) |
-| `poweredByHeader` | Build | Remove `X-Powered-By` header |
-| `images` | Assets | Full optimization config |
-| `cacheComponents` | Rendering | Next.js 16 (replaces `dynamicIO`) |
-| `reactStrictMode` | Rendering | Strict mode checks |
-| `experimental.authInterrupts` | Auth | Enables `forbidden()`/`unauthorized()` |
-| `experimental.staleTimes` | Cache | Router cache TTL (dynamic/static) |
-| `experimental.viewTransition` | UX | View Transitions API |
-| `turbopack` | Build | Turbopack-specific configuration |
-| `serverExternalPackages` | Runtime | Exclude from server bundle |
-| `transpilePackages` | Runtime | Force transpile node_modules |
-| `typescript.ignoreBuildErrors` | TypeScript | Skip build-time type-check |
-| ~~`eslint`~~ | ESLint | **Removed in Next.js 16** — use ESLint CLI directly |
+| Option                         | Category   | Notes                                               |
+| ------------------------------ | ---------- | --------------------------------------------------- |
+| `basePath`                     | Routing    | Build-time only                                     |
+| `trailingSlash`                | Routing    | Affects all routes                                  |
+| `assetPrefix`                  | Routing    | CDN prefix for static assets                        |
+| `headers()`                    | Routing    | Custom response headers                             |
+| `redirects()`                  | Routing    | 307/308 redirects                                   |
+| `rewrites()`                   | Routing    | URL rewrites (no redirect)                          |
+| `output`                       | Build      | `'standalone'` / `'export'`                         |
+| `distDir`                      | Build      | Build output directory                              |
+| `compress`                     | Build      | gzip for SSR (disable for proxy)                    |
+| `poweredByHeader`              | Build      | Remove `X-Powered-By` header                        |
+| `images`                       | Assets     | Full optimization config                            |
+| `cacheComponents`              | Rendering  | Next.js 16 (replaces `dynamicIO`)                   |
+| `reactStrictMode`              | Rendering  | Strict mode checks                                  |
+| `experimental.authInterrupts`  | Auth       | Enables `forbidden()`/`unauthorized()`              |
+| `experimental.staleTimes`      | Cache      | Router cache TTL (dynamic/static)                   |
+| `experimental.viewTransition`  | UX         | View Transitions API                                |
+| `turbopack`                    | Build      | Turbopack-specific configuration                    |
+| `serverExternalPackages`       | Runtime    | Exclude from server bundle                          |
+| `transpilePackages`            | Runtime    | Force transpile node_modules                        |
+| `typescript.ignoreBuildErrors` | TypeScript | Skip build-time type-check                          |
+| ~~`eslint`~~                   | ESLint     | **Removed in Next.js 16** — use ESLint CLI directly |
 
 ---
 
 ## See Also
 
-- [`references/next-config-options.md`](references/next-config-options.md) — Exhaustive sub-option details, `has`/`missing` matcher syntax, Turbopack loader rules reference
-- [`nextjs-directives`](../nextjs-directives/SKILL.md) — `'use cache'`, `'use client'`, `'use server'` directives
-- [`nextjs-components`](../nextjs-components/SKILL.md) — `<Image>`, `<Link>`, `<Script>` components
+- `references/next-config-options.md` — Exhaustive sub-option details, `has`/`missing` matcher syntax, Turbopack loader rules reference
+- `nextjs-directives` skill — `'use cache'`, `'use client'`, `'use server'` directives
+- `nextjs-components` skill — `<Image>`, `<Link>`, `<Script>` components

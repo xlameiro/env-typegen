@@ -46,19 +46,21 @@ Also use when:
 
 **Efficiency limits**: max 3 calls to `resolve-library-id` and 3 to `query-docs` per user request.
 
+**Fallback**: If Context7 MCP tools are unavailable, rely on workspace code patterns, existing instruction files, and inline knowledge — do not block the task. Search `app/`, `lib/`, and `.github/instructions/` for existing implementations before making assumptions about APIs or patterns.
+
 ## How to cite results
 
 When a decision relies on retrieved docs, cite: `title + URL`. If docs conflict, present tradeoffs and choose the safest default.
 
 ## Common libraries for this project
 
-| Library | Context7 ID |
-|---------|------------|
-| Next.js | `/vercel/next.js` |
-| React | `/facebook/react` |
-| Auth.js | `/nextauthjs/next-auth` |
-| Zod | `/colinhacks/zod` |
+| Library      | Context7 ID                 |
+| ------------ | --------------------------- |
+| Next.js      | `/vercel/next.js`           |
+| React        | `/facebook/react`           |
+| Auth.js      | `/nextauthjs/next-auth`     |
+| Zod          | `/colinhacks/zod`           |
 | Tailwind CSS | `/tailwindlabs/tailwindcss` |
-| Zustand | `/pmndrs/zustand` |
-| Vitest | `/vitest-dev/vitest` |
-| Playwright | `/microsoft/playwright` |
+| Zustand      | `/pmndrs/zustand`           |
+| Vitest       | `/vitest-dev/vitest`        |
+| Playwright   | `/microsoft/playwright`     |

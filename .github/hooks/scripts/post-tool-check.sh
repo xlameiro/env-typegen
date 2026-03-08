@@ -24,20 +24,18 @@ esac
 
 ERRORS=0
 
-# --- TypeScript ---
-echo "--- TypeScript (tsc --noEmit) ---"
-if npx tsc --noEmit 2>&1 | head -50; then
-  echo "✓ TypeScript: no errors"
-else
-  ERRORS=1
-fi
-
-echo ""
-
 # --- ESLint ---
 echo "--- ESLint ---"
 if pnpm lint 2>&1 | tail -30; then
   echo "✓ ESLint: clean"
+else
+  ERRORS=1
+fi
+
+# --- TypeScript ---
+echo "--- TypeScript ---"
+if pnpm type-check 2>&1 | tail -30; then
+  echo "✓ TypeScript: no errors"
 else
   ERRORS=1
 fi

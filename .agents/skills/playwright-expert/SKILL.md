@@ -42,17 +42,18 @@ You are a senior QA automation engineer with 8+ years of browser testing experie
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Selectors | `references/selectors-locators.md` | Writing selectors, locator priority |
-| Page Objects | `references/page-object-model.md` | POM patterns, fixtures |
-| API Mocking | `references/api-mocking.md` | Route interception, mocking |
-| Configuration | `references/configuration.md` | playwright.config.ts setup |
-| Debugging | `references/debugging-flaky.md` | Flaky tests, trace viewer |
+| Topic         | Reference                          | Load When                           |
+| ------------- | ---------------------------------- | ----------------------------------- |
+| Selectors     | `references/selectors-locators.md` | Writing selectors, locator priority |
+| Page Objects  | `references/page-object-model.md`  | POM patterns, fixtures              |
+| API Mocking   | `references/api-mocking.md`        | Route interception, mocking         |
+| Configuration | `references/configuration.md`      | playwright.config.ts setup          |
+| Debugging     | `references/debugging-flaky.md`    | Flaky tests, trace viewer           |
 
 ## Constraints
 
 ### MUST DO
+
 - Use role-based selectors when possible
 - Leverage auto-waiting (don't add arbitrary timeouts)
 - Keep tests independent (no shared state)
@@ -61,6 +62,7 @@ Load detailed guidance based on context:
 - Run tests in parallel
 
 ### MUST NOT DO
+
 - Use `waitForTimeout()` (use proper waits)
 - Rely on CSS class selectors (brittle)
 - Share state between tests
@@ -70,6 +72,7 @@ Load detailed guidance based on context:
 ## Output Templates
 
 When implementing Playwright tests, provide:
+
 1. Page Object classes
 2. Test files with proper assertions
 3. Fixture setup if needed
@@ -78,3 +81,84 @@ When implementing Playwright tests, provide:
 ## Knowledge Reference
 
 Playwright, Page Object Model, auto-waiting, locators, fixtures, API mocking, trace viewer, visual comparisons, parallel execution, CI/CD integration
+
+---
+
+## BAD / GOOD Patterns
+
+### Locator priority — role-based over CSS/testId
+
+```ts
+// BAD — CSS selector breaks on any class rename or restructure
+await page.locator(".btn-primary.submit-button").click();
+
+// BAD — testId requires adding data-testid to every element you want to test
+await page.getByTestId("submit-btn").click();
+
+// GOOD — role-based locator is coupled to accessible name, not implementation
+await page.getByRole("button", { name: /submit/i }).click();
+```
+
+### Assertions — web-first over manual checks
+
+```ts
+// BAD — not auto-retrying; will fail on slow renders
+const text = await page.locator("h1").textContent();
+expect(text).toBe("Welcome");
+
+// GOOD — auto-retrying assertion waits for the DOM to be correct
+await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome");
+```
+
+### Hard-coded waits
+
+```ts
+// BAD — arbitrary timeout brittle in CI or slow machines
+await page.waitForTimeout(2000);
+await page.click("#submit");
+
+// GOOD — let Playwright wait for the element to be actionable
+await page.getByRole("button", { name: /submit/i }).click();
+// (no wait needed — Playwright waits for actionability automatically)
+```
+
+### Test isolation in this project
+
+```ts
+// BAD — navigates inside the test, duplicating navigation in every test
+test("renders heading", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+});
+test("has correct title", async ({ page }) => {
+  await page.goto("/"); // duplicated
+  await expect(page).toHaveTitle(/Next\.js Starter/);
+});
+
+// GOOD — use beforeEach for shared navigation (see tests/home.spec.ts)
+test.describe("Home Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+  });
+  test("renders heading", async ({ page }) => {
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+  test("has correct title", async ({ page }) => {
+    await expect(page).toHaveTitle(/Next\.js Starter/);
+  });
+});
+```
+
+---
+
+## Project Checklist
+
+Before committing Playwright tests:
+
+- [ ] All locators use role-based selectors (`getByRole`, `getByLabel`, `getByText`)
+- [ ] No `waitForTimeout()` anywhere in the file
+- [ ] No CSS class selectors (`.my-class`) or `getByTestId` (unless no accessible alternative)
+- [ ] All assertions use `await expect(locator).to*()` — not `.textContent()` + Jest `expect`
+- [ ] `beforeEach` handles navigation shared across tests in a `describe` block
+- [ ] Test file is in `tests/` and named `*.spec.ts`
+- [ ] Tests pass: `pnpm test:e2e`

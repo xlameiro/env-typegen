@@ -1,15 +1,39 @@
 ---
-name: 'Create API Route'
-agent: 'agent'
-description: 'Create a Next.js API Route Handler with Zod validation and proper error handling'
-tools: [vscode, execute, read, agent, edit, search, web, browser, 'io.github.upstash/context7/*', 'shadcn/*', 'playwright/*', 'next-devtools/*', 'github/*', vscode.mermaid-chat-features/renderMermaidDiagram, todo]
+name: "Create API Route"
+agent: "agent"
+description: "Create a Next.js API Route Handler with Zod validation and proper error handling"
+tools:
+  [
+    vscode,
+    execute,
+    read,
+    agent,
+    edit,
+    search,
+    web,
+    browser,
+    "io.github.upstash/context7/*",
+    "shadcn/*",
+    "playwright/*",
+    "next-devtools/*",
+    "github/*",
+    vscode.mermaid-chat-features/renderMermaidDiagram,
+    todo,
+  ]
 ---
 
 Create a Next.js Route Handler (App Router) following the project conventions.
 
+## Rule precedence
+
+- Use `.github/copilot-instructions.md` as the canonical source for cross-cutting repository conventions.
+- Use `.github/instructions/INDEX.md` to load directory-specific instructions before creating files.
+- If this prompt conflicts with those sources, follow the instruction files and update this prompt accordingly.
+
 ## Required inputs
 
 Ask for these if not provided:
+
 - **Route path** (e.g. `app/api/users/route.ts`, `app/api/posts/[id]/route.ts`)
 - **HTTP methods** needed (GET, POST, PUT, PATCH, DELETE)
 - **Request body shape** (for POST/PUT/PATCH)
@@ -39,33 +63,33 @@ Ask for these if not provided:
 
 ```ts
 // app/api/users/route.ts
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { auth } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 const createUserSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
-})
+});
 
 export async function POST(request: Request) {
-  const session = await auth()
+  const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json()
-  const result = createUserSchema.safeParse(body)
+  const body = await request.json();
+  const result = createUserSchema.safeParse(body);
 
   if (!result.success) {
     return NextResponse.json(
-      { error: 'Invalid request', details: result.error.flatten() },
+      { error: "Invalid request", details: result.error.flatten() },
       { status: 400 },
-    )
+    );
   }
 
   // ... business logic with result.data (fully typed)
 
-  return NextResponse.json({ user }, { status: 201 })
+  return NextResponse.json({ user }, { status: 201 });
 }
 ```

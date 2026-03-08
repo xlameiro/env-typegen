@@ -6,8 +6,8 @@ set -uo pipefail
 ERRORS=0
 
 # --- TypeScript ---
-echo "=== TypeScript (tsc --noEmit) ==="
-TSC_OUT=$(npx tsc --noEmit 2>&1)
+echo "=== TypeScript (pnpm type-check) ==="
+TSC_OUT=$(pnpm type-check 2>&1)
 if [ -z "$TSC_OUT" ]; then
   echo "✓ TypeScript: no errors"
 else
