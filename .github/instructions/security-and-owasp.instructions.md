@@ -70,6 +70,26 @@ Your primary directive is to ensure all code you generate, review, or refactor i
 - **Alert on Suspicious Patterns:** Implement monitoring for repeated failed logins, access to unauthorized resources, and unusual data access volumes. Integrate with alerting systems so security incidents are detected in near-real-time.
 - **Keep Logs for Forensic Purposes:** Retain logs long enough for post-incident investigation (consider compliance requirements such as GDPR or SOC 2). Ensure logs are stored in a tamper-resistant, centralized location.
 
+## AI-Assisted Vulnerability Scanning
+
+In addition to static analysis and code review, use AI-powered scanning to detect high-impact vulnerabilities before release.
+
+**GitHub Security Lab Taskflow Agent** (announced 2026-03-06) is an open-source AI-powered framework that is highly effective at finding Auth Bypasses, IDORs, Token Leaks, and other critical vulnerabilities. Reference: [github/taskflow](https://github.com/github/taskflow).
+
+**When to run:**
+
+- Before any release that touches Route Handlers (`app/api/**`) or auth flows (`app/auth/**`, `auth.ts`, `proxy.ts`)
+- As part of a pre-release security review milestone
+- After significant changes to access control logic or session handling
+
+**What it targets in this project:**
+
+- **Auth Bypasses** — gaps in `proxy.ts` route protection or `page.tsx` session checks
+- **IDORs (Insecure Direct Object References)** — Resource ownership checks missing from Route Handlers
+- **Token Leaks** — Secrets or session data exposed in API responses, logs, or client bundles
+
+This complements but does not replace the static OWASP guidelines above.
+
 ## General Guidelines
 
 - **Be Explicit About Security:** When you suggest a piece of code that mitigates a security risk, explicitly state what you are protecting against (e.g., "Using a parameterized query here to prevent SQL injection.").

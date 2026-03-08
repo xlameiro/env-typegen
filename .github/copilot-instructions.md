@@ -11,6 +11,7 @@ This is a professional Next.js 16 starter template. Use it as the foundation for
 - **Language**: TypeScript 5 (strict mode)
 - **Styling**: Tailwind CSS v4
 - **Package Manager**: pnpm
+- **Node.js**: >= 20 (enforced via `.nvmrc` and `session-start.sh` hook)
 - **Unit Testing**: Vitest
 - **E2E Testing**: Playwright
 - **Authentication**: Auth.js v5 (NextAuth)
@@ -99,7 +100,7 @@ public/                 # Static assets
 
 - Use Auth.js v5 patterns for all authentication flows
 - Install with `pnpm add next-auth@beta` — package name is `next-auth` (v5 is currently beta; v4 is npm stable)
-- Protect routes with edge middleware (`proxy.ts`) — this project uses `proxy.ts` instead of `middleware.ts`
+- Protect routes with `proxy.ts` — `proxy.ts` is the **official Next.js 16 file convention** for request interception (`middleware.ts` is deprecated in Next.js 16)
 - Never expose sensitive session data to the client
 
 #### Authorization Placement Matrix
@@ -403,6 +404,8 @@ pnpm build       # Next.js production build — successful
 
 Never mark a task as done if any of these commands fail. Fix all errors before concluding.
 
+Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.
+
 ## When Stuck
 
 If you are unsure how to proceed during a task:
@@ -460,16 +463,16 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 ### Auth.js v5
 
-- **Install**: `pnpm add next-auth@beta` — the npm package is still `next-auth`, version 5 is in beta
+- **Install**: `pnpm add next-auth@beta` — the npm package is still `next-auth`, version 5 is in beta. Before installing, run `pnpm info next-auth version` to check whether v5 has reached stable — the `@beta` tag may become stale without notice.
 - **Server session**: Call `auth()` from `@/lib/auth` in Server Components and API routes
 - **Route handler**: `GET` and `POST` exported from `app/api/auth/[...nextauth]/route.ts`
 - **Middleware**: Use `auth` as middleware exported from `auth.ts` at root — do NOT use `withAuth` from v4
-- **Edge Runtime**: `auth()` cannot be called in Edge Runtime — use `getToken()` from `next-auth/jwt` in `proxy.ts`
+- **`proxy.ts` runs on Node.js runtime**: `auth()` can be called directly in `proxy.ts` (unlike `middleware.ts` which required the Edge-compatible `getToken()`). Only use `getToken()` from `next-auth/jwt` if you explicitly configure proxy to run on Edge runtime.
 
 ### Next.js 16
 
 - **`'use cache'`**: This is a Next.js 16 directive for Cache Components — different from React's `cache()` import
-- **`proxy.ts`**: This project uses `proxy.ts` at root **instead of `middleware.ts`** for edge middleware — always use `proxy.ts`
+- **`proxy.ts`**: The **official Next.js 16 file convention** for request interception, replacing the deprecated `middleware.ts`. Runs on **Node.js runtime** by default (not Edge runtime), so `auth()` from Auth.js can be called directly. Official migration: `npx @next/codemod@latest middleware-to-proxy .`
 - **No `pages/` directory**: This project uses App Router only — never suggest Pages Router patterns
 
 ### Zod v4
@@ -485,6 +488,8 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 ## VS Code Agent Hooks (Preview)
 
+> **Requires VS Code >= 1.110 stable** (released 2026-03-07). VS Code 1.110 introduced agent skills (`.agents/skills/`) and session memory (`/memories/session/`) — both are already used by this project. If you are on an older version, skills and session memory will not be available.
+
 Hooks execute shell commands at specific agent lifecycle points. Store hook configs in `.github/hooks/*.json` — they are committed to the repo and apply for all team members. VS Code also reads `.claude/settings.json` and `~/.claude/settings.json` for Claude Code compatibility.
 
 | Event          | Use for                                                     |
@@ -494,6 +499,8 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 | `SessionEnd`   | Require full quality gate to pass before the agent finishes |
 
 > **`PostToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `SessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
+>
+> Note: VS Code 1.110 may have changed terminal-per-invocation behaviour for hooks. Re-evaluate whether `PostToolUse` remains problematic when upgrading to VS Code 1.111+ stable.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):
 
@@ -542,6 +549,10 @@ If already inside a specialist agent context, skip routing and proceed directly 
 | Vector search        | OpenSearch Serverless          | Pinecone, Weaviate                           |
 | Email                | SES                            | Resend, SendGrid                             |
 | Secrets              | Secrets Manager                | Vercel Env Vars (dev only)                   |
+
+**Agent orchestration**: LangChain.js is explicitly excluded — use the custom agent router (`.github/agents/router.agent.md`) as the orchestration mechanism. Do not introduce `langchain` as a project dependency.
+
+**OpenAI Node SDK**: If OpenAI Node SDK is used directly in a feature (not through Bedrock), require `>= v6.27.0` — `ComputerTool` reached GA in that release and `computer_use_preview` was deprecated. Prefer Amazon Bedrock over direct OpenAI SDK usage.
 
 **AWS CLI is required** — use it for all infra operations; never click through the console for repeatable tasks.
 

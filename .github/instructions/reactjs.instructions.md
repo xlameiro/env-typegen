@@ -59,6 +59,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use Zustand for client-side UI state in complex applications (project convention — see `copilot-instructions.md`); do not introduce Redux Toolkit
 - Implement proper state normalization and data structures
 - **Do not use React Query, SWR, or `useEffect` for server data fetching.** Data that can be fetched server-side must be fetched in Server Components or Server Actions (see `nextjs.instructions.md`)
+- **React 19's `use()` hook** can unwrap Promises and Context in Server Components — this supersedes some previously-valid `useEffect`-based client patterns for data fetching. When SWR or React Query patterns are requested, redirect to Server Components + `use()` where possible instead.
 
 ### Hooks and Effects
 
@@ -76,6 +77,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use Tailwind design tokens (CSS custom properties via `@theme`) for consistent theming; avoid scattered inline hex values
 - Implement consistent spacing, typography, and color via the design token layer
 - Ensure accessibility with proper ARIA attributes and semantic HTML
+- **shadcn/ui is not used in this project.** The three components in `components/ui/` (`button.tsx`, `card.tsx`, `badge.tsx`) are bespoke and owned directly by the project. Do not install shadcn/ui, run `pnpm dlx shadcn@latest`, or add a `components.json` file.
 
 ### Performance Optimization
 
@@ -117,7 +119,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 
 - This project uses **Next.js App Router** for all routing — do not install React Router
 - Use `<Link>` from `next/link` for client-side navigation
-- Protect routes via `proxy.ts` with Auth.js session checks (this project uses `proxy.ts` instead of the standard `middleware.ts`)
+- Protect routes via `proxy.ts` with Auth.js session checks \u2014 `proxy.ts` is the **official Next.js 16 file convention** for request interception (replacing the deprecated `middleware.ts`)
 - Use Next.js dynamic segments (`[id]`, `[[...slug]]`) for parameterized routes
 - Route-based code splitting is automatic; use `dynamic()` from `next/dynamic` for component-level lazy loading
 - Use `useRouter`, `usePathname`, and `useSearchParams` from `next/navigation` (not `next/router`)

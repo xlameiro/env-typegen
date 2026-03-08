@@ -5,7 +5,9 @@ applyTo: "**/*.tsx, **/*.ts, **/*.jsx, **/*.js, **/*.css"
 
 # Next.js Best Practices for LLMs (2026)
 
-_Last updated: January 2026 (aligned to Next.js 16.1.6)_
+_Last updated: March 2026 (aligned to Next.js 16.1.6)_
+
+> **Note**: v16.1.6 is a **backport release** — it contains bug fixes cherry-picked from canary and does not include all pending features or changes available in canary builds. Do not adopt undocumented canary features without explicit evaluation against this version.
 
 This document summarizes the latest, authoritative best practices for building, structuring, and maintaining Next.js applications. It is intended for use by LLMs and developers to ensure code quality, maintainability, and scalability.
 

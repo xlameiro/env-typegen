@@ -4,6 +4,14 @@ This file is automatically discovered by Claude and other Anthropic-powered runt
 
 > **Primary instructions**: `.github/copilot-instructions.md` — read it first for stack, conventions, quality gates, and anti-patterns.
 
+## Critical Project-Specific Conventions
+
+These conventions are non-standard. Claude must follow them even without access to `copilot-instructions.md`.
+
+- **Edge middleware is `proxy.ts`, NOT `middleware.ts`** — `proxy.ts` is the **official Next.js 16 standard**. `middleware.ts` was deprecated in Next.js 16 (official codemod: `npx @next/codemod@latest middleware-to-proxy .`). Never create or modify `middleware.ts`.
+- **`auth()` is callable in `proxy.ts`** — `proxy.ts` runs on **Node.js runtime** by default (not Edge runtime). Call `auth()` from `@/auth` directly. Only use `getToken()` from `next-auth/jwt` if you explicitly opt proxy into Edge runtime.
+- **No auth checks in `layout.tsx`** — layouts can be bypassed. Place authorization in `page.tsx` (resource-level) or `proxy.ts` (route-group-level).
+
 ## Extended Thinking Triggers
 
 For these task types, take extra reasoning steps before writing code:

@@ -6,6 +6,14 @@ This file is automatically discovered by AI agent runtimes (OpenAI, GitHub Copil
 
 > **Living document**: If you discover something about this codebase that would help future tasks (e.g., a convention, a quirk, a gotcha), update `.github/copilot-instructions.md` immediately under `## Learnings` or the relevant section.
 
+## Critical Project-Specific Conventions
+
+These conventions are non-standard and **must be followed**. AI agents reading only this file (without access to `.github/copilot-instructions.md`) still need to know them.
+
+- **Edge middleware is `proxy.ts`, NOT `middleware.ts`** — `proxy.ts` is the **official Next.js 16 standard**. `middleware.ts` was deprecated in Next.js 16 (official codemod: `npx @next/codemod@latest middleware-to-proxy .`). Always use `proxy.ts`; never create or modify `middleware.ts`.
+- **`auth()` is callable in `proxy.ts`** — unlike the old `middleware.ts` which ran on Edge runtime, `proxy.ts` runs on **Node.js runtime** by default in Next.js 16. Call `auth()` from `@/auth` directly in `proxy.ts`. Only use `getToken()` from `next-auth/jwt` if you explicitly opt the proxy into Edge runtime.
+- **No auth checks in `layout.tsx`** — layouts can be bypassed. Place authorization in `page.tsx` (resource-level) or `proxy.ts` (route-group-level).
+
 ## Operations & Conventions
 
 > **Allowed/prohibited operations, quality gates, branching strategy, and git best practices**: See `.github/copilot-instructions.md` §Boundaries, §Personal Preferences, and §Session Completion Checklist. The rules below are AGENTS.md-specific additions.
@@ -118,6 +126,14 @@ When a reviewer requests changes on an open PR, the coding agent must create a *
 - Enables easy rollback if AI-generated changes introduce new issues
 - Provides an additional review checkpoint specifically for AI changes
 
+**Sub-PR and Trunk-Based Development (TBD) lifecycle rule:**
+
+This project uses TBD (branches live < 1 day). Sub-PRs are an exception — they extend the source branch's life. To keep things manageable:
+
+- **Maximum Sub-PR lifetime: 4 hours** from creation
+- If the Sub-PR cannot be reviewed and merged within 4 hours: close the Sub-PR, merge the original PR to `main` as-is, then apply the AI-generated revisions as follow-up commits directly on `main`
+- Never let a feature branch survive beyond 24 hours waiting on a Sub-PR review cycle
+
 ### Good candidates for the coding agent in this project
 
 - Adding/updating Vitest unit tests for existing utilities
@@ -127,3 +143,7 @@ When a reviewer requests changes on an open PR, the coding agent must create a *
 - Adding Zod validation schemas for new API boundaries
 - Migrating components to follow new accessibility patterns
 - Writing Playwright E2E tests for existing flows
+
+### Copilot Code Review
+
+Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.

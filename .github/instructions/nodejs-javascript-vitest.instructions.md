@@ -10,7 +10,7 @@ applyTo: "**/*.js, **/*.mjs, **/*.cjs, **/*.ts, **/*.tsx"
 - Use JavaScript with ES2022 features and Node.js (20+) ESM modules
 - Use Node.js built-in modules and avoid external dependencies where possible
 - Ask the user if you require any additional dependencies before adding them
-- Always use async/await for asynchronous code, and use 'node:util' promisify function to avoid callbacks
+- Always use async/await for asynchronous code; avoid callbacks. `node:util` `promisify` is available as a last resort for legacy callback-style APIs, but Node.js 20+ provides native async/await equivalents for most built-in modules \u2014 prefer those for new code.
 - Keep the code simple and maintainable
 - Use descriptive variable and function names
 - Do not add comments unless absolutely necessary, the code should be self-explanatory
