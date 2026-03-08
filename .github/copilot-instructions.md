@@ -8,11 +8,11 @@ This is a professional Next.js 16 starter template. Use it as the foundation for
 
 - **Framework**: Next.js 16.1.6 (App Router)
 - **Runtime**: React 19
-- **Language**: TypeScript 5 (strict mode)
+- **Language**: TypeScript 5 (strict mode) — TypeScript 6.0 RC is available (`typescript@rc`); see Knowledge Reminders § TypeScript 5.x
 - **Styling**: Tailwind CSS v4
 - **Package Manager**: pnpm
 - **Node.js**: >= 20 (enforced via `.nvmrc` and `session-start.sh` hook)
-- **Unit Testing**: Vitest
+- **Unit Testing**: Vitest v4
 - **E2E Testing**: Playwright
 - **Authentication**: Auth.js v5 (NextAuth)
 - **Validation**: Zod v4
@@ -235,6 +235,7 @@ Quick entry point: `.github/instructions/INDEX.md`.
 - Proactively create documentation files (`.md`, README) — only create docs if explicitly requested by the user
 - Leave temporary files, debug scripts, or scratch files in the repository — remove them before marking a task complete
 - Modify auto-generated files directly (e.g., `next-env.d.ts`, generated type files) — find and edit the source that generates them, then regenerate
+- Switch the package manager from pnpm to Bun or npm without explicit team discussion — pnpm is enforced via the `packageManager` field in `package.json`; Bun runtime is not supported (`.nvmrc` assumes Node.js, not Bun)
 
 ## Common Pitfalls
 
@@ -404,6 +405,8 @@ pnpm build       # Next.js production build — successful
 
 Never mark a task as done if any of these commands fail. Fix all errors before concluding.
 
+> **Conditional security scan**: For sessions that touch `app/api/**`, `app/auth/**`, `auth.ts`, or `proxy.ts`, run a targeted security review using the [GitHub Security Lab Taskflow Agent](https://github.com/GitHubSecurityLab/gh-actions-workflows/tree/main/taskflow) to detect Auth Bypass, IDOR, and Token Leak patterns before marking the session complete.
+
 Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.
 
 ## When Stuck
@@ -463,7 +466,7 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 ### Auth.js v5
 
-- **Install**: `pnpm add next-auth@beta` — the npm package is still `next-auth`, version 5 is in beta. Before installing, run `pnpm info next-auth version` to check whether v5 has reached stable — the `@beta` tag may become stale without notice.
+- **Install**: `pnpm add next-auth@beta` — the npm package is still `next-auth`, version 5 is in beta. **Before installing, run `pnpm info next-auth dist-tags` to check whether v5 has a stable tag** — the `@beta` tag may become stale without notice. If `stable` or `latest` points to v5, drop the `@beta` suffix.
 - **Server session**: Call `auth()` from `@/lib/auth` in Server Components and API routes
 - **Route handler**: `GET` and `POST` exported from `app/api/auth/[...nextauth]/route.ts`
 - **Middleware**: Use `auth` as middleware exported from `auth.ts` at root — do NOT use `withAuth` from v4
@@ -475,10 +478,17 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 - **`proxy.ts`**: The **official Next.js 16 file convention** for request interception, replacing the deprecated `middleware.ts`. Runs on **Node.js runtime** by default (not Edge runtime), so `auth()` from Auth.js can be called directly. Official migration: `npx @next/codemod@latest middleware-to-proxy .`
 - **No `pages/` directory**: This project uses App Router only — never suggest Pages Router patterns
 
+### TypeScript 5.x
+
+- **Current stable**: TypeScript 5.9.3 (`latest` tag). TypeScript 6.0 RC is available via `typescript@rc` (since 2026-03-06); **do not upgrade until the team explicitly evaluates the RC**.
+- **Before upgrading to 6.0**: run `pnpm info typescript dist-tags` to check whether `rc` has moved to `latest`; review TS 6.0 release notes for breaking changes in module resolution, decorator handling, or strict-mode behavior that could affect `tsconfig.json` assumptions.
+- **`^5` range is intentional**: The project's `package.json` pins `"typescript": "^5"` — this will NOT auto-upgrade to 6.0. An explicit version bump is required.
+
 ### Zod v4
 
 - **Import**: `import { z } from "zod"` — same as v3
-- **Breaking changes from v3**: `z.string().email()` still works; check release notes before using unfamiliar v3 patterns
+- **Current version**: Zod v4.3.6 (as of 2026-03-08)
+- **Key breaking changes from v3**: `.transform()` and `.refine()` callback signatures are unchanged; `z.discriminatedUnion()` now requires a literal discriminator key and is stricter at compile time; `ZodError` shape is the same but `.format()` output may differ for nested errors — test existing Zod error display logic after upgrading from v3. `z.string().email()` and most validation methods remain compatible.
 
 ### React 19
 
@@ -500,7 +510,7 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 
 > **`PostToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `SessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
 >
-> Note: VS Code 1.110 may have changed terminal-per-invocation behaviour for hooks. Re-evaluate whether `PostToolUse` remains problematic when upgrading to VS Code 1.111+ stable.
+> VS Code 1.110.1 (stable, released 2026-03-07) is the current stable patch. VS Code 1.111 is in Insiders — if you are on 1.111 Insiders, test whether terminal proliferation is resolved and update this note with findings before 1.111 reaches stable.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):
 
@@ -577,7 +587,7 @@ When a feature requires parsing HTML from external URLs, extracting data from we
 - Server-side only — never import Cheerio in Client Components
 - Prefer `$.extract({ ... })` over manual `.each()` traversal for structured data
 - Always validate the target URL with Zod before scraping to prevent SSRF
-- Cache scraped results — wrap in `'use cache'` or `unstable_cache` to avoid repeated fetches
+- Cache scraped results — wrap in `'use cache'` (preferred in Next.js 16) or `unstable_cache` (legacy) to avoid repeated fetches
 - At scale, run scrapers in AWS Lambda triggered by EventBridge and store results in DynamoDB/S3
 
 See the `cheerio` skill (`.agents/skills/cheerio/SKILL.md`) for full patterns.

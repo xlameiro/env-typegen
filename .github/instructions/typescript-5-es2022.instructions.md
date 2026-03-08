@@ -6,6 +6,8 @@ applyTo: "**/*.ts"
 # TypeScript Development
 
 > These instructions assume projects are built with TypeScript 5.x (or newer) compiling to an ES2022 JavaScript baseline. Adjust guidance if your runtime requires older language targets or down-level transpilation.
+>
+> **TypeScript 6.0 RC** is available via `typescript@rc` (as of 2026-03-06). The project intentionally pins `"typescript": "^5"` and will NOT auto-upgrade to 6.0. Before any upgrade: run `pnpm info typescript dist-tags` and review TS 6.0 release notes for breaking changes in module resolution, decorator handling, or strict-mode behavior.
 
 ## Core Intent
 

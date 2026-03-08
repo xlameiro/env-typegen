@@ -77,7 +77,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Use Tailwind design tokens (CSS custom properties via `@theme`) for consistent theming; avoid scattered inline hex values
 - Implement consistent spacing, typography, and color via the design token layer
 - Ensure accessibility with proper ARIA attributes and semantic HTML
-- **shadcn/ui is not used in this project.** The three components in `components/ui/` (`button.tsx`, `card.tsx`, `badge.tsx`) are bespoke and owned directly by the project. Do not install shadcn/ui, run `pnpm dlx shadcn@latest`, or add a `components.json` file.
+- **shadcn/ui is not used in this project.** The three components in `components/ui/` (`button.tsx`, `card.tsx`, `badge.tsx`) are bespoke and owned directly by the project. Do not install shadcn/ui, run `pnpm dlx shadcn@latest`, or add a `components.json` file. Rationale: bespoke ownership keeps the components dependency-free and avoids coupling to shadcn CLI conventions or scaffold assumptions. If this decision is ever re-evaluated, consider shadcn v4's remote template capabilities — but raise it as an explicit team decision first.
 
 ### Performance Optimization
 

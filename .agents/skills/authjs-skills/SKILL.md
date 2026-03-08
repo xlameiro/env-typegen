@@ -134,12 +134,12 @@ import { handlers } from "@/auth";
 export const { GET, POST } = handlers;
 ```
 
-### 3. Add Middleware (Optional but Recommended)
+### 3. Add Proxy (Optional but Recommended)
 
-Create `middleware.ts` at the project root:
+Create `proxy.ts` at the project root (Next.js 16 standard — `middleware.ts` is deprecated):
 
 ```typescript
-export { auth as middleware } from "@/auth";
+export { auth as proxy } from "@/auth";
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],

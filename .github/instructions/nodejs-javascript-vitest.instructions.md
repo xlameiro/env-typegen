@@ -19,6 +19,7 @@ applyTo: "**/*.js, **/*.mjs, **/*.cjs, **/*.ts, **/*.tsx"
 
 ## Testing
 
+- This project uses **Vitest v4.x** (see `devDependencies` in `package.json`). Vitest v4 is a major version bump from v3 — if upgrading an existing project review the [Vitest v4 migration guide](https://vitest.dev/guide/migration) before updating. The experimental `onModuleRunner` hook in `worker.init` is available in v4 but should not be used in test configs without evaluation.
 - Use Vitest for testing
 - Write tests for all new features and bug fixes
 - Ensure tests cover edge cases and error handling
