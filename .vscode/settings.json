@@ -6390,7 +6390,7 @@
   // Enable local workspace recording for analysis.
   "github.copilot.chat.localWorkspaceRecording.enabled": false,
   // Whether to use the [Context7](command:github.copilot.mcp.viewContext7) tools to scaffold project for new workspace creation.
-  "github.copilot.chat.newWorkspace.useContext7": false,
+  "github.copilot.chat.newWorkspace.useContext7": true,
   // Whether to enable new agentic workspace creation.
   "github.copilot.chat.newWorkspaceCreation.enabled": true,
   // Alternative document format for notebooks.

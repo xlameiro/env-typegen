@@ -112,10 +112,28 @@ This template includes a fully layered AI developer experience:
 
 4-phase agent lifecycle automation:
 
-- `sessionStart` — Injects branch and Node.js version context
-- `preToolUse` — Blocks destructive commands (`rm -rf`, `DROP TABLE`)
-- `postToolUse` — Auto-runs `pnpm lint` after file edits
-- `sessionEnd` — Enforces quality gate before the agent finishes
+- `sessionStart` — Validates dev environment (Node.js ≥ 20, pnpm, node_modules, .env.local)
+- `preToolUse` — Blocks destructive commands (`rm -rf`, `DROP TABLE`) and scans for secrets
+- `postToolUse` — Disabled by default (opt-in via `hooks.json`); prevents Chat Terminal proliferation in VS Code — see `copilot-instructions.md`
+- `sessionEnd` — Enforces quality gate (`pnpm lint && pnpm type-check && pnpm test && pnpm build`) before the agent finishes
+
+### Prompt Commands (`.github/prompts/`)
+
+13 reusable Copilot prompt files for common workflows:
+
+- `analyze.prompt.md` — Deep analysis of a selected file or component
+- `create-api-route.prompt.md` — Scaffold a new Route Handler in `app/api/`
+- `create-component.prompt.md` — Scaffold a new Server or Client Component
+- `create-page.prompt.md` — Scaffold a new App Router page with layout and loading states
+- `create-schema.prompt.md` — Create a Zod validation schema
+- `create-store.prompt.md` — Create a Zustand client state store
+- `doc-comments.prompt.md` — Add JSDoc documentation comments to a file
+- `explain.prompt.md` — Explain how a selected piece of code works
+- `fix-issue.prompt.md` — Fix a GitHub issue following project conventions
+- `generate-tests.prompt.md` — Generate Vitest unit or Playwright E2E tests
+- `health-check.prompt.md` — Run a full project health audit (lint + type-check + test + build)
+- `improve-skill.prompt.md` — Improve or update an agent skill file
+- `no-any.prompt.md` — Replace all `any` types with proper TypeScript types
 
 ### MCP Servers (`.vscode/mcp.json`)
 
