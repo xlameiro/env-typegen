@@ -24,7 +24,7 @@ A production-ready Next.js 16 starter with TypeScript 5 strict, React 19, Tailwi
 app/                    # Next.js App Router
   api/
     auth/[...nextauth]/ # Auth.js route handler
-    health/             # Health check endpoint (edge)
+    health/             # Health check endpoint
   error.tsx             # Route-level error boundary
   global-error.tsx      # Root error boundary
   globals.css           # Global styles + Tailwind tokens
@@ -258,6 +258,65 @@ See [AGENTS.md](./AGENTS.md) for the full WRAP methodology and best practices fo
 4. **P**air — you handle the why and cross-system thinking; the agent handles execution
 
 Assign an issue to the coding agent by setting **Copilot** as the assignee, or from the Agents panel on github.com.
+
+---
+
+## AI Ecosystem
+
+This template ships a fully-configured AI development environment for VS Code Copilot, Claude, and any MCP-compatible agent runtime.
+
+### Specialist Agents (`.github/agents/`)
+
+| Agent             | Purpose                                                                  |
+| ----------------- | ------------------------------------------------------------------------ |
+| `router`          | Default entry point — reads intent and delegates to the right specialist |
+| `feature-builder` | End-to-end feature implementation                                        |
+| `debug`           | Root-cause analysis and bug fixing                                       |
+| `planner`         | Multi-file refactors, architectural decisions                            |
+| `code-reviewer`   | High signal-to-noise PR reviews (bugs/security only)                     |
+| `test-generator`  | Vitest + Playwright test authoring                                       |
+| `architect`       | ADRs, system design, technology decisions                                |
+| `adr-generator`   | Architecture Decision Records                                            |
+| `github-actions`  | CI/CD workflows, GitHub Actions                                          |
+| `prd-creator`     | Product requirements documents                                           |
+
+### Skills (`.agents/skills/` — 43 installed)
+
+Skills extend agents with domain-specific knowledge. Notable skills:
+
+- **`nextjs-app-router-patterns`** — Server Components, streaming, Cache Components
+- **`aws-ecosystem`** — Infrastructure patterns (RDS, S3, Lambda, Bedrock)
+- **`authjs-skills`** — Auth.js v5 setup with Google OAuth and credentials
+- **`playwright-expert`** — E2E test infrastructure and debugging
+- **`agent-governance`** — Safety and trust controls for AI agent systems
+- **`agentic-eval`** — Evaluator-optimizer pipelines for quality-critical generation
+- **`context-map`** — Generate relevance maps before making changes
+- **`git-commit`** — Conventional commit message generation
+
+Run `skills list` or check `.agents/skills/` for the full catalog.
+
+### MCP Servers (`.vscode/mcp.json`)
+
+| Server       | Purpose                                                                           |
+| ------------ | --------------------------------------------------------------------------------- |
+| `context7`   | Authoritative, version-specific library documentation (Next.js, React, Zod, etc.) |
+| `github`     | GitHub API — issues, PRs, Actions, repositories                                   |
+| `playwright` | Browser automation and E2E test generation                                        |
+| `shadcn`     | Component registry access                                                         |
+| `memory`     | Cross-session persistent memory for agents                                        |
+
+### Prompts (`.github/prompts/`)
+
+11 reusable prompt files covering: component creation, API routes, Zod schemas, Zustand stores, Playwright tests, ADRs, and more. Use via `@workspace` or the Copilot Chat prompt selector.
+
+### Hooks (`.github/hooks/`)
+
+- **`session-start`** — Injects Node.js version and git branch context at session start
+- **`session-end`** — Runs the full quality gate (`lint + type-check + test + build`) before the agent finishes
+
+### Instruction Files (`.github/instructions/`)
+
+12 domain-specific instruction files covering: Next.js, React, TypeScript, Tailwind, Auth, Security (OWASP), Accessibility (WCAG 2.2), Vitest, Playwright, Performance, Markdown, and Context7. All are auto-discovered by VS Code Copilot via `applyTo` glob patterns.
 
 ---
 

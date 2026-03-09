@@ -1,4 +1,5 @@
 import { SkipLink } from "@/components/skip-link";
+import { ThemeProvider } from "@/components/theme-provider";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -61,7 +62,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SkipLink />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

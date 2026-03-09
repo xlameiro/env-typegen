@@ -9,7 +9,7 @@ type ErrorProps = Readonly<{
 
 export default function ErrorPage({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Log the error to an error reporting service
+    // Replace with your error reporting service (e.g. Sentry.captureException(error), Axiom, Highlight)
     console.error(error);
   }, [error]);
 

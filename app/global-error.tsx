@@ -9,6 +9,7 @@ type GlobalErrorProps = Readonly<{
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    // Replace with your error reporting service (e.g. Sentry.captureException(error), Axiom, Highlight)
     console.error(error);
   }, [error]);
 
