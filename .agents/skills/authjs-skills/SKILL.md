@@ -16,10 +16,10 @@ description: Auth.js v5 setup for Next.js authentication including Google OAuth,
 ## Installation
 
 ```sh
-pnpm add next-auth
+pnpm add next-auth@beta
 ```
 
-**Note**: Auth.js v5 is stable (released 2024, stable as of 2025/2026). Install with `next-auth` — no `@beta` tag needed.
+> **Important**: Auth.js v5 is still in beta on npm. `pnpm info next-auth dist-tags` shows `latest: '4.24.13'` (v4) and `beta: '5.0.0-beta.30'` (v5). Always install with `next-auth@beta` to get v5. Installing `next-auth` without the tag will install v4 and break this project. Before installing, run `pnpm info next-auth dist-tags` to check whether `beta` has been promoted to `latest`.
 
 ## What's New in Auth.js v5?
 
@@ -28,7 +28,7 @@ pnpm add next-auth
 - **Simplified Configuration**: More streamlined setup with better TypeScript support
 - **Universal `auth()` Export**: Single function for authentication across all contexts
 - **Enhanced Security**: Improved CSRF protection and session handling
-- **Edge Runtime Support**: Full compatibility with Edge Runtime and middleware
+- **Node.js Runtime in proxy.ts**: Auth.js v5 `auth()` can be called directly in `proxy.ts` (Next.js 16 replaces `middleware.ts` with `proxy.ts`, which runs on Node.js runtime by default, not Edge Runtime)
 - **Better Type Safety**: Improved TypeScript definitions throughout
 
 ## Environment Variables

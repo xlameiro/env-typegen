@@ -31,7 +31,7 @@ const securityHeaders = [
       "default-src 'self'",
       // Next.js requires 'unsafe-inline' for hydration scripts unless nonces are used.
       // 'unsafe-eval' is intentionally omitted — not needed in production.
-      // To achieve a stricter policy, implement nonce-based CSP via middleware.
+      // To achieve a stricter policy, implement nonce-based CSP via proxy.ts.
       // See: https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
@@ -47,6 +47,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Cache Components: enables 'use cache' directive for fine-grained server-side caching.
+  // See: https://nextjs.org/docs/app/api-reference/directives/use-cache
+  cacheComponents: true,
   async headers() {
     return [
       {
@@ -56,7 +59,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/typedRoutes
+  typedRoutes: true,
   experimental: {
+    // Typed routes: TypeScript-safe `href` props for <Link> and router methods.
+
     browserDebugInfoInTerminal: {
       showSourceLocation: true,
       depthLimit: 5,

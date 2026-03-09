@@ -23,7 +23,6 @@ tools:
     web,
     browser,
     "github/*",
-    "github/*",
     "io.github.upstash/context7/*",
     "playwright/*",
     "next-devtools/*",
