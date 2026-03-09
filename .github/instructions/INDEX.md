@@ -31,6 +31,7 @@ Use this file as the entry point to quickly find the right instruction file for 
 | --------------- | -------------------------------------------------------------------------------------------- |
 | `app/**`        | `.github/instructions/nextjs.instructions.md`                                                |
 | `app/api/**`    | `.github/instructions/security-and-owasp.instructions.md`                                    |
+| `app/auth/**`   | `.github/instructions/security-and-owasp.instructions.md`                                    |
 | `components/**` | `.github/instructions/reactjs.instructions.md` + `.github/instructions/a11y.instructions.md` |
 | `hooks/**`      | `.github/instructions/reactjs.instructions.md`                                               |
 | `lib/**`        | `.github/instructions/typescript-5-es2022.instructions.md`                                   |

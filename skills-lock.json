@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-03-08",
+  "lastUpdated": "2026-03-09",
   "skills": {
     "agent-governance": {
       "source": "github/awesome-copilot",
@@ -166,6 +166,56 @@
       "source": "lobehub/lobehub",
       "sourceType": "github",
       "computedHash": "ef9a6e8dea1837804918bc6533e52b6e05b4589dbe9c26af692111413328a13c"
+    },
+    "aws-ecosystem": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "121cfa74ea0855031cedd3a54542f9d82eecc5377d313043321abe145b18655c"
+    },
+    "cheerio": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "a29f385dde25cc5a080eb2a9a7619cb1ccb7163c6392c9a6f5a0445fe2422548"
+    },
+    "nextjs-components": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "5d7f312fc93f814e639fec2e453c256046777cb09eebbd3131a9d1ab6b279132"
+    },
+    "nextjs-config": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "8c8d43955c8d7129c8f3d44c867d0b2ce6d13065b103a5ef7eb85d89a03bf6a9"
+    },
+    "nextjs-data-cache-functions": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "9ea3d4a375a6160368205fe082f113874e03967a1223b1a100be47c2b7523715"
+    },
+    "nextjs-directives": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "1797233059a25f5bfaacd8c230594ab12fb3c1cd130895489e1e7d45a67a7759"
+    },
+    "nextjs-file-conventions": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "8ab3898b8ee9d6c3de31676bef5e54815269e1374f5f513d30cbb8b7208bd520"
+    },
+    "nextjs-metadata-functions": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "468305a524d3744aca760cbb989a24a68903d8347c3d41a6e6fc3e4704b8d8df"
+    },
+    "nextjs-navigation-functions": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "9a7637fd851ae49aec2740207a397922a5ead1825db0f11705d189bd980772d6"
+    },
+    "nextjs-server-runtime": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "computedHash": "0f40cfbf0b85134df334c5574fa9829a36410fd6f8cb0eb37b93a4ae851315c8"
     }
   }
 }

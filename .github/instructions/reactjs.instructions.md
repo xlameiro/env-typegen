@@ -78,6 +78,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Implement consistent spacing, typography, and color via the design token layer
 - Ensure accessibility with proper ARIA attributes and semantic HTML
 - **shadcn/ui is not used in this project.** The three components in `components/ui/` (`button.tsx`, `card.tsx`, `badge.tsx`) are bespoke and owned directly by the project. Do not install shadcn/ui, run `pnpm dlx shadcn@latest`, or add a `components.json` file. Rationale: bespoke ownership keeps the components dependency-free and avoids coupling to shadcn CLI conventions or scaffold assumptions. If this decision is ever re-evaluated, consider shadcn v4's remote template capabilities — but raise it as an explicit team decision first.
+  > **Note**: The shadcn MCP server IS configured in `.vscode/mcp.json`. It is used solely for registry lookups — browsing available components and consulting shadcn's design patterns as a reference. It does NOT install shadcn into the project. Use it via `shadcn-search_items_in_registries` and `shadcn-view_items_in_registries` to explore component patterns without adding the dependency.
 
 ### Performance Optimization
 

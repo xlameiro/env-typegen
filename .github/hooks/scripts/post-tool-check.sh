@@ -16,8 +16,13 @@ except Exception:
     print('')
 " <<< "$INPUT" 2>/dev/null || echo "")
 
-# Run only after file-writing tools
+# Run only after file-writing tools.
+# Tool names differ by runtime:
+#   VS Code Copilot CLI:  create, edit
+#   Claude Code:          Write, Edit, MultiEdit, write_file, str_replace
+#   Legacy / other:       create_file, replace_string_in_file, insert_edit_into_file
 case "$TOOL_NAME" in
+  create|edit|Write|Edit|MultiEdit|write_file|str_replace|\
   create_file|replace_string_in_file|multi_replace_string_in_file|insert_edit_into_file) ;;
   *) exit 0 ;;
 esac

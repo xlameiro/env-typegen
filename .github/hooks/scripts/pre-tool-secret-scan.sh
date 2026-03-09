@@ -17,8 +17,14 @@ except Exception:
     print('')
 " <<< "$INPUT" 2>/dev/null || echo "")
 
-# Only scan file-writing tools
+# Only scan file-writing tools.
+# Tool names differ by runtime:
+#   VS Code Copilot CLI:  create, edit
+#   Claude Code:          Write, Edit, MultiEdit, write_file, str_replace
+#   Legacy / other:       create_file, replace_string_in_file, insert_edit_into_file
+# Skip non-file tools (bash, view, read, search, grep, glob, etc.) to avoid false positives.
 case "$TOOL_NAME" in
+  create|edit|Write|Edit|MultiEdit|write_file|str_replace|\
   create_file|replace_string_in_file|multi_replace_string_in_file|insert_edit_into_file) ;;
   *) exit 0 ;;
 esac
@@ -28,8 +34,12 @@ import sys, json
 try:
     d = json.load(sys.stdin)
     args = d.get('toolArgs', {})
-    # Try multiple field names depending on the tool
-    print(args.get('content', args.get('newString', args.get('new_string', ''))))
+    # Try all known field names across different agent runtimes
+    for field in ('file_text', 'content', 'new_str', 'newString', 'new_string'):
+        val = args.get(field, '')
+        if val:
+            print(val)
+            break
 except Exception:
     print('')
 " <<< "$INPUT" 2>/dev/null || echo "")

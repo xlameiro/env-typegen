@@ -510,6 +510,15 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 
 > **`PostToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `SessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
 >
+> **Opt-in**: If you want `PostToolUse` enabled for your local workflow, add a `PostToolUse` entry to `.github/hooks/hooks.json`. A ready-made script is already available at `.github/hooks/scripts/post-tool-check.sh` — add the entry below to activate it:
+>
+> ```json
+> {
+>   "event": "PostToolUse",
+>   "script": ".github/hooks/scripts/post-tool-check.sh"
+> }
+> ```
+>
 > VS Code 1.110.1 (stable, released 2026-03-07) is the current stable patch. VS Code 1.111 is in Insiders — if you are on 1.111 Insiders, test whether terminal proliferation is resolved and update this note with findings before 1.111 reaches stable.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):

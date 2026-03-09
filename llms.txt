@@ -88,7 +88,7 @@ This template includes a fully layered AI developer experience:
 
 ### Skills (`.agents/skills/`)
 
-41 reusable skills covering: Next.js App Router, Auth.js, Zustand, Zod, Vitest, Playwright, Tailwind design systems, TypeScript advanced types, API design, error handling, performance, security, accessibility, git workflows, and more.
+43 reusable skills covering: Next.js App Router, Auth.js, Zustand, Zod, Vitest, Playwright, Tailwind design systems, TypeScript advanced types, API design, error handling, performance, security, accessibility, git workflows, and more.
 
 ### Instruction Files (`.github/instructions/`)
 
