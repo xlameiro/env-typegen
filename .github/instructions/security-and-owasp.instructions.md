@@ -32,8 +32,7 @@ Your primary directive is to ensure all code you generate, review, or refactor i
   api_key = "sk_this_is_a_very_bad_idea_12345"
   ```
 - **Next.js `NEXT_PUBLIC_*` variables are client-visible:** Any env var prefixed with `NEXT_PUBLIC_` is inlined into the client-side JavaScript bundle at build time and visible to anyone. Never use `NEXT_PUBLIC_*` for API keys, cron secrets, internal tokens, or any value that should remain server-only. If a variable must be checked on the server (e.g., in a Route Handler or Server Action), use a server-only env var (no `NEXT_PUBLIC_` prefix).
-
-### 3. A03: Injection
+- **Validate env vars at build time:** This project uses `@t3-oss/env-nextjs` in `lib/env.ts`. **Never access `process.env.*` directly** — always import from `@/lib/env`. This causes a build-time error when required variables are missing or malformed, preventing silent production failures. All new env vars must be added to `lib/env.ts` first.
 
 - **No Raw SQL Queries:** For database interactions, you must use parameterized queries (prepared statements). Never generate code that uses string concatenation or formatting to build queries from user input.
 - **Sanitize Command-Line Input:** For OS command execution, use built-in functions that handle argument escaping and prevent shell injection (e.g., `shlex` in Python).

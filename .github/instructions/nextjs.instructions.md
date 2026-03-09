@@ -173,11 +173,54 @@ Always move client-only UI into a Client Component and import it directly in you
 - **Turbopack is the default dev bundler.** Configure via the top-level `turbopack` field in `next.config.*` (do not use the removed `experimental.turbo`).
 - **Typed routes are stable** via `typedRoutes` (TypeScript required).
 
-## 9. Avoid Unnecessary Example Files
+## 11. Server-Only Modules
+
+Modules that must never run in the browser must include `import 'server-only'` at the top. This causes a build-time error if accidentally imported from a Client Component.
+
+**Apply to:**
+
+- `lib/auth.ts` — session and auth helpers
+- Any `lib/` module that calls a database, reads secrets, or contains sensitive logic that must never reach the browser
+
+**Do NOT apply to:**
+
+- `lib/schemas/*.schema.ts` — Zod schemas are used by react-hook-form on the client for validation; they run in both environments by design
+
+```ts
+import "server-only"; // <- first line
+
+import { z } from "zod";
+// ...
+```
+
+## 12. URL State with nuqs
+
+Use `nuqs` for any state that should be reflected in the URL (search, filters, pagination, tabs).
+
+**Rule:** Never use `useState` for URL-synced state.
+
+```tsx
+// ✅ Good — state in URL, shareable and SSR-compatible
+import { parseAsString, parseAsInteger, useQueryStates } from "nuqs";
+
+const [{ q, page }, setSearch] = useQueryStates(
+  {
+    q: parseAsString.withDefault(""),
+    page: parseAsInteger.withDefault(1),
+  },
+  { shallow: false },
+); // shallow: false triggers Server Component re-render
+```
+
+- `<NuqsAdapter>` is already in `app/layout.tsx` — no additional setup
+- Use `shallow: false` when URL changes should trigger a Server Component re-render
+- Reset `page` to 1 when search/filter criteria change
+- Use `createSearchParamsCache` from `nuqs/server` to read params in Server Components
+- See `.agents/skills/nuqs/SKILL.md` for full patterns
 
 Do not create example/demo files (like ModalExample.tsx) in the main codebase unless the user specifically requests a live example, Storybook story, or explicit documentation component. Keep the repository clean and production-focused by default.
 
-## 10. Always Use the Latest Documentation and Guides
+## 14. Always Use the Latest Documentation and Guides
 
 - For every Next.js related request, begin by searching for the most up-to-date Next.js documentation, guides, and examples.
 - Use the following tools to fetch and search documentation if they are available:

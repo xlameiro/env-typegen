@@ -57,6 +57,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Implement `useReducer` for complex state logic
 - Leverage `useContext` for sharing state across component trees
 - Use Zustand for client-side UI state in complex applications (project convention — see `copilot-instructions.md`); do not introduce Redux Toolkit
+- **Use `nuqs` for URL-synced state** (search queries, filters, pagination, tabs) — never use `useState` for values that belong in the URL; URL state is shareable, bookmarkable, and SSR-compatible
 - Implement proper state normalization and data structures
 - **Do not use React Query, SWR, or `useEffect` for server data fetching.** Data that can be fetched server-side must be fetched in Server Components or Server Actions (see `nextjs.instructions.md`)
 - **React 19's `use()` hook** can unwrap Promises and Context in Server Components — this supersedes some previously-valid `useEffect`-based client patterns for data fetching. When SWR or React Query patterns are requested, redirect to Server Components + `use()` where possible instead.
@@ -109,12 +110,15 @@ Instructions for building high-quality ReactJS applications with modern patterns
 
 ### Forms and Validation
 
-- Use controlled components for form inputs
-- Implement proper form validation with React Hook Form + Zod (project convention); avoid Formik
-- Handle form submission and error states appropriately
-- Implement accessibility features for forms (labels, ARIA attributes)
-- Use debounced validation for better user experience
-- Handle file uploads and complex form scenarios
+- Use **`react-hook-form`** + **`@hookform/resolvers/zod`** for all forms — this is the project's only approved form library; do not use Formik or uncontrolled `useState` for form state
+- Define schemas in `lib/schemas/` with Zod v4; infer types with `z.infer<typeof schema>`. Schema files do NOT need `import 'server-only'` — they run in both environments (client-side for RHF resolution, server-side for Server Actions)
+- Connect to **Server Actions** via `useActionState` (React 19) — RHF validates client-side first, then dispatches to the action
+- Use `FormField`, `FormInput`, `FormError`, `FormMessage` from `@/components/ui/form` — project-owned accessible wrappers
+- Always add `noValidate` to `<form>` to disable browser native validation
+- Set `aria-invalid` and `aria-describedby` on inputs with errors (handled by `FormInput` props `hasError` + `errorId`)
+- Use `trigger(["field1", "field2"])` to validate individual steps in multi-step forms
+- See `.agents/skills/react-hook-form/SKILL.md` for full patterns; use `/create-form` prompt to generate new forms
+- Handle file uploads with `<input type="file">` + a Server Action — do not use third-party upload libraries unless needed
 
 ### Routing
 

@@ -53,6 +53,37 @@ Measure first; optimize second. Profile with Lighthouse, Chrome DevTools Perform
 - Set appropriate `cache` headers for GET handlers that return stable data.
 - Use `NextResponse.json()` with explicit HTTP status codes.
 
+## Bundle Analysis
+
+Use `@next/bundle-analyzer` to identify client bundle bloat before shipping.
+
+```bash
+# Generate interactive bundle report (opens in browser)
+pnpm analyze
+```
+
+This sets `ANALYZE=true` which activates the `withBundleAnalyzer` wrapper in `next.config.ts`. It opens two treemap reports: `client.html` and `server.html`.
+
+**When to run:**
+
+- After adding a new dependency to a Client Component
+- When a Lighthouse audit flags a large JS payload
+- Before any major release
+
+**What to look for:**
+
+- Unexpectedly large dependencies in the client bundle (moment.js, lodash, etc.)
+- Server-only modules accidentally included in the client bundle
+- Duplicate packages (two versions of the same library)
+
+```ts
+// next.config.ts — already configured
+import withBundleAnalyzer from "@next/bundle-analyzer";
+export default withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" })(
+  nextConfig,
+);
+```
+
 ## Code Review Checklist
 
 - [ ] New components default to Server Component (no unnecessary `"use client"`)
@@ -62,6 +93,7 @@ Measure first; optimize second. Profile with Lighthouse, Chrome DevTools Perform
 - [ ] Large lists are paginated
 - [ ] Cached functions/routes have appropriate tags and lifetimes
 - [ ] No entire library imported for a single util
+- [ ] Run `pnpm analyze` after adding large dependencies to Client Components
 
 ---
 

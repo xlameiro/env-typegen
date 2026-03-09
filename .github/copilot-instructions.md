@@ -16,7 +16,11 @@ This is a professional Next.js 16 starter template. Use it as the foundation for
 - **E2E Testing**: Playwright
 - **Authentication**: Auth.js v5 (NextAuth)
 - **Validation**: Zod v4
-- **State Management**: Zustand (client state)
+- **Forms**: react-hook-form + @hookform/resolvers (Zod) — see `.agents/skills/react-hook-form/SKILL.md`
+- **State Management**: Zustand (client state), nuqs (URL state) — see `.agents/skills/nuqs/SKILL.md`
+- **Env Validation**: @t3-oss/env-nextjs — all env vars declared in `lib/env.ts`; never use `process.env.*` directly
+- **Dead Code Detection**: knip — run `pnpm knip` to find unused files, exports, and dependencies
+- **Bundle Analysis**: @next/bundle-analyzer — run `pnpm analyze` to inspect client bundle size
 - **Cloud Provider**: AWS (preferred ecosystem — see § Infrastructure below)
 - **AI/ML**: Amazon Bedrock (Claude / Titan) — preferred over direct OpenAI dependency
 - **HTML Parsing / Scraping**: Cheerio v1 — server-side only (Route Handlers, Server Components, Lambda)
@@ -207,6 +211,8 @@ Quick entry point: `.github/instructions/INDEX.md`.
 - Validate all user input at API boundaries with Zod
 - Use named exports for all modules except Next.js file conventions (`page.tsx`, `layout.tsx`, etc.)
 - Import directly from source files — not from barrel `index.ts` re-exports
+- Mark server-only modules with `import 'server-only'` at the top (e.g., `lib/auth.ts`, `lib/schemas/*.ts`)
+- Import env vars from `@/lib/env` — never access `process.env.*` directly outside of `lib/env.ts`
 
 ### Ask first before
 
@@ -221,7 +227,8 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 - Use `class` for business logic, services, utilities, or scrapers — always use functions and types; the only permitted classes are `Error` subclasses in `lib/errors.ts`
 - Use `enum` — always use string union types instead: `type Status = 'active' | 'inactive'`
-- Hardcode secrets, API keys, or credentials — always use `process.env.*`
+- Hardcode secrets, API keys, or credentials — always use env vars via `@/lib/env`
+- Use `process.env.*` directly anywhere other than `lib/env.ts` — import the validated `env` object from `@/lib/env` instead
 - Prefix env vars with `NEXT_PUBLIC_` unless the value is safe to expose to every browser user — `NEXT_PUBLIC_*` vars are bundled into the client JavaScript bundle and visible to anyone; never use them for tokens, secrets, or cron keys
 - Use `any` in TypeScript — use proper types, `unknown`, or a Zod-parsed result
 - Disable ESLint rules (`// eslint-disable`) to suppress a lint error — fix the code instead
@@ -618,6 +625,7 @@ Run this checklist before any template release or major merge to catch conventio
 ```bash
 pnpm lint --max-warnings=0   # catches all ESLint-enforced rules (including interface usage)
 pnpm type-check              # catches structural type errors
+pnpm knip                    # detects unused files, exports, and dependencies
 ```
 
 ### Manual spot-checks (conventions without lint enforcement)
