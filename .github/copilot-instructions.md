@@ -486,9 +486,13 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 ### Zod v4
 
-- **Import**: `import { z } from "zod"` — same as v3
+- **Import**: `import { z } from "zod"` — same as v3; for bundle-sensitive Client Components use `import { z } from "zod/mini"` (sub-path export of `zod`, NOT the old `@zod/mini` v3 package)
 - **Current version**: Zod v4.3.6 (as of 2026-03-08)
 - **Key breaking changes from v3**: `.transform()` and `.refine()` callback signatures are unchanged; `z.discriminatedUnion()` now requires a literal discriminator key and is stricter at compile time; `ZodError` shape is the same but `.format()` output may differ for nested errors — test existing Zod error display logic after upgrading from v3. `z.string().email()` and most validation methods remain compatible.
+- **LLM metadata**: Add `.describe("...")` to every schema field that will be consumed by an LLM or exposed as a tool definition — this is the single most impactful pattern for AI-optimized schemas: `z.string().uuid().describe('User identifier')`
+- **JSON Schema for tool calling**: `z.toJSONSchema(schema)` is **built-in in Zod v4** — no extra packages needed. Use it to generate tool/function specs for Amazon Bedrock (`tool_spec.inputSchema.json`), OpenAI function calling, or the Vercel AI SDK. Never write JSON Schema manually when a Zod schema already exists.
+- **Error display**: `z.prettifyError(result.error)` formats validation errors as readable text — replaces manual `.format()` calls
+- **Input vs Output types**: Use `z.input<typeof schema>` for the pre-transform shape (what APIs send), `z.infer<typeof schema>` (= `z.output<>`) for the post-transform shape (what your code uses)
 
 ### React 19
 

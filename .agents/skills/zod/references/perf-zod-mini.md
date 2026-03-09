@@ -7,7 +7,9 @@ tags: perf, bundle, mini, tree-shaking
 
 ## Use Zod Mini for Bundle-Sensitive Applications
 
-For frontend applications where bundle size is critical, use `@zod/mini` instead of `zod`. Zod Mini provides the same validation capabilities with a functional API that tree-shakes better, reducing bundle size by ~85%.
+For frontend applications where bundle size is critical, use the `zod/mini` sub-path export instead of `zod`. Zod Mini provides the same validation capabilities with a functional API that tree-shakes better, reducing bundle size by ~85%.
+
+> **Zod v4 note:** In Zod v4 the mini entry point is a **sub-path export of the main `zod` package** — import from `"zod/mini"`. The old `@zod/mini` package name was Zod v3 only and no longer exists.
 
 **When to consider Zod Mini:**
 
@@ -18,59 +20,59 @@ For frontend applications where bundle size is critical, use `@zod/mini` instead
 // - Simple validation needs (no complex transforms)
 // - Tree-shaking is important
 
-// Zod: ~17kb gzipped
-import { z } from 'zod'
+// Zod full: ~17kb gzipped
+import { z } from "zod";
 
-// Zod Mini: ~1.9kb gzipped (when tree-shaken)
-import * as z from '@zod/mini'
+// Zod Mini: ~1.9kb gzipped (when tree-shaken) — Zod v4 sub-path
+import { z } from "zod/mini";
 ```
 
 **Standard Zod (method chaining):**
 
 ```typescript
-import { z } from 'zod'
+import { z } from "zod";
 
 // Methods are attached to schema objects - hard to tree-shake
 const userSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   age: z.number().int().positive(),
-})
+});
 
-const result = userSchema.safeParse(data)
+const result = userSchema.safeParse(data);
 ```
 
 **Zod Mini (functional API):**
 
 ```typescript
-import * as z from '@zod/mini'
+import { z } from "zod/mini";
 
 // Functions are imported individually - tree-shakeable
 const userSchema = z.object({
   name: z.pipe(z.string(), z.minLength(1), z.maxLength(100)),
   email: z.pipe(z.string(), z.email()),
   age: z.pipe(z.number(), z.int(), z.positive()),
-})
+});
 
-const result = z.safeParse(userSchema, data)
+const result = z.safeParse(userSchema, data);
 ```
 
 **API differences:**
 
 ```typescript
 // Standard Zod
-z.string().min(5).max(100).email()
-z.number().int().positive()
-z.array(z.string()).min(1)
-schema.parse(data)
-schema.safeParse(data)
+z.string().min(5).max(100).email();
+z.number().int().positive();
+z.array(z.string()).min(1);
+schema.parse(data);
+schema.safeParse(data);
 
-// Zod Mini
-z.pipe(z.string(), z.minLength(5), z.maxLength(100), z.email())
-z.pipe(z.number(), z.int(), z.positive())
-z.pipe(z.array(z.string()), z.minLength(1))
-z.parse(schema, data)
-z.safeParse(schema, data)
+// Zod Mini (zod/mini)
+z.pipe(z.string(), z.minLength(5), z.maxLength(100), z.email());
+z.pipe(z.number(), z.int(), z.positive());
+z.pipe(z.array(z.string()), z.minLength(1));
+z.parse(schema, data);
+z.safeParse(schema, data);
 ```
 
 **When to stick with regular Zod:**
@@ -90,26 +92,25 @@ z.safeParse(schema, data)
 **Shared schemas between packages:**
 
 ```typescript
-// shared-schemas/package.json
-{
-  "dependencies": {
-    "@zod/mini": "^4.0.0"  // Mini for frontend-shared schemas
-  }
-}
+// If sharing schemas across a monorepo, use the same entry point
+// Server-side code (bundle irrelevant): import { z } from 'zod'
+// Client-side code (bundle matters):   import { z } from 'zod/mini'
 
-// If you need both, Zod Mini schemas work with regular Zod
-// But prefer consistency - pick one for your codebase
+// Zod Mini schemas are structurally identical — they interoperate
+// with regular Zod schemas in most cases. Prefer picking ONE entry
+// point per package and keeping it consistent.
 ```
 
 **Bundle size comparison:**
 
-| Package | Gzipped Size | Use Case |
-|---------|--------------|----------|
-| `zod@3` | ~13kb | Legacy, stable |
-| `zod@4` | ~17kb | Full features |
-| `@zod/mini` | ~1.9kb | Bundle-critical |
+| Import          | Gzipped Size | Use Case                           |
+| --------------- | ------------ | ---------------------------------- |
+| `zod` (v3)      | ~13kb        | Legacy, stable                     |
+| `zod` (v4)      | ~17kb        | Full features, Server Components   |
+| `zod/mini` (v4) | ~1.9kb       | Bundle-critical, Client Components |
 
 **When NOT to use this pattern:**
+
 - Server-side applications (bundle size irrelevant)
 - When method chaining ergonomics are preferred
 - Complex schemas that benefit from full API

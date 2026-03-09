@@ -1,17 +1,18 @@
 ---
 name: zod
-description: Zod schema validation best practices for type safety, parsing, and error handling. This skill should be used when defining z.object schemas, using z.string validations, safeParse, or z.infer. This skill does NOT cover React Hook Form integration patterns (use react-hook-form skill) or OpenAPI client generation (use orval skill).
+description: Zod schema validation best practices for type safety, parsing, and error handling. Also covers LLM metadata with .describe() and z.toJSONSchema() for AI tool calling (Amazon Bedrock, OpenAI, Vercel AI SDK). Use when defining z.object schemas, using z.string validations, safeParse, z.infer, or generating JSON Schema for AI tools. Does NOT cover React Hook Form integration (use react-hook-form skill) or OpenAPI client generation (use orval skill).
 ---
 
 # Zod Best Practices
 
 > **Version note:** This skill targets **Zod v4**. Rules in the `perf-` category (e.g., `perf-zod-mini`) are v4-only. If your project uses Zod v3, skip those rules.
 
-Comprehensive schema validation guide for Zod in TypeScript applications. Contains 43 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
+Comprehensive schema validation guide for Zod in TypeScript applications. Contains 45 rules across 9 categories, prioritized by impact to guide automated refactoring and code generation.
 
 ## When to Apply
 
 Reference these guidelines when:
+
 - Writing new Zod schemas
 - Choosing between parse() and safeParse()
 - Implementing type inference with z.infer
@@ -19,20 +20,23 @@ Reference these guidelines when:
 - Composing complex object schemas
 - Using refinements and transforms
 - Optimizing bundle size and validation performance
+- **Generating JSON Schema for LLM tool calling (Amazon Bedrock, OpenAI, Vercel AI SDK)**
+- **Adding `.describe()` metadata so AI agents understand field semantics**
 - Reviewing Zod code for best practices
 
 ## Rule Categories by Priority
 
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Schema Definition | CRITICAL | `schema-` |
-| 2 | Parsing & Validation | CRITICAL | `parse-` |
-| 3 | Type Inference | HIGH | `type-` |
-| 4 | Error Handling | HIGH | `error-` |
-| 5 | Object Schemas | MEDIUM-HIGH | `object-` |
-| 6 | Schema Composition | MEDIUM | `compose-` |
-| 7 | Refinements & Transforms | MEDIUM | `refine-` |
-| 8 | Performance & Bundle | LOW-MEDIUM | `perf-` |
+| Priority | Category                 | Impact      | Prefix        |
+| -------- | ------------------------ | ----------- | ------------- |
+| 1        | Schema Definition        | CRITICAL    | `schema-`     |
+| 2        | Parsing & Validation     | CRITICAL    | `parse-`      |
+| 3        | Type Inference           | HIGH        | `type-`       |
+| 4        | Error Handling           | HIGH        | `error-`      |
+| 5        | Object Schemas           | MEDIUM-HIGH | `object-`     |
+| 6        | Schema Composition       | MEDIUM      | `compose-`    |
+| 7        | Refinements & Transforms | MEDIUM      | `refine-`     |
+| 8        | Performance & Bundle     | LOW-MEDIUM  | `perf-`       |
+| 9        | AI / LLM Integration     | HIGH        | `schema-llm-` |
 
 ## Quick Reference
 
@@ -98,10 +102,15 @@ Reference these guidelines when:
 ### 8. Performance & Bundle (LOW-MEDIUM)
 
 - `perf-cache-schemas` - Cache schema instances
-- `perf-zod-mini` - Use Zod Mini for bundle-sensitive applications
+- `perf-zod-mini` - Use `zod/mini` for bundle-sensitive applications (import from `"zod/mini"`, not `"@zod/mini"`)
 - `perf-avoid-dynamic-creation` - Avoid dynamic schema creation in hot paths
 - `perf-lazy-loading` - Lazy load large schemas
 - `perf-arrays` - Optimize large array validation
+
+### 9. AI / LLM Integration (HIGH)
+
+- `schema-llm-describe` - Add `.describe()` to schema fields consumed by LLMs or exposed as tool definitions
+- `schema-llm-json-schema` - Use `z.toJSONSchema()` (built-in in Zod v4) to generate tool specs for Amazon Bedrock, OpenAI, or Vercel AI SDK; never write JSON Schema manually when a Zod schema already exists
 
 ## How to Use
 
@@ -115,11 +124,14 @@ Reference these guidelines when:
 
 - For React Hook Form integration, see `react-hook-form` skill
 - For API client generation, see `orval` skill
+- For Amazon Bedrock tool calling patterns, see `aws-ecosystem` skill
 
 ## Sources
 
 - [Zod Official Documentation](https://zod.dev/)
 - [Zod v4 Release Notes](https://zod.dev/v4)
+- [Zod v4 — JSON Schema](https://zod.dev/json-schema)
+- [Zod v4 — `.describe()`](https://zod.dev/api#describe)
 - [Zod GitHub Repository](https://github.com/colinhacks/zod)
 - [Zod Mini](https://zod.dev/packages/mini)
 - [Total TypeScript Zod Tutorial](https://www.totaltypescript.com/tutorials/zod)
