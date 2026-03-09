@@ -123,7 +123,7 @@ Always move client-only UI into a Client Component and import it directly in you
 - **Dynamic Segments:** Use `[param]` for dynamic API routes (e.g., `app/api/users/[id]/route.ts`).
 - **Validation:** Always validate and sanitize input. Use libraries like `zod` or `yup`.
 - **Error Handling:** Return appropriate HTTP status codes and error messages.
-- **Authentication:** Protect sensitive routes using middleware or server-side session checks.
+- **Authentication:** Protect sensitive routes using `proxy.ts` (Next.js 16) or server-side session checks in `page.tsx`.
 
 ### Route Handler usage note (performance)
 

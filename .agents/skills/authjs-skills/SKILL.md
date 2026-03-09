@@ -823,10 +823,10 @@ export async function GET() {
 
 ### Performance
 
-- **Cache session checks**: Use middleware for route protection
+- **Cache session checks**: Use `proxy.ts` for route protection (Next.js 16 — Node.js runtime, not Edge)
 - **Minimize database calls**: Use JWT strategy when appropriate
 - **Optimize database queries**: Add indexes on frequently queried fields
-- **Use Edge Runtime**: For faster authentication checks in middleware
+- **Do NOT use Edge Runtime for auth**: `auth()` from Auth.js v5 requires Node.js runtime; `proxy.ts` in Next.js 16 runs on Node.js by default — call `auth()` directly without workarounds
 
 ### Type Safety
 
@@ -1098,7 +1098,7 @@ export async function GET() {
 ```
 
 ```typescript
-// v4 middleware (old)
+// v4 middleware (old — middleware.ts)
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
@@ -1107,8 +1107,22 @@ export default withAuth({
   },
 });
 
-// v5 middleware (new)
-export { auth as middleware } from "@/auth";
+// v5 proxy (new — proxy.ts, Next.js 16 Node.js runtime)
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
+
+export default auth((req) => {
+  const isLoggedIn = Boolean(req.auth);
+  const isProtected = req.nextUrl.pathname.startsWith("/dashboard");
+  if (isProtected && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/auth/sign-in", req.nextUrl));
+  }
+  return NextResponse.next();
+});
+
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};
 ```
 
 ## Troubleshooting

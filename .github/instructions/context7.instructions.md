@@ -22,7 +22,7 @@ Use before making decisions or writing code when you need:
 Also use when:
 
 - User references a specific version (e.g., "Next.js 16", "React 19", "Auth.js v5", "Tailwind v4")
-- You are about to write non-trivial configuration (next.config.ts, middleware, auth options)
+- You are about to write non-trivial configuration (next.config.ts, proxy.ts, auth options)
 - You are unsure an API exists, changed names, or was deprecated
 
 **Skip Context7 for:**
