@@ -412,6 +412,68 @@ async function Recommendations({ productId }: { productId: string }) {
 }
 ```
 
+### Pattern 6b: Partial Prerendering (PPR) — Next.js 16
+
+PPR combines a **static shell** (pre-rendered at build time, served from CDN) with **dynamic holes** (streamed in at request time). It is enabled globally or per-route.
+
+**Enable globally** in `next.config.ts`:
+
+```ts
+experimental: {
+  ppr: true,
+}
+```
+
+**Enable per-route (incremental)** when `ppr: 'incremental'`:
+
+```ts
+// next.config.ts
+experimental: {
+  ppr: "incremental";
+}
+
+// app/dashboard/page.tsx
+export const experimental_ppr = true; // opts this page in
+```
+
+**Structure**: Static shell + Suspense holes for dynamic content:
+
+```tsx
+// app/dashboard/page.tsx
+import { Suspense } from "react";
+import { DashboardShell } from "./dashboard-shell";
+import { UserActivity } from "./user-activity";
+import { ActivitySkeleton } from "./activity-skeleton";
+
+// Static shell rendered at build time — no async, no dynamic APIs
+export default function DashboardPage() {
+  return (
+    <DashboardShell>
+      {/* Suspense boundary creates the dynamic hole */}
+      <Suspense fallback={<ActivitySkeleton />}>
+        <UserActivity /> {/* Reads cookies() — dynamic, streams in */}
+      </Suspense>
+    </DashboardShell>
+  );
+}
+
+// Async Server Component with dynamic API — isolated behind Suspense
+async function UserActivity() {
+  const session = await getCookieSession(); // cookies() — dynamic!
+  const activity = await fetchActivity(session.userId);
+  return <ActivityFeed data={activity} />;
+}
+```
+
+| Behaviour                        | Without PPR                   | With PPR                               |
+| -------------------------------- | ----------------------------- | -------------------------------------- |
+| Initial HTML delivery            | Waits for all async data      | Static shell arrives immediately       |
+| Dynamic content                  | Blocks entire page            | Streams in after shell                 |
+| CDN cacheability                 | Not cacheable (dynamic route) | Static shell is fully cacheable        |
+| `cookies()` / `headers()` access | Anywhere in the tree          | Must be inside a `<Suspense>` boundary |
+
+> With `cacheComponents: true` (default in Next.js 16), accessing `cookies()`, `headers()`, or `params` **outside** a `<Suspense>` boundary is a **build error**. Wrap dynamic components in `<Suspense>` explicitly.
+
 ### Pattern 7: Route Handlers (API Routes)
 
 ```typescript
