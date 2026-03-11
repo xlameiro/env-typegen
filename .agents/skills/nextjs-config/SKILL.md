@@ -242,6 +242,187 @@ pageExtensions: ["page.tsx", "page.ts"]; // require .page suffix
 
 ---
 
+## SWC Compiler Transforms
+
+The `compiler` key exposes SWC-powered code transforms that run during the build. All transforms are **zero-config opt-in**: they activate only when you add the relevant key.
+
+> These transforms run through the Rust-based SWC compiler, not webpack loaders — they are significantly faster than their Babel equivalents.
+
+### `compiler.removeConsole`
+
+Remove `console.*` calls from production output.
+
+```ts
+compiler: {
+  removeConsole: true,               // remove all console.* calls
+  // OR: allow specific methods:
+  removeConsole: { exclude: ['error', 'warn'] },
+}
+```
+
+> Useful for stripping debug output in production without hunting for every `console.log`. The `exclude` array keeps specified methods (e.g., `'error'`, `'warn'`) so critical runtime alerts survive.
+
+---
+
+### `compiler.reactRemoveProperties`
+
+Remove custom React component properties at build time — primarily used to strip test attributes (`data-testid`) from production bundles.
+
+```ts
+compiler: {
+  reactRemoveProperties: true,                            // removes all data-nextjs-* props
+  // OR specify exact props to strip:
+  reactRemoveProperties: { properties: ['^data-testid$', '^data-cy$'] },
+}
+```
+
+> The `properties` array accepts **regex strings**. Pattern `'^data-testid$'` strips exactly `data-testid`; `'^data-'` would strip all data attributes.
+
+---
+
+### `compiler.styledComponents`
+
+Enable SWC transforms for [styled-components](https://styled-components.com/). Much faster than the Babel plugin.
+
+```ts
+compiler: {
+  styledComponents: true,   // shorthand: enable with defaults
+  // OR pass full config:
+  styledComponents: {
+    displayName: true,        // inject component display name (default: true in dev)
+    ssr: true,                // enable SSR support (default: true)
+    fileName: true,           // include file name in display name (default: true in dev)
+    meaninglessFileNames: ['index', 'styles'],
+    minify: true,             // minify CSS template literals (default: true in prod)
+    transpileTemplateLiterals: true,
+    pure: false,              // enable pure annotation for tree shaking
+    skipDefaultConversion: false,
+    topLevelImportPaths: [],
+    namespace: '',
+    preventFullImport: false,
+    styledBaseImport: ['styled-components', 'default'],
+  },
+}
+```
+
+> Requires `pnpm add styled-components`. The `displayName` helps React DevTools identify components; the `ssr` flag adds a unique `data-styled-*` attribute for hydration matching.
+
+---
+
+### `compiler.emotion`
+
+Enable SWC transforms for [Emotion CSS-in-JS](https://emotion.sh/). Faster than the Babel plugin.
+
+```ts
+compiler: {
+  emotion: true,   // shorthand: enable with defaults
+  // OR:
+  emotion: {
+    autoLabel: 'dev-only',            // 'always' | 'dev-only' | 'never'
+    labelFormat: '[local]',           // default: '[local]'
+    importMap: {
+      '@emotion/css': { css: { canonicalImport: ['@emotion/css', 'css'] } },
+    },
+    cssProp: true,                    // enable css prop (default: true)
+    sourceMap: true,                  // source maps in dev (default: true)
+  },
+}
+```
+
+> The `autoLabel` option appends a class name suffix like `--MyComponent` in development, making it easy to trace styles in the browser inspector without the overhead of `displayName` string injection.
+
+---
+
+### `compiler.styledJsx`
+
+Enable SWC transforms for [styled-jsx](https://github.com/vercel/styled-jsx) (the built-in CSS-in-JS solution used by Next.js itself).
+
+```ts
+compiler: {
+  styledJsx: true,
+  // OR with Lightning CSS:
+  styledJsx: {
+    useLightningcss: true,  // use Lightning CSS for faster parsing
+  },
+}
+```
+
+---
+
+### `compiler.relay`
+
+Enable SWC transforms for [Relay](https://relay.dev/) GraphQL fragments.
+
+```ts
+compiler: {
+  relay: {
+    src: './src',                    // path to your Relay source files
+    artifactDirectory: './__generated__',
+    language: 'typescript',          // 'typescript' | 'javascript' | 'flow'
+    eagerEsModules: false,           // use ES module output (default: false)
+  },
+}
+```
+
+> Replaces the `babel-plugin-relay` transform with a faster Rust equivalent. `language: 'typescript'` generates `.ts` artifact files; `'flow'` is for legacy Relay projects.
+
+---
+
+### `compiler.define` / `compiler.defineServer`
+
+Replace variables in your code with literal values at **compile time** (similar to webpack `DefinePlugin`).
+
+```ts
+compiler: {
+  define: {
+    'process.env.APP_VERSION': '"1.2.3"',  // note: value must be a JSON string
+    __DEV__: 'false',
+  },
+  // defineServer: same as define, but only applied to server builds
+  defineServer: {
+    __SERVER__: 'true',
+  },
+}
+```
+
+> Values are substituted as-is — wrap string values in extra quotes (`'"my string"'`) so the replacement produces a valid string literal. `defineServer` replacements are stripped from client bundles entirely.
+
+---
+
+### `compiler.runAfterProductionCompile`
+
+A hook that runs after production compilation finishes but **before** post-compilation tasks (type checking, static page generation).
+
+```ts
+compiler: {
+  runAfterProductionCompile: async ({ projectDir, distDir }) => {
+    // e.g., copy extra assets, write build manifest, notify a service
+    console.log(`Build complete: ${distDir}`);
+  },
+}
+```
+
+> The callback receives `projectDir` (repo root) and `distDir` (the `.next` directory). Runs once per production build — not in development.
+
+---
+
+### `experimental.swcPlugins`
+
+Apply custom [SWC Wasm plugins](https://swc.rs/docs/extending/creating-a-plugin) to the compilation pipeline.
+
+```ts
+experimental: {
+  swcPlugins: [
+    ['@swc-jotai/react-refresh', {}],
+    ['my-swc-plugin', { option1: true }],
+  ],
+}
+```
+
+> Each entry is a `[pluginName, options]` tuple. Plugin names are npm package names that export a Wasm binary. SWC plugins are currently in alpha — the Wasm ABI may change across Next.js versions.
+
+---
+
 ## Images
 
 ```ts
