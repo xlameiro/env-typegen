@@ -349,3 +349,44 @@ import { createPost } from "@/app/actions/post";
 ```
 
 > **Note**: `<input type="file">` with string action submits the filename (not the file object), matching browser default behavior.
+
+---
+
+## `dynamic()` — `next/dynamic`
+
+Lazy-loads a component — defers the import until render time, reducing initial bundle size. Built on `React.lazy()` + `<Suspense>` under the hood.
+
+```ts
+import dynamic from "next/dynamic";
+
+// Basic: loads component only when rendered
+const HeavyChart = dynamic(() => import("@/components/heavy-chart"));
+
+// With loading placeholder (replaces Suspense fallback for this component)
+const HeavyChart = dynamic(() => import("@/components/heavy-chart"), {
+  loading: () => <p>Loading chart…</p>,
+});
+
+// Disable SSR (browser-only component — e.g., window, document)
+const MapWidget = dynamic(() => import("@/components/map-widget"), {
+  ssr: false,
+});
+```
+
+### Options
+
+| Option    | Type                                               | Default | Description                                    |
+| --------- | -------------------------------------------------- | ------- | ---------------------------------------------- |
+| `loading` | `(props: DynamicOptionsLoadingProps) => ReactNode` | —       | Placeholder rendered while the component loads |
+| `ssr`     | `boolean`                                          | `true`  | Set to `false` to skip server-side rendering   |
+
+> The `loading` prop is equivalent to a `<Suspense fallback={…}>` wrapper scoped to this component alone.
+
+### When to use
+
+- Large third-party libraries (e.g., chart libraries, rich-text editors, map SDKs)
+- Browser-only components that access `window` / `document`
+- Components below the fold that don't need to be in the initial bundle
+- Heavy animations or visualizations not needed on first paint
+
+> In the App Router, prefer wrapping async Server Components in `<Suspense>` instead of `dynamic()` — `dynamic()` is most useful for **Client Components** with large dependencies.
