@@ -786,6 +786,55 @@ experimental: {
 
 ---
 
+### `experimental.turbopackTreeShaking` / `turbopackRemoveUnusedImports` / `turbopackRemoveUnusedExports`
+
+Dead code elimination options for Turbopack beyond standard bundler behavior.
+
+| Option                         | Default     | Description                                                    |
+| ------------------------------ | ----------- | -------------------------------------------------------------- |
+| `turbopackTreeShaking`         | `undefined` | Enable tree shaking in both the Turbopack dev server and build |
+| `turbopackRemoveUnusedImports` | `undefined` | Remove unused `import` statements from compiled modules        |
+| `turbopackRemoveUnusedExports` | `undefined` | Remove unused `export` declarations from compiled modules      |
+
+```ts
+experimental: {
+  turbopackTreeShaking: true,
+  turbopackRemoveUnusedImports: true,
+  turbopackRemoveUnusedExports: true,
+}
+```
+
+> These options are more aggressive than Turbopack's built-in defaults. `turbopackTreeShaking` eliminates unreachable code paths; `turbopackRemoveUnusedImports` and `turbopackRemoveUnusedExports` strip dead module-level declarations. All three are `undefined` by default, meaning Turbopack uses its own per-mode heuristics.
+
+---
+
+### `experimental.turbopackUseBuiltinBabel` / `turbopackUseBuiltinSass` / `turbopackUseSystemTlsCerts`
+
+Turbopack integration options for Babel, Sass, and HTTPS certificate authorities.
+
+```ts
+experimental: {
+  turbopackUseBuiltinBabel: true,      // default: true
+  turbopackUseBuiltinSass: true,       // default: true
+  turbopackUseSystemTlsCerts: false,   // default: false
+}
+```
+
+**`turbopackUseBuiltinBabel`** — When `true` (default), Turbopack automatically configures `babel-loader` whenever a Babel configuration file (`.babelrc`, `babel.config.js`) is detected in the project. Set `false` to opt out. Note: if `reactCompiler: true`, the React Compiler Babel plugin still runs regardless of this flag, but project-level `.babelrc` transforms are skipped.
+
+**`turbopackUseBuiltinSass`** — When `true` (default), Turbopack automatically configures `sass-loader` for `.scss` / `.sass` files when the `sass` package is installed. Set `false` to supply a custom loader via Turbopack rule overrides.
+
+**`turbopackUseSystemTlsCerts`** — When `true`, Turbopack uses [`rustls-native-certs`](https://crates.io/crates/rustls-native-certs) instead of its bundled CAs for outbound HTTPS requests (e.g., downloading Google Fonts at build time). Useful in environments with custom root CAs (corporate proxies, self-signed certificates).
+
+```bash
+# Can also be set via environment variable:
+NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 pnpm dev
+```
+
+> `turbopackUseSystemTlsCerts` is experimental pending resolution of [seanmonstar/reqwest#2159](https://github.com/seanmonstar/reqwest/issues/2159). The flag is silently ignored on Windows ARM targets.
+
+---
+
 ### `experimental.taint`
 
 Enables React's experimental [Data Tainting API](https://react.dev/reference/react/experimental_taintObjectReference) — `taintObjectReference` and `taintUniqueValue` — which prevents specific objects and values from being accidentally passed to Client Components.
