@@ -206,13 +206,18 @@ async function getProducts() {
 
 ## 9. Anti-Patterns
 
-| ❌ Don't                   | ✅ Do             |
-| -------------------------- | ----------------- |
-| 'use client' everywhere    | Server by default |
-| Fetch in client components | Fetch in server   |
-| Skip loading states        | Use loading.tsx   |
-| Ignore error boundaries    | Use error.tsx     |
-| Large client bundles       | Dynamic imports   |
+| ❌ Don't                            | ✅ Do                                               |
+| ----------------------------------- | --------------------------------------------------- |
+| `'use client'` everywhere           | Server Components by default                        |
+| Fetch data in Client Components     | Fetch in Server Components                          |
+| Skip loading states                 | Use `loading.tsx` or `<Suspense fallback=…>`        |
+| Ignore error boundaries             | Use `error.tsx`                                     |
+| Large client bundles                | Dynamic imports with `next/dynamic`                 |
+| `middleware.ts`                     | `proxy.ts` (Next.js 16 standard, Node.js runtime)   |
+| Auth checks in `layout.tsx`         | Auth in `page.tsx` or `proxy.ts`                    |
+| `unstable_cache` for new code       | `'use cache'` directive                             |
+| Blocking logging / webhooks in-path | `after(() => ...)` for fire-and-forget side effects |
+| `connection()` without `<Suspense>` | Wrap dynamic sections in `<Suspense>`               |
 
 ---
 

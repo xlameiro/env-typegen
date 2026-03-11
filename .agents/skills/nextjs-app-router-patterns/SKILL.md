@@ -608,6 +608,72 @@ export async function POST(request: Request) {
 }
 ```
 
+### Pattern 11: View Transitions (Next.js 16 + React canary)
+
+Smoothly animate between page navigations and state changes using the React View Transitions API. Requires `experimental.viewTransition: true` in `next.config.ts`.
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  experimental: {
+    viewTransition: true,
+  },
+};
+```
+
+```tsx
+// Wrap any element you want to animate across navigations
+// Must be a Client Component — ViewTransition is a React canary API
+"use client";
+
+import { unstable_ViewTransition as ViewTransition } from "react";
+
+export function ProductCard({ product }: { product: Product }) {
+  return (
+    // name links this element to the same element on the destination page (shared-element transition)
+    <ViewTransition name={`product-${product.id}`}>
+      <img src={product.image} alt={product.name} />
+    </ViewTransition>
+  );
+}
+```
+
+```tsx
+// Trigger a named transition type to apply different CSS classes
+"use client";
+
+import { addTransitionType, startTransition } from "react";
+import { unstable_ViewTransition as ViewTransition } from "react";
+import { useRouter } from "next/navigation";
+
+export function BackButton() {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() =>
+        startTransition(() => {
+          addTransitionType("slide-right"); // signals this is a back-navigation
+          router.back();
+        })
+      }
+    >
+      ← Back
+    </button>
+  );
+}
+
+// In your component:
+<ViewTransition
+  default={{ default: "fade" }}
+  enter={{ "slide-right": "slide-in-from-right", default: "fade-in" }}
+  exit={{ "slide-right": "slide-out-to-right", default: "fade-out" }}
+>
+  {children}
+</ViewTransition>;
+```
+
+> `<ViewTransition>` from `react` is currently in canary — it is re-exported by Next.js when `experimental.viewTransition: true` is set. The import `unstable_ViewTransition` will become `ViewTransition` once React stabilises the API.
+
 ## Best Practices
 
 ### Do's
