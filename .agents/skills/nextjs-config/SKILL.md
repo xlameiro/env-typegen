@@ -364,7 +364,7 @@ turbopack: {
 | `treeShaking`       | `boolean`                                       | Enable/disable tree shaking                      |
 | `memoryLimit`       | `number`                                        | Memory limit in MB                               |
 
-> **Note**: Turbopack is used by `next dev --turbopack` (default in Next.js 16) and `next build --turbopack` (stable from 16.2+). Does not apply to webpack builds.
+> **Note**: Turbopack is the **default bundler for both `next dev` and `next build`** in Next.js 16. The `--turbopack` flag is no longer needed — it will be ignored. To opt out and use webpack, pass `--no-turbopack` to the CLI command.
 
 ---
 

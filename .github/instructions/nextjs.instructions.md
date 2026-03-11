@@ -200,7 +200,7 @@ With Cache Components enabled, pages are **no longer simply static or dynamic â€
 
 ## 8. Tooling updates (Next.js 16)
 
-- **Turbopack is the default dev bundler.** Configure via the top-level `turbopack` field in `next.config.*` (do not use the removed `experimental.turbo`).
+- **Turbopack is the default bundler for both `next dev` and `next build`.** Configure via the top-level `turbopack` field in `next.config.*` (do not use the removed `experimental.turbo`). The `--turbopack` flag is no longer needed.
 - **Typed routes are stable** via `typedRoutes` (TypeScript required).
 
 ## 9. Server-Only Modules

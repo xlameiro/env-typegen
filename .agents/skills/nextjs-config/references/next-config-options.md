@@ -26,23 +26,23 @@ async headers(): Promise<Header[]> {
 
 ```ts
 type Header = {
-  source: string                        // Path pattern
-  headers: { key: string; value: string }[]
-  has?: RouteHas[]                      // All must match
-  missing?: RouteHas[]                  // All must be absent
-  basePath?: false                      // Opt-out of basePath prefix
-  locale?: false                        // Opt-out of locale prefix
-}
+  source: string; // Path pattern
+  headers: { key: string; value: string }[];
+  has?: RouteHas[]; // All must match
+  missing?: RouteHas[]; // All must be absent
+  basePath?: false; // Opt-out of basePath prefix
+  locale?: false; // Opt-out of locale prefix
+};
 ```
 
 ### `RouteHas` Type (shared by headers, redirects, rewrites)
 
 ```ts
 type RouteHas =
-  | { type: 'header'; key: string; value?: string }
-  | { type: 'cookie'; key: string; value?: string }
-  | { type: 'query'; key: string; value?: string }
-  | { type: 'host'; value: string }
+  | { type: "header"; key: string; value?: string }
+  | { type: "cookie"; key: string; value?: string }
+  | { type: "query"; key: string; value?: string }
+  | { type: "host"; value: string };
 ```
 
 ### Conditional Headers with `has` / `missing`
@@ -103,25 +103,25 @@ async headers() {
 
 ```ts
 type Redirect = {
-  source: string
-  destination: string
-  permanent: boolean            // true → 308, false → 307
-  statusCode?: number           // Manual override (301, 302, 307, 308)
-  has?: RouteHas[]
-  missing?: RouteHas[]
-  basePath?: false
-  locale?: false
-}
+  source: string;
+  destination: string;
+  permanent: boolean; // true → 308, false → 307
+  statusCode?: number; // Manual override (301, 302, 307, 308)
+  has?: RouteHas[];
+  missing?: RouteHas[];
+  basePath?: false;
+  locale?: false;
+};
 ```
 
 ### Path Pattern Syntax
 
-| Pattern | Example Source | Matches |
-|---------|---------------|---------|
-| Named segment | `/blog/:slug` | `/blog/my-post` |
-| Wildcard | `/old/:path*` | `/old/a/b/c` |
-| Optional | `/:path?` | `/` and `/anything` |
-| Regex | `/blog/:id(\\d{1,})` | `/blog/123` only |
+| Pattern       | Example Source       | Matches             |
+| ------------- | -------------------- | ------------------- |
+| Named segment | `/blog/:slug`        | `/blog/my-post`     |
+| Wildcard      | `/old/:path*`        | `/old/a/b/c`        |
+| Optional      | `/:path?`            | `/` and `/anything` |
+| Regex         | `/blog/:id(\\d{1,})` | `/blog/123` only    |
 
 ```ts
 async redirects() {
@@ -225,33 +225,33 @@ async rewrites() {
 
 ```ts
 type RemotePattern = {
-  protocol?: 'http' | 'https'    // default: both
-  hostname: string               // required; supports wildcards: '**.example.com'
-  port?: string                  // default: '' (any port)
-  pathname?: string              // default: '**'; glob pattern
-  search?: string                // exact query string match
-}
+  protocol?: "http" | "https"; // default: both
+  hostname: string; // required; supports wildcards: '**.example.com'
+  port?: string; // default: '' (any port)
+  pathname?: string; // default: '**'; glob pattern
+  search?: string; // exact query string match
+};
 
 // Examples
 remotePatterns: [
-  { hostname: 'assets.example.com' },
-  { protocol: 'https', hostname: '**.cloudfront.net', pathname: '/images/**' },
-  { hostname: 'images.githubusercontent.com', search: '' },  // no query string
-]
+  { hostname: "assets.example.com" },
+  { protocol: "https", hostname: "**.cloudfront.net", pathname: "/images/**" },
+  { hostname: "images.githubusercontent.com", search: "" }, // no query string
+];
 ```
 
 ### `localPatterns`
 
 ```ts
 type LocalPattern = {
-  pathname?: string   // Glob pattern from public/ root
-  search?: string     // Query string constraint
-}
+  pathname?: string; // Glob pattern from public/ root
+  search?: string; // Query string constraint
+};
 
 localPatterns: [
-  { pathname: '/assets/images/**', search: '' },
-  { pathname: '/content/**' },
-]
+  { pathname: "/assets/images/**", search: "" },
+  { pathname: "/content/**" },
+];
 // Only paths matching at least one pattern will be served
 ```
 
@@ -259,33 +259,37 @@ localPatterns: [
 
 ```ts
 // Built-in loaders
-loader: 'default'     // Vercel/Next.js built-in
-loader: 'cloudinary'  // Cloudinary CDN
-loader: 'imgix'       // Imgix CDN
-loader: 'akamai'      // Akamai CDN
-loader: 'custom'      // Custom — requires loaderFile
+loader: "default"; // Vercel/Next.js built-in
+loader: "cloudinary"; // Cloudinary CDN
+loader: "imgix"; // Imgix CDN
+loader: "akamai"; // Akamai CDN
+loader: "custom"; // Custom — requires loaderFile
 
 // Custom loader file
-loaderFile: './lib/image-loader.ts'
+loaderFile: "./lib/image-loader.ts";
 // Must export a default function:
 // (params: { src: string; width: number; quality?: number }) => string
 ```
 
 ```ts
 // lib/image-loader.ts
-export default function myLoader({ src, width, quality }: {
-  src: string
-  width: number
-  quality?: number
+export default function myLoader({
+  src,
+  width,
+  quality,
+}: {
+  src: string;
+  width: number;
+  quality?: number;
 }): string {
-  return `https://cdn.example.com/${src}?w=${width}&q=${quality ?? 75}`
+  return `https://cdn.example.com/${src}?w=${width}&q=${quality ?? 75}`;
 }
 ```
 
 ### `formats`
 
 ```ts
-formats: ['image/avif', 'image/webp']
+formats: ["image/avif", "image/webp"];
 // Order matters: first supported format by client is served
 // 'image/avif' compresses better but slower to encode
 // Default in Next.js 16: ['image/avif', 'image/webp']
@@ -303,7 +307,7 @@ contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
 ### `qualities`
 
 ```ts
-qualities: [25, 50, 75, 90, 100]
+qualities: [25, 50, 75, 90, 100];
 // Only these quality values are accepted via the quality prop on <Image>
 // Helps with caching predictability
 ```
@@ -312,7 +316,7 @@ qualities: [25, 50, 75, 90, 100]
 
 ## `turbopack` — Full Reference
 
-> Turbopack is the default bundler for `next dev` in Next.js 16 and available for `next build --turbopack` (stable from 16.2+).
+> Turbopack is the **default bundler for both `next dev` and `next build`** in Next.js 16. The `--turbopack` flag is no longer needed — it will be ignored. To opt out, pass `--no-turbopack`.
 
 ### `rules` — Custom Loaders
 
@@ -352,6 +356,7 @@ turbopack: {
 ```
 
 Each rule value can be:
+
 - `string[]` — array of loader package names
 - `{ loaders: (string | { loader: string; options: object })[], as: string }` — with options and explicit output type
 
@@ -439,10 +444,10 @@ When using `output: 'export'`, the following are **not supported**:
 ```ts
 // next.config.ts for static export
 const nextConfig: NextConfig = {
-  output: 'export',
-  images: { unoptimized: true },  // required unless custom loader
-  trailingSlash: true,             // recommended for static hosts
-}
+  output: "export",
+  images: { unoptimized: true }, // required unless custom loader
+  trailingSlash: true, // recommended for static hosts
+};
 ```
 
 ---
@@ -450,7 +455,7 @@ const nextConfig: NextConfig = {
 ## `output: 'standalone'` — Standalone Server
 
 ```ts
-output: 'standalone'
+output: "standalone";
 // Produces .next/standalone/ with:
 // - server.js — Node.js server
 // - node_modules/ — only required modules
@@ -470,14 +475,14 @@ output: 'standalone'
 ```ts
 serverExternalPackages: [
   // Native bindings — cannot be bundled
-  'bcrypt',
-  'argon2',
-  '@libsql/client',
+  "bcrypt",
+  "argon2",
+  "@libsql/client",
   // Large packages that don't benefit from bundling
-  '@prisma/client',
+  "@prisma/client",
   // Packages with __dirname / __filename dependencies
-  'some-legacy-pkg',
-]
+  "some-legacy-pkg",
+];
 ```
 
 > All packages listed in `serverExternalPackages` are excluded from the Server Component bundle and loaded at runtime from `node_modules`.
@@ -489,13 +494,13 @@ serverExternalPackages: [
 ```ts
 transpilePackages: [
   // Monorepo packages (ESM or TypeScript)
-  '@acme/ui',
-  '@internal/utils',
+  "@acme/ui",
+  "@internal/utils",
   // Third-party ESM-only packages lacking CJS build
-  'some-esm-only-lib',
+  "some-esm-only-lib",
   // Packages using React JSX transform
-  'react-tweet',
-]
+  "react-tweet",
+];
 ```
 
 ---
@@ -503,30 +508,36 @@ transpilePackages: [
 ## Full TypeScript Config Type
 
 ```ts
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 // All options (most are optional)
 const config: NextConfig = {
   // Routing
-  basePath: '',
+  basePath: "",
   trailingSlash: false,
-  assetPrefix: '',
+  assetPrefix: "",
   skipTrailingSlashRedirect: false,
   skipProxyUrlNormalize: false,
 
   // HTTP routing (async functions)
-  async headers() { return [] },
-  async redirects() { return [] },
-  async rewrites() { return [] },
+  async headers() {
+    return [];
+  },
+  async redirects() {
+    return [];
+  },
+  async rewrites() {
+    return [];
+  },
 
   // Build
-  distDir: '.next',
+  distDir: ".next",
   output: undefined,
   cleanDistDir: true,
   generateBuildId: async () => null,
   compress: true,
   poweredByHeader: true,
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  pageExtensions: ["tsx", "ts", "jsx", "js"],
 
   // Images
   images: {
@@ -534,14 +545,14 @@ const config: NextConfig = {
     localPatterns: [],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 14400,
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: undefined,
-    contentDispositionType: 'inline',
+    contentDispositionType: "inline",
     unoptimized: false,
-    loader: 'default',
-    loaderFile: '',
+    loader: "default",
+    loaderFile: "",
     qualities: undefined,
   },
 
@@ -563,7 +574,7 @@ const config: NextConfig = {
   // TypeScript
   typescript: {
     ignoreBuildErrors: false,
-    tsconfigPath: './tsconfig.json',
+    tsconfigPath: "./tsconfig.json",
   },
 
   // ESLint — REMOVED in Next.js 16
@@ -582,9 +593,9 @@ const config: NextConfig = {
     staleTimes: { dynamic: 0, static: 300 },
     viewTransition: false,
     serverActions: {
-      bodySizeLimit: '1mb',
+      bodySizeLimit: "1mb",
       allowedOrigins: [],
     },
   },
-}
+};
 ```
