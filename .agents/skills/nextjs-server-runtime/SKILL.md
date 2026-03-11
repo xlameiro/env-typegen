@@ -214,12 +214,42 @@ interface MiddlewareResponseInit extends ResponseInit {
 
 ### `ResponseCookies` — `response.cookies`
 
-| Method   | Signature                                                                   | Description                        |
-| -------- | --------------------------------------------------------------------------- | ---------------------------------- |
-| `set`    | `(name: string, value: string, options?: CookieOptions) => ResponseCookies` | Set a `Set-Cookie` header          |
-| `get`    | `(name: string) => { name: string; value: string } \| undefined`            | Read a set cookie                  |
-| `getAll` | `() => { name: string; value: string }[]`                                   | Read all set cookies               |
-| `delete` | `(name: string \| { name: string; ... }) => ResponseCookies`                | Delete a cookie (sets `Max-Age=0`) |
+| Method   | Signature                                                                    | Description                        |
+| -------- | ---------------------------------------------------------------------------- | ---------------------------------- |
+| `set`    | `(name: string, value: string, options?: ResponseCookie) => ResponseCookies` | Set a `Set-Cookie` header          |
+| `get`    | `(name: string) => { name: string; value: string } \| undefined`             | Read a set cookie                  |
+| `getAll` | `() => { name: string; value: string }[]`                                    | Read all set cookies               |
+| `delete` | `(name: string \| { name: string; ... }) => ResponseCookies`                 | Delete a cookie (sets `Max-Age=0`) |
+
+#### `ResponseCookie` — cookie options
+
+| Field         | Type                                           | Description                                                        |
+| ------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
+| `domain`      | `string`                                       | Cookie domain scope (defaults to current domain)                   |
+| `expires`     | `Date`                                         | Absolute expiry date (use `maxAge` in most cases)                  |
+| `httpOnly`    | `boolean`                                      | Prevents JS access via `document.cookie` — always set for sessions |
+| `maxAge`      | `number`                                       | Expiry in **seconds** (takes precedence over `expires`)            |
+| `partitioned` | `boolean`                                      | CHIPS partitioned cookie (experimental, not yet widely supported)  |
+| `path`        | `string`                                       | URL path scope (default: `"/"`)                                    |
+| `sameSite`    | `"lax" \| "strict" \| "none" \| true \| false` | CSRF protection (`"lax"` recommended; `"none"` requires `secure`)  |
+| `secure`      | `boolean`                                      | HTTPS-only — required when `sameSite: "none"`                      |
+| `priority`    | `"low" \| "medium" \| "high"`                  | Cookie priority hint (Chrome only, non-standard)                   |
+
+```ts
+// Secure session cookie — recommended defaults
+response.cookies.set("session", token, {
+  httpOnly: true, // no JS access
+  secure: true, // HTTPS only
+  sameSite: "lax", // CSRF protection
+  path: "/",
+  maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+});
+
+// Delete a cookie
+response.cookies.delete("session");
+// or with attributes (some browsers require matching path/domain):
+response.cookies.delete({ name: "session", path: "/" });
+```
 
 ### Examples
 

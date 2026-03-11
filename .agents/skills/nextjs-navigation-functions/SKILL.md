@@ -611,7 +611,7 @@ export async function UserGreeting() {
 }
 ```
 
-> The return type is inferred from the root layout's `params` shape. Requires the root layout to have a dynamic segment (e.g., `[lang]`). Enable with `experimental.rootParams: true` in `next.config.ts`.
+> ⚠️ **Types not yet generated**: `next/root-params.d.ts` is currently a stub (`declare module 'next/root-params'`) — no TypeScript exports are emitted yet. The return type resolves to `any` at compile time. Enable the feature with `experimental.rootParams: true` in `next.config.ts`. Requires the root layout to have a dynamic segment (e.g., `[lang]`).
 
 ---
 

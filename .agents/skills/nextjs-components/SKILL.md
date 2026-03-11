@@ -416,6 +416,27 @@ const MapWidget = dynamic(() => import("@/components/map-widget"), {
 | `loading` | `(props: DynamicOptionsLoadingProps) => ReactNode` | —       | Placeholder rendered while the component loads |
 | `ssr`     | `boolean`                                          | `true`  | Set to `false` to skip server-side rendering   |
 
+#### `DynamicOptionsLoadingProps`
+
+Props passed to the `loading` render function:
+
+| Property    | Type            | Description                                       |
+| ----------- | --------------- | ------------------------------------------------- |
+| `error`     | `Error \| null` | Error object if the dynamic import failed         |
+| `isLoading` | `boolean`       | `true` while the module is being loaded           |
+| `pastDelay` | `boolean`       | `true` after the loader has been pending > 200 ms |
+| `retry`     | `() => void`    | Callback to retry a failed load                   |
+| `timedOut`  | `boolean`       | `true` if loading exceeded an internal timeout    |
+
+```tsx
+const HeavyChart = dynamic(() => import("@/components/heavy-chart"), {
+  loading: ({ error, isLoading }) => {
+    if (error) return <p>Failed to load chart.</p>;
+    return isLoading ? <p>Loading chart…</p> : null;
+  },
+});
+```
+
 > The `loading` prop is equivalent to a `<Suspense fallback={…}>` wrapper scoped to this component alone.
 
 ### When to use
