@@ -316,6 +316,19 @@ cacheLife: {
 > Built-in profiles: `'default'`, `'seconds'`, `'minutes'`, `'hours'`, `'days'`, `'weeks'`, `'max'`.
 > Custom profiles extend the built-in set and can be referenced by name: `cacheLife('editorial')`.
 
+### `experimental.ppr` (Partial Prerendering)
+
+```ts
+experimental: {
+  ppr: true,
+  // true: enables PPR for ALL routes
+  // 'incremental': enables PPR only on pages that export:
+  //   export const experimental_ppr = true
+}
+```
+
+See also: `experimental_ppr` as a per-page segment export (opt-in with `'incremental'` mode) — documented in the file-conventions skill segment config table.
+
 ### `experimental.authInterrupts`
 
 ```ts

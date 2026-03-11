@@ -456,14 +456,17 @@ type SitemapEntry = {
     content_loc?: string;
     player_loc?: string;
     duration?: number; // seconds
-    expiration_date?: string;
+    expiration_date?: Date | string;
     rating?: number; // 0.0–5.0
     view_count?: number;
-    publication_date?: string;
-    family_friendly?: boolean;
+    publication_date?: Date | string;
+    family_friendly?: "yes" | "no";
     restriction?: { relationship: "allow" | "deny"; content: string };
     platform?: { relationship: "allow" | "deny"; content: string };
-    live?: boolean;
+    requires_subscription?: "yes" | "no";
+    uploader?: { info?: string; content?: string };
+    live?: "yes" | "no";
+    tag?: string;
   }>;
 };
 ```

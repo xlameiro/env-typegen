@@ -136,6 +136,7 @@ Same as `layout.tsx`: `metadata`, `generateMetadata`, `viewport`, `generateViewp
 | `preferredRegion`      | `string \| string[]`                                                                                                      | Deployment region(s)                                                                      |
 | `maxDuration`          | `number`                                                                                                                  | Max execution time in seconds                                                             |
 | `unstable_prefetch`    | `Prefetch` (internal)                                                                                                     | Fine-grained prefetch config (unstable — internal use)                                    |
+| `experimental_ppr`     | `true`                                                                                                                    | Opts this page into PPR when `experimental.ppr: 'incremental'` is set in `next.config.ts` |
 
 ---
 
@@ -302,15 +303,16 @@ export async function GET(
 
 ### Segment Config Exports
 
-| Export            | Type                                                                                                                      | Description                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `dynamic`         | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'`                                                                  | Caching behaviour                                                    |
-| `dynamicParams`   | `boolean`                                                                                                                 | Allow params not in `generateStaticParams` (`true`) or 404 (`false`) |
-| `revalidate`      | `number \| false`                                                                                                         | ISR revalidation interval                                            |
-| `fetchCache`      | `'auto' \| 'default-cache' \| 'default-no-store' \| 'force-cache' \| 'force-no-store' \| 'only-cache' \| 'only-no-store'` | Fetch caching mode                                                   |
-| `runtime`         | `'nodejs' \| 'edge'`                                                                                                      | Runtime                                                              |
-| `preferredRegion` | `string \| string[]`                                                                                                      | Deployment region                                                    |
-| `maxDuration`     | `number`                                                                                                                  | Max execution time (s)                                               |
+| Export              | Type                                                                                                                                                                    | Description                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `dynamic`           | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'`                                                                                                                | Caching behaviour                                                                         |
+| `dynamicParams`     | `boolean`                                                                                                                                                               | Allow params not in `generateStaticParams` (`true`) or 404 (`false`)                      |
+| `revalidate`        | `number \| false`                                                                                                                                                       | ISR revalidation interval                                                                 |
+| `fetchCache`        | `'auto' \| 'default-cache' \| 'default-no-store' \| 'force-cache' \| 'force-no-store' \| 'only-cache' \| 'only-no-store'`                                               | Fetch caching mode                                                                        |
+| `runtime`           | `'nodejs' \| 'edge'`                                                                                                                                                    | Runtime                                                                                   |
+| `preferredRegion`   | `string \| string[]`                                                                                                                                                    | Deployment region                                                                         |
+| `maxDuration`       | `number`                                                                                                                                                                | Max execution time (s)                                                                    |
+| `unstable_prefetch` | `{ mode: 'static'; from?: string[]; expectUnableToVerify?: boolean } \| { mode: 'runtime'; samples: RuntimeSample[]; from?: string[]; expectUnableToVerify?: boolean }` | ⚠️ Unstable — prefetch hint: `'static'` = build-time, `'runtime'` = request-time sampling |
 
 ---
 
