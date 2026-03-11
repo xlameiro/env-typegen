@@ -242,6 +242,20 @@ pageExtensions: ["page.tsx", "page.ts"]; // require .page suffix
 
 ---
 
+### `excludeDefaultMomentLocales`
+
+Exclude all Moment.js locale files from the bundle except the locale explicitly imported by the app. Reduces bundle size significantly when Moment.js is in use (default: `true` in Next.js — enabled automatically).
+
+```ts
+const nextConfig: NextConfig = {
+  excludeDefaultMomentLocales: true, // already the default; shown for clarity
+};
+```
+
+> If you need a specific locale, import it directly: `import 'moment/locale/es'`. Only that locale ships to the client. See [Next.js upgrade guide](https://nextjs.org/docs/upgrading#momentjs-locales-excluded-by-default).
+
+---
+
 ## SWC Compiler Transforms
 
 The `compiler` key exposes SWC-powered code transforms that run during the build. All transforms are **zero-config opt-in**: they activate only when you add the relevant key.
@@ -1883,6 +1897,144 @@ experimental: {
 
 ---
 
+### `experimental.externalProxyRewritesResolve`
+
+When `true`, rewrites from `proxy.ts` that point to external URLs are evaluated against the rewritten (external) URL — matching how `middleware.ts` behaved historically. Default: `false` (Next.js resolves against the original request URL).
+
+```ts
+experimental: {
+  externalProxyRewritesResolve: true,
+}
+```
+
+> The deprecated `externalMiddlewareRewritesResolve` is an alias — migrate to this key.
+
+---
+
+### `experimental.htmlLimitedBots`
+
+A `RegExp` that identifies bots **capable** of streaming. Next.js uses it to decide whether to send a fully-rendered HTML payload or a streaming response to crawlers. Bots NOT matched by this pattern receive a blocking, fully-rendered page for maximum compatibility; bots matched by the pattern (which are assumed to handle streaming) receive the streamed response.
+
+```ts
+experimental: {
+  // Add your custom bot UA strings to the default pattern
+  htmlLimitedBots:
+    /Mediapartners-Google|Slurp|DuckDuckBot|baiduspider|yandex|MyBotUA/i,
+}
+```
+
+Default (built-in): matches Googlebot media partners, Bing, Facebook, Twitter, LinkedIn, Discord, WhatsApp, and others. Override only when you need to add or remove specific crawlers.
+
+---
+
+### `experimental.disablePostcssPresetEnv`
+
+Disables the automatic application of `postcss-preset-env` during CSS processing. By default, Next.js runs `postcss-preset-env` on every CSS file to transpile modern CSS features. Set to `true` when you fully control your own PostCSS config and want to avoid double-processing.
+
+```ts
+experimental: {
+  disablePostcssPresetEnv: true,
+}
+```
+
+---
+
+### `experimental.allowDevelopmentBuild`
+
+Permits running `next build` while `NODE_ENV=development`. Normally `next build` forces `NODE_ENV=production`. Only accepted value is `true`; use this in CI scenarios where you need a development build artifact for debugging.
+
+```ts
+experimental: {
+  allowDevelopmentBuild: true,
+}
+```
+
+> **Not for production deployments.** Development builds are unoptimized and significantly larger.
+
+---
+
+### `experimental.debugIds`
+
+Enables stable debug IDs in JavaScript bundles and source maps, following the [TC39 Debug ID proposal](https://github.com/tc39/ecma426/blob/main/proposals/debug-id.md). Debug IDs help error-tracking tools (Sentry, Datadog) correlate production stack frames to original source.
+
+```ts
+experimental: {
+  debugIds: true,
+}
+```
+
+---
+
+### `experimental.enablePrerenderSourceMaps`
+
+Generates source maps for pre-rendered (static) pages during `next build`. Useful for diagnosing errors that occur during the prerender phase — the source map will point to original TypeScript lines in the build output.
+
+```ts
+experimental: {
+  enablePrerenderSourceMaps: true,
+}
+```
+
+Default: `undefined` (disabled).
+
+---
+
+### `experimental.useWasmBinary`
+
+Use a WebAssembly binary for certain Next.js internals instead of the native Node.js addon. Primarily useful on platforms where the native addon cannot be compiled.
+
+```ts
+experimental: {
+  useWasmBinary: true,
+}
+```
+
+---
+
+### `experimental.panicThreshold`
+
+Controls how the **React Compiler** handles compilation errors. See [React Compiler docs](https://react.dev/reference/react-compiler/panicThreshold).
+
+| Value               | Behavior                                                 |
+| ------------------- | -------------------------------------------------------- |
+| `'none'`            | Skip components that cannot be compiled (default — safe) |
+| `'critical_errors'` | Throw on critical compilation errors; skip others        |
+| `'all_errors'`      | Throw on any compilation error                           |
+
+```ts
+experimental: {
+  reactCompiler: { panicThreshold: 'critical_errors' },
+}
+```
+
+> This option lives inside the `reactCompiler` config object, not at the top of `experimental`.
+
+---
+
+### `experimental.manualClientBasePath`
+
+When `true`, disables Next.js's automatic `basePath` injection on the client side. Use only when you are managing `basePath` prefixes entirely on your own (e.g., a CDN or edge proxy prepends the path). Default: `false`.
+
+```ts
+experimental: {
+  manualClientBasePath: true,
+}
+```
+
+---
+
+### `experimental.lockDistDir`
+
+Prevents changing the `distDir` at runtime after the initial build. Default: `true` — the setting is locked to the value in `next.config.ts` at build time. Disabling it (`false`) is **not recommended** as it can corrupt the output directory.
+
+```ts
+experimental: {
+  lockDistDir: false, // not recommended
+}
+```
+
+---
+
 ## Cache & Server Config
 
 Top-level options for ISR cache backends, output tracing, DX tools, and HTTP behavior.
@@ -2278,6 +2430,47 @@ const response = await unstable_getResponseFromNextConfig({
 | `transpilePackages`                             | Runtime     | Force transpile node_modules                                      |
 | `typescript.ignoreBuildErrors`                  | TypeScript  | Skip build-time type-check                                        |
 | ~~`eslint`~~                                    | ESLint      | **Removed in Next.js 16** — use ESLint CLI directly               |
+
+---
+
+## Deprecated & Niche Options
+
+Options listed here are either deprecated (with a migration path), Pages Router-only, or rarely needed. They are documented briefly for completeness.
+
+### Deprecated options — migration table
+
+| Deprecated option                                | Replacement                                 | Notes                                                                               |
+| ------------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `experimental.middlewarePrefetch`                | `experimental.proxyPrefetch`                | Renamed when `middleware.ts` → `proxy.ts`                                           |
+| `experimental.middlewareClientMaxBodySize`       | `experimental.proxyClientMaxBodySize`       | Same rename                                                                         |
+| `experimental.externalMiddlewareRewritesResolve` | `experimental.externalProxyRewritesResolve` | Same rename                                                                         |
+| `experimental.bundlePagesExternals`              | `bundlePagesRouterDependencies` (top-level) | Moved out of experimental                                                           |
+| `experimental.serverComponentsExternalPackages`  | `serverExternalPackages` (top-level)        | Moved out of experimental                                                           |
+| `experimental.cacheHandlers`                     | `cacheHandlers` (top-level)                 | Moved out of experimental                                                           |
+| `experimental.cacheLife`                         | `cacheLife` (top-level)                     | Moved out of experimental                                                           |
+| `experimental.expireTime`                        | `expireTime` (top-level)                    | Moved out of experimental                                                           |
+| `experimental.gzipSize`                          | _(removed)_                                 | No-op since Next.js 16 — size metrics removed from build output                     |
+| `experimental.externalDir`                       | _(removed)_                                 | No longer needed — workspace/monorepo support is built-in                           |
+| `experimental.craCompat`                         | _(removed)_                                 | CRA is discontinued; compatibility shim no longer maintained                        |
+| `domains` (images)                               | `images.remotePatterns`                     | `domains` is a coarser allow-list; `remotePatterns` supports glob-pattern hostnames |
+
+### Pages Router-only options
+
+These options have **no effect** in App Router projects and should not appear in `next.config.ts` for this template:
+
+| Option                      | Description                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| `exportPathMap`             | Map static export paths — App Router uses `generateStaticParams` instead           |
+| `useFileSystemPublicRoutes` | Controls whether file-system routes are active — always `true` in App Router       |
+| `locales`                   | i18n locale list — App Router uses a `[locale]` dynamic segment instead            |
+| `localeDetection`           | Auto-detect Accept-Language header — handle at the proxy/route level in App Router |
+
+### Niche / rarely-needed options
+
+| Option           | Type                 | Notes                                                                                  |
+| ---------------- | -------------------- | -------------------------------------------------------------------------------------- |
+| `configFileName` | `string`             | Override the default config file name from `next.config.ts` — almost never needed      |
+| `nextRuntime`    | `'nodejs' \| 'edge'` | Read-only at runtime inside `WebpackConfigContext` — not a user-settable top-level key |
 
 ---
 
