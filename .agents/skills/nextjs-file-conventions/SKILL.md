@@ -442,6 +442,35 @@ export const config = {
 >
 > ⚠️ **Do NOT export a `runtime` config variable from `proxy.ts`** — doing so throws an error. The runtime is always Node.js and cannot be overridden.
 
+### `config.regions` — Edge Deployment Regions
+
+Restricts proxy execution to a subset of Vercel Edge Network regions. Useful when the function must be colocated with a regional database.
+
+```ts
+export const config = {
+  regions: ["iad1", "sfo1"], // list of Vercel region IDs
+  // OR restrict to a single region:
+  // regions: "iad1",
+};
+```
+
+> Only has effect when deployed to Vercel. Ignored in local development.
+
+### `config.unstable_allowDynamic` — Dynamic Code Evaluation
+
+By default, dynamic code evaluation (`eval()`, `new Function()`, `WebAssembly.instantiate()`) is blocked in the proxy runtime. `unstable_allowDynamic` accepts glob patterns (relative to the project root) for specific files where it should be permitted.
+
+```ts
+export const config = {
+  unstable_allowDynamic: [
+    "/lib/utilities.js", // a single file
+    "/node_modules/function-bind/**", // all files inside a package
+  ],
+};
+```
+
+> ⚠️ Apply the narrowest possible glob. Dynamic evaluation will still fail at **runtime** if the resolved file does not match the pattern.
+
 ---
 
 ## `instrumentation.ts`
