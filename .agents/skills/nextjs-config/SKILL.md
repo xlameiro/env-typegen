@@ -440,6 +440,36 @@ experimental: {
 
 > Relates to `staleTimes` — the hover-fetched payload respects `staleTimes.dynamic` TTL.
 
+---
+
+### `experimental.appNavFailHandling`
+
+When enabled, the App Router registers `window.addEventListener('unhandledrejection')` and `window.addEventListener('error')` listeners. If an unhandled exception occurs **during a client-side navigation**, the handler triggers a **hard navigation** (full page reload) to recover to a usable state.
+
+```ts
+experimental: {
+  appNavFailHandling: true,  // default: false
+}
+```
+
+> Useful for production apps where transient JS errors during navigation would otherwise leave the user stranded on a broken client-side state. The entire handler is dead-code-eliminated from the bundle when `false`.
+
+---
+
+### `experimental.linkNoTouchStart`
+
+Disables the `onTouchStart` prefetch handler on `<Link>` components. By default, `<Link>` prefetches on both **hover** (desktop) and **touchstart** (mobile). Setting this to `true` removes the touchstart trigger — only hover/focus initiates prefetching.
+
+```ts
+experimental: {
+  linkNoTouchStart: true,  // default: false
+}
+```
+
+> Use when mobile touchstart-driven prefetches cause excessive network requests or unwanted server load. With this enabled, mobile users will not get prefetched pages until they complete navigation.
+
+---
+
 ### `experimental.serverActions`
 
 ```ts
@@ -710,6 +740,23 @@ experimental: {
 
 ---
 
+### `experimental.clientParamParsingOrigins`
+
+Allowlist of **origin patterns** (regex strings) for non-relative rewrites. When a rewrite destination is a non-relative URL (different origin), Next.js will only propagate URL search parameters to the destination if the destination origin matches one of the listed patterns.
+
+```ts
+experimental: {
+  clientParamParsingOrigins: [
+    'https://api\.example\.com',
+    'https://.*\.internal\.com',
+  ],
+}
+```
+
+> Prevents untrusted upstream origins from receiving query parameters through rewrites. If `undefined` (default), no non-relative rewrite will receive parsed parameters. Set this for any multi-origin proxy architecture that requires parameter forwarding.
+
+---
+
 ### `experimental.cssChunking`
 
 Controls how CSS is chunked in the production bundle.
@@ -924,6 +971,20 @@ experimental: {
 ```
 
 > Enable in production to surface case-sensitivity bugs during development (macOS HFS+ is case-insensitive by default, masking issues that only appear on Linux in CI/CD). Useful when routing to user-generated slugs where case matters for identity.
+
+---
+
+### `experimental.multiZoneDraftMode`
+
+Preserves **Draft Mode** (preview mode) cookies when navigating across **Next.js multi-zone setups** (multiple Next.js apps sharing the same domain via different path prefixes). Without this, crossing zone boundaries clears the preview cookies — breaking CMS draft mode for editors.
+
+```ts
+experimental: {
+  multiZoneDraftMode: true,  // default: false
+}
+```
+
+> Enable on every zone in a multi-zone deployment when using Draft Mode for CMS preview. Without it, an editor navigating from zone A (`/`) to zone B (`/blog`) would have their draft mode silently cleared by zone B's preview validation logic.
 
 ---
 
