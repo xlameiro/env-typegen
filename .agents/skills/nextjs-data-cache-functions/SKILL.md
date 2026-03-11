@@ -205,9 +205,13 @@ export async function getProducts() {
   cacheTag("products");
   return db.product.findMany();
 }
+```
 
-// Invalidate from a Server Action (preferred: use 'max' for stale-while-revalidate)
-("use server");
+```ts
+// actions/product-actions.ts — Invalidate from a Server Action
+"use server";
+import { revalidateTag } from "next/cache";
+
 export async function deleteProduct(id: string) {
   await db.product.delete({ where: { id } });
   revalidateTag("products", "max"); // background refetch, users see old data until done

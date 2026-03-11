@@ -521,9 +521,11 @@ fetch(url, { next: { revalidate: 60 } });
 
 // Tag-based invalidation
 fetch(url, { next: { tags: ["products"] } });
+```
 
-// Invalidate via Server Action (use cache + updateTag — preferred in Next.js 16)
-("use server");
+```typescript
+// actions/product-actions.ts — Invalidate via Server Action
+"use server";
 import { updateTag, revalidateTag, revalidatePath } from "next/cache";
 
 export async function updateProduct(id: string, data: ProductData) {
@@ -531,7 +533,7 @@ export async function updateProduct(id: string, data: ProductData) {
   // updateTag: immediate expiry in Server Actions (read-your-own-writes)
   updateTag("products");
   // OR for stale-while-revalidate (serves stale while regenerating in background):
-  // revalidateTag("products", "max"); // second arg is a cacheLife profile
+  // revalidateTag("products", "max"); // second arg is a revalidation profile
   revalidatePath("/products"); // also invalidate the full route cache
 }
 ```
