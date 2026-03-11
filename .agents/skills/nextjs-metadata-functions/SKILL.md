@@ -232,6 +232,32 @@ const metadata: Metadata = {
     appArgument: "https://myapp.com/product/1",
   },
 
+  // ── Facebook ─────────────────────────────────────────
+  // Mutually exclusive: provide either appId OR admins, not both
+  facebook: { appId: "12345678" },
+  // or: facebook: { admins: ["12345678", "87654321"] },
+  // Renders: <meta property="fb:app_id" content="12345678" />
+  //          <meta property="fb:admins" content="12345678" />
+
+  // ── Pinterest ────────────────────────────────────────
+  pinterest: { richPin: true },
+  // Renders: <meta name="pinterest-rich-pin" content="true" />
+
+  // ── Abstract ─────────────────────────────────────────
+  // Deprecated HTML meta tag; superseded by `description`. Rarely used.
+  abstract: "My Website Description",
+  // Renders: <meta name="abstract" content="My Website Description" />
+
+  // ── Pagination ───────────────────────────────────────
+  // Generates <link rel="prev"> and <link rel="next"> for paginated content
+  pagination: {
+    previous: "https://example.com/items?page=1",
+    next: "https://example.com/items?page=3",
+  },
+  // Renders:
+  // <link rel="prev" href="https://example.com/items?page=1" />
+  // <link rel="next" href="https://example.com/items?page=3" />
+
   // ── Other ────────────────────────────────────────────
   other: {
     "custom-meta": "value",
