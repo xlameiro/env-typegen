@@ -19,7 +19,8 @@ applyTo: "**/*.js, **/*.mjs, **/*.cjs, **/*.ts, **/*.tsx"
 
 ## Testing
 
-- This project uses **Vitest v4.x** (see `devDependencies` in `package.json`). Vitest v4 is a major version bump from v3 — if upgrading an existing project review the [Vitest v4 migration guide](https://vitest.dev/guide/migration) before updating. The experimental `onModuleRunner` hook in `worker.init` is available in v4 but should not be used in test configs without evaluation.
+- This project uses **Vitest v4.x** (currently v4.0.18 stable; v4.1 is in beta). Vitest v4 is a major version bump from v3 — if upgrading an existing project review the [Vitest v4 migration guide](https://vitest.dev/guide/migration) before updating. The experimental `onModuleRunner` hook in `worker.init` is available in v4 but should not be used in test configs without evaluation.
+  - **Upcoming in Vitest v4.1** (beta as of 2026-03): `vi.mockThrow()` / `vi.mockThrowOnce()` for concisely testing error-throwing code; `aroundEach()` / `aroundAll()` lifecycle hooks for cleaner async setup/teardown; `test.extend()` with proper type inference for fixture-based tests. These APIs stabilize when v4.1 ships.
 - Use Vitest for testing
 - Write tests for all new features and bug fixes
 - Ensure tests cover edge cases and error handling

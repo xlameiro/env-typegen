@@ -66,9 +66,11 @@ const nextConfig: NextConfig = {
   },
   // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/typedRoutes
   typedRoutes: true,
+  // React Compiler v1.0 (stable since Oct 2025) — automatically inserts
+  // useMemo/useCallback/memo where beneficial. No manual memoization needed.
+  // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/reactCompiler
+  reactCompiler: true,
   experimental: {
-    // Typed routes: TypeScript-safe `href` props for <Link> and router methods.
-
     browserDebugInfoInTerminal: {
       showSourceLocation: true,
       depthLimit: 5,

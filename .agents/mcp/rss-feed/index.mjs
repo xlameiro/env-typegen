@@ -8,10 +8,20 @@ const parser = new Parser({ timeout: 10000 });
 
 // Pre-configured feeds relevant to the Next.js 16 starter stack
 const KNOWN_FEEDS = {
+    // Framework & language
     nextjs: 'https://nextjs.org/feed.xml',
     typescript: 'https://devblogs.microsoft.com/typescript/feed/',
-    tailwindcss: 'https://tailwindcss.com/blog/feed.xml',
-    react: 'https://react.dev/blog/rss.xml',
+    tailwindcss: 'https://tailwindcss.com/feeds/feed.xml',
+    react: 'https://react.dev/rss.xml',
+    // Editor & AI
+    vscode: 'https://code.visualstudio.com/feed.xml',
+    github: 'https://github.blog/feed/',
+    copilot: 'https://github.blog/tag/github-copilot/feed/',
+    // Library release notes (GitHub Releases Atom)
+    zod: 'https://github.com/colinhacks/zod/releases.atom',
+    zustand: 'https://github.com/pmndrs/zustand/releases.atom',
+    vitest: 'https://github.com/vitest-dev/vitest/releases.atom',
+    playwright: 'https://github.com/microsoft/playwright/releases.atom',
 };
 
 const server = new Server(
@@ -24,14 +34,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         {
             name: 'get_feed',
             description:
-                'Parse an RSS or Atom feed and return all available items. Supports named aliases for the Next.js stack: "nextjs", "typescript", "tailwindcss", "react".',
+                'Parse an RSS or Atom feed and return all available items. Supports named aliases for the Next.js stack: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
             inputSchema: {
                 type: 'object',
                 properties: {
                     url: {
                         type: 'string',
                         description:
-                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react".',
+                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
                     },
                 },
                 required: ['url'],
@@ -47,7 +57,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                     url: {
                         type: 'string',
                         description:
-                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react".',
+                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
                     },
                     limit: {
                         type: 'number',

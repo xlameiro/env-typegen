@@ -318,7 +318,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "scripts/**",
     "coverage/**",
-    "test-results/**"
+    "test-results/**",
+    // Standalone Node.js MCP server scripts — not part of the Next.js app bundle
+    ".agents/mcp/**",
   ]),
   // E2E tests and test files - Relaxed rules for testing
   {

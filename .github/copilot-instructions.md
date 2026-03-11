@@ -606,9 +606,11 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 ### Tailwind CSS v4
 
+- **Installed version**: v4.2.1 (`tailwindcss: ^4` in `package.json`)
 - **Config**: No `tailwind.config.js` — configuration is CSS-first, inside `globals.css`
 - **Directives**: Use `@import "tailwindcss"` (NOT the three `@tailwind base/components/utilities` directives from v3)
 - **Plugins**: Use `@plugin` directive in CSS, not `plugins: []` in config
+- **v4.1+ new utilities** (available in this project): `text-shadow-*` (e.g., `text-shadow-sm`, `text-shadow-lg`), `mask-*` (image/gradient masking), `inset-shadow-*`, `drop-shadow-*` — prefer these over custom CSS when available
 
 ### CVA (class-variance-authority)
 
@@ -653,6 +655,14 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **Dynamic API access outside `<Suspense>` is now a build error** when `cacheComponents: true` — wrapping dynamic components (`cookies()`, `headers()`, `params`) in `<Suspense>` is required for PPR to work (see Common Pitfalls #13).
 - **Pages are no longer simply static or dynamic** — with `cacheComponents: true`, PPR is on by default. Pages are _both_: a static shell is served instantly from the edge while `<Suspense>`-bounded dynamic sections stream in. Compose behavior with code, not segment config options.
 
+#### Next.js 16.1 (December 2025)
+
+- **Turbopack filesystem caching for `next dev` is stable and on by default** — compiler artifacts are cached on disk across restarts; no configuration required. Significant improvement for large projects (Vercel's own apps saw major speedups). See [turbopackFileSystemCache docs](https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopackFileSystemCache) if you need to customize the cache directory.
+- **`next dev --inspect`**: Use this flag (now a proper Next.js CLI arg) to attach the Node.js debugger to the dev server. This replaces the old `NODE_OPTIONS=--inspect` workaround, which used to attach the inspector to _all_ spawned processes. `.vscode/launch.json` is pre-configured with this pattern.
+- **Built-in Bundle Analyzer (experimental, Turbopack)**: Next.js 16.1 ships its own bundle analyzer that integrates with Turbopack — filters by route, traces full import chains across server/client boundaries. Access it by running `pnpm build` and following the output link. This is separate from `pnpm analyze` (`@next/bundle-analyzer` + webpack) which is still the stable option for production audits.
+- **`browserDebugInfoInTerminal`**: This project's `next.config.ts` has `experimental.browserDebugInfoInTerminal` enabled. It forwards browser-side runtime errors, client warnings, and async errors to the terminal — making them visible to AI agents that can only see the terminal, not the browser. See the Next.js "agentic future" blog post for context.
+- **Security (December 2025)**: Two critical RSC vulnerabilities (CVE-2025-66478 + Dec 11 advisory) were patched in `next@16.1.6`. Always stay on the latest Next.js minor release — security patches are not backported to older minors. Run `pnpm info next dist-tags` to verify you are on `latest`.
+
 ### TypeScript 5.x
 
 - **Current stable**: TypeScript 5.9.3 (`latest` tag). TypeScript 6.0 RC is available via `typescript@rc` (since 2026-03-06); **do not upgrade until the team explicitly evaluates the RC**.
@@ -675,6 +685,7 @@ className={cn(buttonVariants({ variant, size }), className)}
   - **`useOptimistic` is the App Router answer to React Query mutations**: when a Server Action is pending, show the expected result immediately to keep the UI responsive. Use it for list toggles, like/unlike, archive/unarchive, and any small inline mutation where the round-trip latency would feel sluggish. Pattern: call `addOptimistic(newItem)` before `await serverAction()`, then the real server state snaps in when the action completes. Works in Client Components only — wrap the mutation caller in `"use client"` and keep the Server Action in a separate `"use server"` file or `actions.ts`.
 - **`use()` hook**: Can unwrap Promises and Context — useful in Server Components
 - **No `React.FC`**: Just write `function MyComponent({ prop }: { prop: string })` — no type annotation needed for the component itself
+- **React Compiler v1.0** (stable since Oct 2025): enabled in this template via `experimental.reactCompiler: true` in `next.config.ts`. The compiler automatically inserts `useMemo`, `useCallback`, and `memo` at compile time — **do not add these manually** unless you have measured a specific regression. The compiler is smarter than human judgment for most cases. If you see a lint rule or pattern suggesting to add `useMemo`/`useCallback`, verify the compiler hasn't already handled it. See `react.dev/learn/react-compiler`.
 
 ### GitHub Copilot Approval Modes & Model Selection
 

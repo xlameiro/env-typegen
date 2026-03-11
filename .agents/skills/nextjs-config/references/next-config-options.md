@@ -312,6 +312,17 @@ qualities: [25, 50, 75, 90, 100];
 // Helps with caching predictability
 ```
 
+### `maximumRedirects` (new in v16.1.6)
+
+```ts
+maximumRedirects: 3; // default (changed from unlimited in Next.js 16.1.6)
+maximumRedirects: 0; // disable image redirects entirely
+maximumRedirects: 5; // increase for edge cases with multi-hop CDN redirects
+// Controls max number of image URL redirects followed before returning an error
+```
+
+> **v16.1.6 breaking change**: The default changed from unlimited to `3`. If you rely on image URLs that redirect more than 3 times, explicitly set a higher value.
+
 ---
 
 ## `turbopack` — Full Reference
@@ -505,6 +516,58 @@ transpilePackages: [
 
 ---
 
+## `reactCompiler` (stable in Next.js 16)
+
+> **Promoted from `experimental.reactCompiler` to top-level stable in Next.js 16.**
+
+```ts
+// Enable for all components
+reactCompiler: true;
+
+// Opt-in annotation mode — only applies to functions/components with 'use memo'
+reactCompiler: {
+  compilationMode: "annotation";
+}
+```
+
+**Type:**
+
+```ts
+type ReactCompilerConfig =
+  | boolean
+  | { compilationMode?: "all" | "annotation" | "infer" };
+```
+
+- Default: `false`
+- Requires `babel-plugin-react-compiler` dev dependency: `pnpm add -D babel-plugin-react-compiler`
+- When enabled, **do not manually add** `useMemo`, `useCallback`, or `React.memo` — the compiler handles it
+- Expect higher compile times in dev and build (Babel-based transform)
+- Use `annotation` mode for gradual rollout; opt in per component with `'use memo'`
+
+---
+
+## `typedRoutes` (stable in Next.js 16)
+
+> **Promoted from `experimental.typedRoutes` to top-level stable in Next.js 16.**
+
+```ts
+typedRoutes: true;
+```
+
+- Default: `false`
+- Requires TypeScript
+- Generates `.next/types/__route-manifest.d.ts` at build time
+- Type-checks all `<Link href="...">` and `router.push('...')` calls at compile time
+- For non-literal strings, cast with `as Route` from `'next'`:
+
+```ts
+import type { Route } from "next";
+
+router.push(("/blog/" + slug) as Route);
+```
+
+---
+
 ## Full TypeScript Config Type
 
 ```ts
@@ -544,7 +607,7 @@ const config: NextConfig = {
     remotePatterns: [],
     localPatterns: [],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    imageSizes: [32, 48, 64, 96, 128, 256, 384], // 16px removed in Next.js 16.1.6
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 14400,
     dangerouslyAllowSVG: false,
@@ -554,10 +617,13 @@ const config: NextConfig = {
     loader: "default",
     loaderFile: "",
     qualities: undefined,
+    maximumRedirects: 3, // new in v16.1.6; default changed from unlimited to 3
   },
 
   // Rendering
   reactStrictMode: true, // default for App Router (enabled by default since v13.5.1; set false to disable)
+  reactCompiler: false, // stable in Next.js 16 — auto-memoization; requires babel-plugin-react-compiler
+  typedRoutes: false, // stable in Next.js 16 — type-safe <Link href> and router.push()
 
   // Caching (Next.js 16)
   cacheComponents: false,

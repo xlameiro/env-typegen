@@ -66,7 +66,7 @@ Instructions for building high-quality ReactJS applications with modern patterns
 
 - Use `useEffect` with proper dependency arrays to avoid infinite loops
 - Implement cleanup functions in effects to prevent memory leaks
-- Use `useMemo` and `useCallback` for performance optimization when needed
+- **`useMemo` and `useCallback` are auto-inserted by the React Compiler** (enabled in this project) — do not add them manually unless you have a measured regression. If the compiler is disabled, use them judiciously for performance optimization.
 - Create custom hooks for reusable stateful logic
 - Follow the rules of hooks (only call at the top level)
 - Use `useRef` for accessing DOM elements and storing mutable values

@@ -215,7 +215,7 @@ images: {
     },
   ],
   deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-  imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  imageSizes: [32, 48, 64, 96, 128, 256, 384],  // 16px removed in Next.js 16.1.6
   formats: ['image/avif', 'image/webp'],
   minimumCacheTTL: 14400,  // 4 hours (changed from 60s in Next.js 16)
   dangerouslyAllowSVG: false,
@@ -231,21 +231,22 @@ images: {
 }
 ```
 
-| Option                   | Type              | Default                                  | Description                                     |
-| ------------------------ | ----------------- | ---------------------------------------- | ----------------------------------------------- |
-| `remotePatterns`         | `RemotePattern[]` | `[]`                                     | Allowlisted remote image sources                |
-| `localPatterns`          | `LocalPattern[]`  | —                                        | Restrict local image paths                      |
-| `deviceSizes`            | `number[]`        | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images               |
-| `imageSizes`             | `number[]`        | `[16,32,48,64,96,128,256,384]`           | Sizes for partial-width images                  |
-| `formats`                | `string[]`        | `['image/avif', 'image/webp']`           | Accepted format order                           |
-| `minimumCacheTTL`        | `number`          | `14400`                                  | Seconds to cache optimized images               |
-| `dangerouslyAllowSVG`    | `boolean`         | `false`                                  | Allow SVG optimization (XSS risk)               |
-| `contentSecurityPolicy`  | `string`          | —                                        | CSP for SVG responses                           |
-| `contentDispositionType` | `string`          | `'inline'`                               | Content-Disposition header                      |
-| `unoptimized`            | `boolean`         | `false`                                  | Bypass optimization pipeline                    |
-| `loader`                 | `string`          | `'default'`                              | Custom image loader                             |
-| `loaderFile`             | `string`          | —                                        | Path to custom loader (when `loader: 'custom'`) |
-| `qualities`              | `number[]`        | —                                        | Restrict allowed quality values                 |
+| Option                   | Type              | Default                                  | Description                                                      |
+| ------------------------ | ----------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| `remotePatterns`         | `RemotePattern[]` | `[]`                                     | Allowlisted remote image sources                                 |
+| `localPatterns`          | `LocalPattern[]`  | —                                        | Restrict local image paths                                       |
+| `deviceSizes`            | `number[]`        | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images                                |
+| `imageSizes`             | `number[]`        | `[32,48,64,96,128,256,384]`              | Sizes for partial-width images (16px removed in v16.1.6)         |
+| `formats`                | `string[]`        | `['image/avif', 'image/webp']`           | Accepted format order                                            |
+| `minimumCacheTTL`        | `number`          | `14400`                                  | Seconds to cache optimized images                                |
+| `dangerouslyAllowSVG`    | `boolean`         | `false`                                  | Allow SVG optimization (XSS risk)                                |
+| `contentSecurityPolicy`  | `string`          | —                                        | CSP for SVG responses                                            |
+| `contentDispositionType` | `string`          | `'inline'`                               | Content-Disposition header                                       |
+| `unoptimized`            | `boolean`         | `false`                                  | Bypass optimization pipeline                                     |
+| `loader`                 | `string`          | `'default'`                              | Custom image loader                                              |
+| `loaderFile`             | `string`          | —                                        | Path to custom loader (when `loader: 'custom'`)                  |
+| `qualities`              | `number[]`        | —                                        | Restrict allowed quality values                                  |
+| `maximumRedirects`       | `number`          | `3`                                      | Max image redirects before error (new in v16.1.6; was unlimited) |
 
 ---
 
@@ -255,6 +256,33 @@ images: {
 
 ```ts
 reactStrictMode: true; // Enables React's development-mode double-invoking checks
+```
+
+### `reactCompiler` (Next.js 16)
+
+> **Promoted from `experimental` to stable in Next.js 16.**
+
+```ts
+// Enable for all components (recommended when ready)
+reactCompiler: true;
+
+// Opt-in mode — only applies to components with 'use memo' directive
+reactCompiler: {
+  compilationMode: "annotation";
+}
+```
+
+> Automatically inserts `useMemo`, `useCallback`, and `memo` at compile time. Do **not** add these manually when `reactCompiler: true` is set — the compiler handles it better than human judgment. Requires `babel-plugin-react-compiler` (`pnpm add -D babel-plugin-react-compiler`). Expect higher compile times.
+
+### `typedRoutes`
+
+> **Promoted from `experimental` to stable in Next.js 16.**
+
+```ts
+typedRoutes: true;
+// Generates type definitions for all app routes
+// <Link href="/"> and router.push() are type-checked at compile time
+// Requires TypeScript
 ```
 
 ---
@@ -441,29 +469,32 @@ const response = await unstable_getResponseFromNextConfig({
 
 ## Quick Reference
 
-| Option                         | Category   | Notes                                               |
-| ------------------------------ | ---------- | --------------------------------------------------- |
-| `basePath`                     | Routing    | Build-time only                                     |
-| `trailingSlash`                | Routing    | Affects all routes                                  |
-| `assetPrefix`                  | Routing    | CDN prefix for static assets                        |
-| `headers()`                    | Routing    | Custom response headers                             |
-| `redirects()`                  | Routing    | 307/308 redirects                                   |
-| `rewrites()`                   | Routing    | URL rewrites (no redirect)                          |
-| `output`                       | Build      | `'standalone'` / `'export'`                         |
-| `distDir`                      | Build      | Build output directory                              |
-| `compress`                     | Build      | gzip for SSR (disable for proxy)                    |
-| `poweredByHeader`              | Build      | Remove `X-Powered-By` header                        |
-| `images`                       | Assets     | Full optimization config                            |
-| `cacheComponents`              | Rendering  | Next.js 16 (replaces `dynamicIO`)                   |
-| `reactStrictMode`              | Rendering  | Strict mode checks                                  |
-| `experimental.authInterrupts`  | Auth       | Enables `forbidden()`/`unauthorized()`              |
-| `experimental.staleTimes`      | Cache      | Router cache TTL (dynamic/static)                   |
-| `experimental.viewTransition`  | UX         | View Transitions API                                |
-| `turbopack`                    | Build      | Turbopack-specific configuration                    |
-| `serverExternalPackages`       | Runtime    | Exclude from server bundle                          |
-| `transpilePackages`            | Runtime    | Force transpile node_modules                        |
-| `typescript.ignoreBuildErrors` | TypeScript | Skip build-time type-check                          |
-| ~~`eslint`~~                   | ESLint     | **Removed in Next.js 16** — use ESLint CLI directly |
+| Option                         | Category   | Notes                                                 |
+| ------------------------------ | ---------- | ----------------------------------------------------- |
+| `basePath`                     | Routing    | Build-time only                                       |
+| `trailingSlash`                | Routing    | Affects all routes                                    |
+| `assetPrefix`                  | Routing    | CDN prefix for static assets                          |
+| `headers()`                    | Routing    | Custom response headers                               |
+| `redirects()`                  | Routing    | 307/308 redirects                                     |
+| `rewrites()`                   | Routing    | URL rewrites (no redirect)                            |
+| `output`                       | Build      | `'standalone'` / `'export'`                           |
+| `distDir`                      | Build      | Build output directory                                |
+| `compress`                     | Build      | gzip for SSR (disable for proxy)                      |
+| `poweredByHeader`              | Build      | Remove `X-Powered-By` header                          |
+| `images`                       | Assets     | Full optimization config                              |
+| `cacheComponents`              | Rendering  | Next.js 16 (replaces `dynamicIO`)                     |
+| `reactStrictMode`              | Rendering  | Strict mode checks                                    |
+| `reactCompiler`                | Rendering  | Auto-memoization; stable in Next.js 16                |
+| `typedRoutes`                  | TypeScript | Type-safe `<Link>` and `router.push()`; stable in v16 |
+| `images.maximumRedirects`      | Assets     | Max image redirects (default `3`, new in v16.1.6)     |
+| `experimental.authInterrupts`  | Auth       | Enables `forbidden()`/`unauthorized()`                |
+| `experimental.staleTimes`      | Cache      | Router cache TTL (dynamic/static)                     |
+| `experimental.viewTransition`  | UX         | View Transitions API                                  |
+| `turbopack`                    | Build      | Turbopack-specific configuration                      |
+| `serverExternalPackages`       | Runtime    | Exclude from server bundle                            |
+| `transpilePackages`            | Runtime    | Force transpile node_modules                          |
+| `typescript.ignoreBuildErrors` | TypeScript | Skip build-time type-check                            |
+| ~~`eslint`~~                   | ESLint     | **Removed in Next.js 16** — use ESLint CLI directly   |
 
 ---
 

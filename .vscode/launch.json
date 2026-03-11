@@ -5,8 +5,8 @@
       "name": "Next.js: debug server-side",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
-      "runtimeArgs": ["--inspect"],
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "args": ["dev", "--inspect"],
       "skipFiles": ["<node_internals>/**"],
       "serverReadyAction": {
         "action": "debugWithChrome",
@@ -26,8 +26,8 @@
       "name": "Next.js: debug full stack",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
-      "runtimeArgs": ["--inspect"],
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "args": ["dev", "--inspect"],
       "skipFiles": ["<node_internals>/**"],
       "serverReadyAction": {
         "action": "debugWithChrome",

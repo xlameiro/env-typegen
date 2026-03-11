@@ -12,19 +12,19 @@ Zustand is a lightweight, unopinionated state management library for React. In t
 Always use the curried `create<State>()()` syntax. This ensures correct type inference with TypeScript:
 
 ```ts
-import { create } from 'zustand'
+import { create } from "zustand";
 
 interface BearStore {
-  bears: number
-  increase: (by: number) => void
-  reset: () => void
+  bears: number;
+  increase: (by: number) => void;
+  reset: () => void;
 }
 
 const useBearStore = create<BearStore>()((set) => ({
   bears: 0,
   increase: (by) => set((state) => ({ bears: state.bears + by })),
   reset: () => set({ bears: 0 }),
-}))
+}));
 ```
 
 ## Selectors — avoid subscribing to the full store
@@ -33,16 +33,16 @@ Select only what a component needs to prevent unnecessary re-renders:
 
 ```ts
 // ✅ Select a primitive — component only re-renders when `bears` changes
-const bears = useBearStore((state) => state.bears)
+const bears = useBearStore((state) => state.bears);
 
 // ✅ Shallow equality for objects/arrays
-import { useShallow } from 'zustand/react/shallow'
+import { useShallow } from "zustand/react/shallow";
 const { bears, increase } = useBearStore(
-  useShallow((state) => ({ bears: state.bears, increase: state.increase }))
-)
+  useShallow((state) => ({ bears: state.bears, increase: state.increase })),
+);
 
 // ❌ Avoid — subscribes to entire store, re-renders on any change
-const store = useBearStore()
+const store = useBearStore();
 ```
 
 ## Accessing the store outside React
@@ -51,17 +51,17 @@ Use the static methods on the store hook:
 
 ```ts
 // Read state
-const { bears } = useBearStore.getState()
+const { bears } = useBearStore.getState();
 
 // Write state
-useBearStore.setState({ bears: 5 })
+useBearStore.setState({ bears: 5 });
 
 // Subscribe to changes (always unsubscribe to avoid leaks)
 const unsub = useBearStore.subscribe(
   (state) => state.bears,
-  (bears) => console.log('bears:', bears)
-)
-unsub()
+  (bears) => console.log("bears:", bears),
+);
+unsub();
 ```
 
 ## Slices pattern — organizing large stores
@@ -69,34 +69,34 @@ unsub()
 Split large stores into focused slices using `StateCreator`:
 
 ```ts
-import { create, StateCreator } from 'zustand'
+import { create, StateCreator } from "zustand";
 
 interface BearSlice {
-  bears: number
-  addBear: () => void
+  bears: number;
+  addBear: () => void;
 }
 
 interface FishSlice {
-  fishes: number
-  addFish: () => void
+  fishes: number;
+  addFish: () => void;
 }
 
-type StoreState = BearSlice & FishSlice
+type StoreState = BearSlice & FishSlice;
 
 const createBearSlice: StateCreator<StoreState, [], [], BearSlice> = (set) => ({
   bears: 0,
   addBear: () => set((state) => ({ bears: state.bears + 1 })),
-})
+});
 
 const createFishSlice: StateCreator<StoreState, [], [], FishSlice> = (set) => ({
   fishes: 0,
   addFish: () => set((state) => ({ fishes: state.fishes + 1 })),
-})
+});
 
 const useStore = create<StoreState>()((...args) => ({
   ...createBearSlice(...args),
   ...createFishSlice(...args),
-}))
+}));
 ```
 
 ## devtools middleware
@@ -104,43 +104,47 @@ const useStore = create<StoreState>()((...args) => ({
 Wrap with `devtools` to enable Redux DevTools integration. Pass a human-readable label as the third `set` argument for readable action logs:
 
 ```ts
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
-import type {} from '@redux-devtools/extension' // required for devtools typing
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import type {} from "@redux-devtools/extension"; // required for devtools typing
 
 const useBearStore = create<BearStore>()(
   devtools(
     (set) => ({
       bears: 0,
       increase: (by) =>
-        set((state) => ({ bears: state.bears + by }), undefined, 'bear/increase'),
-      reset: () => set({ bears: 0 }, undefined, 'bear/reset'),
+        set(
+          (state) => ({ bears: state.bears + by }),
+          undefined,
+          "bear/increase",
+        ),
+      reset: () => set({ bears: 0 }, undefined, "bear/reset"),
     }),
-    { name: 'bear-store' }
-  )
-)
+    { name: "bear-store" },
+  ),
+);
 ```
 
 ## persist middleware — localStorage persistence
 
 ```ts
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface SettingsStore {
-  theme: 'light' | 'dark'
-  setTheme: (theme: 'light' | 'dark') => void
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
 }
 
 const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
-      theme: 'light',
+      theme: "light",
       setTheme: (theme) => set({ theme }),
     }),
-    { name: 'settings' } // localStorage key
-  )
-)
+    { name: "settings" }, // localStorage key
+  ),
+);
 ```
 
 > **v5 breaking change:** The initial state is **no longer written to storage** on store creation. To seed persisted state on first load, call `useSettingsStore.setState({ ... })` after the store is defined.
@@ -150,9 +154,9 @@ const useSettingsStore = create<SettingsStore>()(
 Apply in innermost-to-outermost order — `devtools` wraps `persist`:
 
 ```ts
-import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import type {} from '@redux-devtools/extension'
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import type {} from "@redux-devtools/extension";
 
 const useBearStore = create<BearState>()(
   devtools(
@@ -161,10 +165,10 @@ const useBearStore = create<BearState>()(
         bears: 0,
         increase: (by) => set((state) => ({ bears: state.bears + by })),
       }),
-      { name: 'bear-storage' }
-    )
-  )
-)
+      { name: "bear-storage" },
+    ),
+  ),
+);
 ```
 
 ## Rules for this project
@@ -174,3 +178,30 @@ const useBearStore = create<BearState>()(
 - **One store per feature domain.** Prefer focused stores (`useCartStore`, `useUIStore`) over a single monolithic store.
 - **Co-locate store files** near the feature they serve, e.g., `src/features/cart/cart-store.ts`.
 - **`useShallow` for object selectors.** Always use `useShallow` when selecting object/array values to avoid spurious re-renders.
+
+## SSR-safe stores (Next.js App Router)
+
+When a Zustand store holds initial state derived from the server (user preferences, session data), use the `unstable_ssrSafe` middleware (added in v5.0.9) to prevent hydration mismatches:
+
+```ts
+import { create } from "zustand";
+import { unstable_ssrSafe } from "zustand/middleware";
+
+type ThemeStore = {
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
+};
+
+// Each server render gets an isolated store instance — no cross-request contamination.
+// On the client, the store is shared as normal after hydration.
+export const useThemeStore = create<ThemeStore>()(
+  unstable_ssrSafe((set) => ({
+    theme: "light",
+    setTheme: (theme) => set({ theme }),
+  })),
+);
+```
+
+**When to use**: any store that reads initial state from `cookies()`, `headers()`, or session data passed as Server Component props. Without `unstable_ssrSafe`, the store is a module-level singleton — two concurrent SSR requests share the same store instance and corrupt each other's state.
+
+**When NOT to use**: pure client-only stores (UI toggles, modal state) that always start from a static default — the standard `create()` is fine there.

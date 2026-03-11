@@ -37,11 +37,12 @@ Instructions for high-quality Next.js applications with Tailwind CSS styling and
 
 ### Styling
 
-- Tailwind CSS with consistent color palette
+- Tailwind CSS with consistent color palette — installed version: **v4.2.1**
 - Responsive design patterns
 - Dark mode support
 - Follow container queries best practices
 - Maintain semantic HTML structure
+- **v4.1+ new utilities available**: `text-shadow-sm/md/lg/xl`, `mask-*` (masking with gradients/images), `inset-shadow-*` — use these before reaching for custom CSS
 
 ### State Management
 
