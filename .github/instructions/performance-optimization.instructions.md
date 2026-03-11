@@ -17,6 +17,56 @@ Measure first; optimize second. Profile with Lighthouse, Chrome DevTools Perform
 - Use `loading.tsx` for route-level loading skeletons; it activates automatically without manual state.
 - Use `React.memo` and `useCallback`/`useMemo` sparingly — measure before adding; they have overhead.
 
+### Streaming with Suspense — the only way to unlock RSC performance gains
+
+Making a Server Component `async` is not enough. Without a `<Suspense>` boundary, React waits for the entire tree before flushing any HTML — the same blocking profile as classic SSR. Streaming only activates when both conditions are met: async component + Suspense ancestor.
+
+```tsx
+// ❌ Bad: page-level await blocks all HTML until the slow fetch resolves
+// ("forgotten Suspense" — the most common RSC performance mistake)
+export default async function Page() {
+  const stats = await getStats(); // 800ms wait → nothing renders meanwhile
+  return <StatsPanel stats={stats} />;
+}
+
+// ✅ Good: shell renders immediately; StatsPanel streams in independently
+import { Suspense } from "react";
+export default function Page() {
+  return (
+    <>
+      <FastHeader /> {/* renders right away */}
+      <Suspense fallback={<StatsSkeleton />}>
+        <StatsPanel /> {/* async — fetches its own data */}
+      </Suspense>
+    </>
+  );
+}
+
+async function StatsPanel() {
+  const stats = await getStats();
+  {
+    /* fetch lives here, inside the boundary */
+  }
+  return (
+    <ul>
+      {stats.map((s) => (
+        <li key={s.label}>{s.value}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Checklist for the streaming pattern:**
+
+- One `<Suspense>` **per independently-fetching component** — not one per page
+- Each async component owns its data fetch — never pass slow data down as props from a blocking parent
+- Design a matching skeleton component (`*Skeleton`) that mirrors the real layout to minimise layout shift
+- Never put `use client` above an async component in the hierarchy — it converts all children to client components and breaks async support
+- **Bundle size reduction is minimal in mixed apps** — RSC eliminates JS only for fully static, interaction-free pages; the real gain is streaming latency
+
+See `app/dashboard/stats-section.tsx` + `app/dashboard/page.tsx` for the reference implementation.
+
 ## Caching (Next.js 16 Cache Components)
 
 - Prefer `'use cache'` directive over `unstable_cache` for new code — see `nextjs.instructions.md §7`.
@@ -84,6 +134,34 @@ export default withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" })(
 );
 ```
 
+## Lighthouse-Driven Audit Workflow
+
+Use Lighthouse as the objective performance and accessibility baseline. Run it locally and let the agent apply the fixes.
+
+```bash
+# Generate a JSON report against the local dev server
+npx lighthouse http://localhost:3000 --output=json --output-path=lighthouse-report.json --chrome-flags="--headless"
+```
+
+Then open `.github/prompts/lighthouse-audit.prompt.md` in VS Code Copilot Chat — paste the JSON at the bottom and the agent maps each finding to a code change.
+
+**When to run a Lighthouse audit:**
+
+- Before any major release
+- After adding a new page or heavy component
+- When a user reports a slow or inaccessible experience
+- As part of the sprint "definition of done" for UI-facing features
+
+**Interpreting Lighthouse scores for this stack:**
+
+| Score  | Meaning for this project              |
+| ------ | ------------------------------------- |
+| < 70   | Blocking issues — fix before shipping |
+| 70–89  | Address in the current sprint         |
+| 90–100 | Acceptable — monitor on next release  |
+
+> **Note**: Run `pnpm analyze` in parallel with Lighthouse to correlate JS bundle size findings with their source in the treemap.
+
 ## Code Review Checklist
 
 - [ ] New components default to Server Component (no unnecessary `"use client"`)
@@ -94,6 +172,7 @@ export default withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" })(
 - [ ] Cached functions/routes have appropriate tags and lifetimes
 - [ ] No entire library imported for a single util
 - [ ] Run `pnpm analyze` after adding large dependencies to Client Components
+- [ ] Lighthouse score ≥ 90 across Performance, Accessibility, SEO for new/modified pages
 
 ---
 

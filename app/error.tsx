@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 type ErrorProps = Readonly<{
@@ -33,12 +34,7 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
           </pre>
         )}
       </div>
-      <button
-        onClick={reset}
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-      >
-        Try again
-      </button>
+      <Button onClick={reset}>Try again</Button>
     </main>
   );
 }

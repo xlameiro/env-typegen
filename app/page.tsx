@@ -1,5 +1,5 @@
+import { ButtonLink } from "@/components/ui/button-link";
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from "@/lib/constants";
-import Link from "next/link";
 
 const stack = [
   {
@@ -84,28 +84,23 @@ export default function HomePage() {
       </section>
 
       <nav aria-label="Quick links" className="flex flex-wrap gap-3">
-        <Link
-          href="/auth/sign-in"
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          Sign In →
-        </Link>
-        <a
+        <ButtonLink href="/auth/sign-in">Sign In →</ButtonLink>
+        <ButtonLink
           href="https://nextjs.org/docs/app"
+          variant="outline"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           Next.js Docs
-        </a>
-        <a
+        </ButtonLink>
+        <ButtonLink
           href="https://authjs.dev"
+          variant="outline"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           Auth.js Docs
-        </a>
+        </ButtonLink>
       </nav>
     </main>
   );

@@ -6,14 +6,6 @@ const config: KnipConfig = {
     "app/api/**/*.{ts,tsx}",
     "lib/env.ts",
     "auth.ts",
-    "proxy.ts",
-    "next.config.ts",
-    "vitest.config.ts",
-    "vitest.setup.ts",
-    "playwright.config.ts",
-    "commitlint.config.ts",
-    "lint-staged.config.ts",
-    "postcss.config.mjs",
     // Template public API — these files are the starter kit's library surface for
     // consumers. Exporting from them without internal usage is intentional.
     "components/ui/**/*.{ts,tsx}",
@@ -30,17 +22,7 @@ const config: KnipConfig = {
     "store/**/*.{ts,tsx}",
     "types/**/*.{ts,tsx}",
   ],
-  ignore: [
-    "**/*.test.{ts,tsx}",
-    "**/*.spec.{ts,tsx}",
-    "**/*.test-d.{ts,tsx}",
-    ".github/**",
-    ".agents/**",
-    "tests/**",
-  ],
   ignoreDependencies: [
-    // Peer dependencies loaded at runtime by Next.js
-    "sharp",
     // Used via @tailwindcss/postcss in build tooling — not imported directly in code
     "tailwindcss",
     // Peer dep via @tailwindcss/postcss — referenced in postcss.config.mjs at runtime

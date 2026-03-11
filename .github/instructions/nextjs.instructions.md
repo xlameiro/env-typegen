@@ -21,8 +21,6 @@ This document summarizes the latest, authoritative best practices for building, 
   - `public/` — Static assets (images, fonts, etc.)
   - `lib/` — Shared utilities, API clients, and logic
   - `components/` — Reusable UI components
-  - `contexts/` — React context providers
-  - `styles/` — Global and modular stylesheets
   - `hooks/` — Custom React hooks
   - `types/` — TypeScript type definitions
 - **Colocation:** Place files (components, styles, tests) near where they are used, but avoid deeply nested structures.
@@ -89,13 +87,13 @@ Always move client-only UI into a Client Component and import it directly in you
 - **Naming Conventions:**
   - Use **`kebab-case` for all file names** (e.g., `user-card.tsx`, `use-auth.ts`) — this is the project-wide convention.
   - Use `PascalCase` for component **function/class name** exports (e.g., `export function UserCard`).
-  - Use `camelCase` for hooks (e.g., `useUser.ts`, `export function useUser`).
+  - Use `camelCase` for the hook **function name** and `kebab-case` for the **file name** (e.g., file: `use-user.ts`, function: `export function useUser`).
   - Use `snake_case` or `kebab-case` for static assets (e.g., `logo-dark.svg`).
   - Name context providers as `XyzProvider` (e.g., `ThemeProvider`).
 - **File Naming:**
   - Match the component name to the file name.
-  - For single-export files, default export the component.
-  - For multiple related components, use an `index.ts` barrel file.
+  - Always use **named exports** — even for single-export files. (The only exceptions are Next.js file conventions: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, and similar route files that Next.js requires as default exports.)
+  - Never use `index.ts` barrel files for re-exporting — import directly from the source file (see `copilot-instructions.md` Common Pitfall #2).
 - **Component Location:**
   - Place shared components in `components/`.
   - Place route-specific components inside the relevant route folder.
@@ -137,7 +135,7 @@ Always move client-only UI into a Client Component and import it directly in you
   - In Next.js 16, `serverRuntimeConfig` / `publicRuntimeConfig` are removed. Use environment variables instead.
   - `NEXT_PUBLIC_` variables are **inlined at build time** (changing them after build won’t affect a deployed build).
   - If you truly need runtime evaluation of env in a dynamic context, follow Next.js guidance (e.g., call `connection()` before reading `process.env`).
-- **Testing:** Use Jest, React Testing Library, or Playwright. Write tests for all critical logic and components.
+- **Testing:** Use **Vitest** + React Testing Library for unit/component tests. Use **Playwright** for E2E tests. Write tests for all critical logic and components.
 - **Accessibility:** Use semantic HTML and ARIA attributes. Test with screen readers.
 - **Performance:**
   - Use built-in Image and Font optimization.
@@ -168,12 +166,44 @@ Always move client-only UI into a Client Component and import it directly in you
   - Use `updateTag(...)` inside **Server Actions** when you need “read-your-writes” / immediate consistency.
 - **Avoid `unstable_cache`** for new code; treat it as legacy and migrate toward Cache Components.
 
+### Deprecated caching patterns (do NOT use with `cacheComponents: true`)
+
+| Old pattern                                        | Replacement                                     | Why deprecated                                                              |
+| -------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `export const revalidate = 86400` in a page/layout | `cacheLife('days')` inside `use cache` function | Lifetime must be collocated with the data, not the route segment            |
+| `export const dynamic = 'force-static'`            | `use cache` + `<Suspense>` composition          | Silently returns empty values for all request APIs — introduces subtle bugs |
+| `unstable_cache(fn, ...)`                          | `use cache` directive on the function           | Cache Components is the unified, stable replacement                         |
+
+### `cacheLife` colocation pattern
+
+Collocate the cache lifetime _inside_ the function that fetches the data — not in the page or layout that uses it. This keeps caching visible next to the code that creates the cached content.
+
+```ts
+// lib/products.ts
+import { cacheLife, cacheTag } from "next/cache";
+
+export async function getProduct(slug: string) {
+  "use cache";
+  cacheLife("hours"); // ← lifetime lives next to the data
+  cacheTag(`product-${slug}`); // ← tag enables targeted revalidation
+  return db.product.findUnique({ where: { slug } });
+}
+```
+
+### Partial Pre-Rendering is automatic with `cacheComponents: true`
+
+With Cache Components enabled, pages are **no longer simply static or dynamic — they are both**. Next.js produces a static shell that is served instantly from the edge, then streams `<Suspense>`-bounded dynamic sections in afterwards.
+
+- Compose rendering behavior with **code** (`use cache` + `<Suspense>`) — not segment config options.
+- The static shell is derived from all content _outside_ `<Suspense>` boundaries that is either cached or has no dynamic API access.
+- Accessing `cookies()`, `headers()`, `params`, or `searchParams` outside a `<Suspense>` boundary is a **build error** — wrap dynamic components in `<Suspense>` to produce a fallback for the static shell.
+
 ## 8. Tooling updates (Next.js 16)
 
 - **Turbopack is the default dev bundler.** Configure via the top-level `turbopack` field in `next.config.*` (do not use the removed `experimental.turbo`).
 - **Typed routes are stable** via `typedRoutes` (TypeScript required).
 
-## 11. Server-Only Modules
+## 9. Server-Only Modules
 
 Modules that must never run in the browser must include `import 'server-only'` at the top. This causes a build-time error if accidentally imported from a Client Component.
 
@@ -193,7 +223,7 @@ import { z } from "zod";
 // ...
 ```
 
-## 12. URL State with nuqs
+## 10. URL State with nuqs
 
 Use `nuqs` for any state that should be reflected in the URL (search, filters, pagination, tabs).
 
@@ -220,7 +250,7 @@ const [{ q, page }, setSearch] = useQueryStates(
 
 Do not create example/demo files (like ModalExample.tsx) in the main codebase unless the user specifically requests a live example, Storybook story, or explicit documentation component. Keep the repository clean and production-focused by default.
 
-## 14. Always Use the Latest Documentation and Guides
+## 11. Always Use the Latest Documentation and Guides
 
 - For every Next.js related request, begin by searching for the most up-to-date Next.js documentation, guides, and examples.
 - Use the following tools to fetch and search documentation if they are available:

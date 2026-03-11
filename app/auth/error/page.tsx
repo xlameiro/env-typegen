@@ -1,6 +1,6 @@
+import { ButtonLink } from "@/components/ui/button-link";
 import { ROUTES } from "@/lib/constants";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Authentication Error",
@@ -39,12 +39,7 @@ export default async function AuthErrorPage({
         </h1>
         <p className="max-w-sm text-sm text-muted-foreground">{message}</p>
       </div>
-      <Link
-        href={ROUTES.signIn}
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-      >
-        Back to sign in
-      </Link>
+      <ButtonLink href={ROUTES.signIn}>Back to sign in</ButtonLink>
     </main>
   );
 }

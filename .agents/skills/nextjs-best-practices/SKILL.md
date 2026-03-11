@@ -158,7 +158,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 async function getProducts() {
   "use cache";
-  cacheLife("hours"); // built-in profile: seconds / minutes / hours / days / max
+  cacheLife("hours"); // built-in profile: default / seconds / minutes / hours / days / weeks / max
   cacheTag("products"); // tag for on-demand invalidation
   return db.query("SELECT * FROM products");
 }

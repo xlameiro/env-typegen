@@ -84,6 +84,7 @@ public/                 # Static assets
 - Use functional state updates when new state depends on previous state — `setState(prev => ({ ...prev, field: newValue }))` avoids stale closure bugs
 - Prefix event handler functions with `handle` (e.g., `handleClick` for `onClick`, `handleSubmit` for `onSubmit`)
 - Custom query hooks follow `use[Resource]` naming (e.g., `useUser`, `useOrders`); mutation hooks follow `use[Action]` naming (e.g., `useDeleteUser`, `useUpdateOrder`)
+- For complex components (>~300 lines, stateful interactions like drag/zoom/multi-step, or history of regressions), create a co-located `[component-name].features.md` file that documents all user-visible features as a bullet-point inventory. This acts as a contract for future LLM prompts — always tag it when requesting changes and instruct the LLM not to break existing features. Use `.github/prompts/generate-feature-docs.prompt.md` to generate it and `.github/prompts/modify-complex-component.prompt.md` to safely iterate on it.
 
 ### File Naming
 
@@ -93,6 +94,7 @@ public/                 # Static assets
 - Utils/helpers: `kebab-case.ts` (e.g., `format-date.ts`)
 - Route files: Next.js conventions (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`)
 - Test files: `*.test.ts` / `*.test.tsx` for unit, `*.spec.ts` for E2E, `*.test-d.ts` for type-level assertions
+- Feature inventory files: `[component-name].features.md` (co-located, only for complex components — see `### Components`)
 
 ### Data Fetching
 
@@ -184,22 +186,25 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 ### Required Reading by Directory
 
-| Directory        | Instruction File                                                                             | When to Read                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `app/**`         | `.github/instructions/nextjs.instructions.md`                                                | Before modifying App Router pages, layouts, loading/error boundaries, or server components     |
-| `app/api/**`     | `.github/instructions/security-and-owasp.instructions.md`                                    | Before creating or modifying API route handlers — validate all inputs, never expose raw errors |
-| `app/auth/**`    | `.github/instructions/security-and-owasp.instructions.md`                                    | Before touching authentication pages or flows — session handling, CSRF, cookie attributes      |
-| `components/**`  | `.github/instructions/reactjs.instructions.md` + `.github/instructions/a11y.instructions.md` | Before creating or modifying UI components — accessibility and React patterns both apply       |
-| `hooks/**`       | `.github/instructions/reactjs.instructions.md`                                               | Before creating or modifying custom React hooks — rules of hooks, naming, memoization          |
-| `lib/**`         | `.github/instructions/typescript-5-es2022.instructions.md`                                   | Before adding utilities, constants, or shared logic                                            |
-| `lib/schemas/**` | Use `zod` skill                                                                              | Before adding or updating Zod schemas — load skill for schema patterns                         |
-| `store/**`       | Use `zustand` skill                                                                          | Before modifying Zustand stores — load skill for store patterns                                |
-| `*.test.ts(x)`   | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              | Before writing or modifying Vitest unit tests                                                  |
-| `tests/**`       | `.github/instructions/playwright-typescript.instructions.md`                                 | Before writing or modifying Playwright E2E tests                                               |
-| `**/*.css`       | `.github/instructions/nextjs-tailwind.instructions.md`                                       | Before modifying styles — Tailwind v4 CSS-first config, design tokens                          |
-| `**/*.md`        | `.github/instructions/markdown.instructions.md`                                              | Before writing or editing Markdown documentation                                               |
-| Any code file    | `.github/instructions/performance-optimization.instructions.md`                              | Before performance-sensitive changes — rendering, caching, bundle size                         |
-| Any code file    | `.github/instructions/context7.instructions.md`                                              | Loaded automatically — provides Context7 MCP lookup guidance for external docs                 |
+| Directory                                       | Instruction File                                                                             | When to Read                                                                                   |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `app/**`                                        | `.github/instructions/nextjs.instructions.md`                                                | Before modifying App Router pages, layouts, loading/error boundaries, or server components     |
+| `app/api/**`                                    | `.github/instructions/security-and-owasp.instructions.md`                                    | Before creating or modifying API route handlers — validate all inputs, never expose raw errors |
+| `app/auth/**`                                   | `.github/instructions/security-and-owasp.instructions.md`                                    | Before touching authentication pages or flows — session handling, CSRF, cookie attributes      |
+| `components/**`                                 | `.github/instructions/reactjs.instructions.md` + `.github/instructions/a11y.instructions.md` | Before creating or modifying UI components — accessibility and React patterns both apply       |
+| `hooks/**`                                      | `.github/instructions/reactjs.instructions.md`                                               | Before creating or modifying custom React hooks — rules of hooks, naming, memoization          |
+| `lib/**`                                        | `.github/instructions/typescript-5-es2022.instructions.md`                                   | Before adding utilities, constants, or shared logic                                            |
+| `lib/schemas/**`                                | Use `zod` skill                                                                              | Before adding or updating Zod schemas — load skill for schema patterns                         |
+| `store/**`                                      | Use `zustand` skill                                                                          | Before modifying Zustand stores — load skill for store patterns                                |
+| `*.test.ts(x)`                                  | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              | Before writing or modifying Vitest unit tests                                                  |
+| `tests/**`                                      | `.github/instructions/playwright-typescript.instructions.md`                                 | Before writing or modifying Playwright E2E tests                                               |
+| `**/*.css`                                      | `.github/instructions/nextjs-tailwind.instructions.md`                                       | Before modifying styles — Tailwind v4 CSS-first config, design tokens                          |
+| `**/*.md`                                       | `.github/instructions/markdown.instructions.md`                                              | Before writing or editing Markdown documentation                                               |
+| Any code file                                   | `.github/instructions/performance-optimization.instructions.md`                              | Before performance-sensitive changes — rendering, caching, bundle size                         |
+| Any code file                                   | `.github/instructions/context7.instructions.md`                                              | Loaded automatically — provides Context7 MCP lookup guidance for external docs                 |
+| Any code file                                   | `.github/instructions/clean-code.instructions.md`                                            | Before any implementation — quality principles: naming, function design, error handling, state |
+| Complex component (>3 interactions, >300 lines) | `.github/instructions/feature-context.instructions.md`                                       | Before adding a feature to a complex component — create/update `.context.md` invariant file    |
+| UI/UX polish                                    | `.agents/skills/ui-ux-pro/SKILL.md`                                                          | When asked to improve visuals — research design style first, then apply Tailwind v4 patterns   |
 
 ## Boundaries
 
@@ -394,6 +399,117 @@ import { buttonVariants } from "@/components/ui/button";
 </a>;
 ```
 
+### 10. Implementing a new feature that silently deletes existing functionality
+
+Powerful models (Sonnet, o3-Codex) can silently overwrite or remove existing logic when adding new features — especially in complex components with many interactions (timelines, editors, multi-step forms).
+
+```markdown
+// ❌ Bad: prompt the model to add drag-to-scroll without protecting existing click behavior
+"Add drag-to-scroll to the timeline"
+→ Model rewrites the event handler, deleting the existing click-to-seek logic
+
+// ✅ Good: prime the model with the invariant list before any change
+"Before making any change, list ALL the existing user interactions this component supports.
+Then implement drag-to-scroll WITHOUT breaking any of the behaviors you listed."
+```
+
+For components with >3 interactive behaviors (drag, click, keyboard, resize, undo/redo…):
+
+1. Create a `.context.md` file next to the component (see `feature-context.instructions.md`).
+2. Tag it in every prompt that touches the component: `"Read timeline.context.md first. Do not break any listed invariant."`
+3. After the change, ask the model: `"Confirm each behavior in timeline.context.md still works as described."`
+
+### 11. Async Server Component without a Suspense boundary = blocked page
+
+Any `async` Server Component that awaits a slow data call **blocks the entire page render** until it resolves — unless a `<Suspense>` boundary is placed above it. This is the root cause of "Next.js feels slow" complaints; the framework is streaming-ready, but the developer forgot the boundary.
+
+```tsx
+// ❌ Bad: the whole page waits for fetchStats() before anything renders
+export default async function DashboardPage() {
+  const stats = await fetchStats(); // slow DB call — blocks the page
+  return <StatsPanel stats={stats} />;
+}
+
+// ✅ Good: shell renders immediately; StatsPanel streams in when data is ready
+import { Suspense } from "react";
+export default function DashboardPage() {
+  return (
+    <main>
+      <PageHeader />
+      <Suspense fallback={<StatsSkeleton />}>
+        <StatsPanel /> {/* async component — fetches its own data */}
+      </Suspense>
+    </main>
+  );
+}
+
+// async/await lives inside the leaf component, behind the boundary
+async function StatsPanel() {
+  const stats = await fetchStats();
+  return <ul>{stats.map(/* ... */)}</ul>;
+}
+```
+
+Rule: **Every slow async Server Component must have a `<Suspense>` ancestor.** The closer the boundary is to the data-fetching component, the more of the page can stream early. Use `loading.tsx` for route-level skeletons and `<Suspense fallback={<Skeleton />}>` for component-level boundaries.
+
+Additional rules:
+
+- Each async Server Component should **own its fetch** (not receive slow data as props from a blocking parent)
+- Never put `use client` above an async component in the hierarchy — it converts all children to client components, breaking async support
+- **Bundle size reduction from RSC alone is minimal in mixed apps** (shared libraries still ship to the client). The real performance gain is streaming latency, not bundle size. Significant bundle reduction only occurs on fully static pages with no interactivity whatsoever.
+- See `app/dashboard/stats-section.tsx` for the reference implementation of this pattern in this template.
+
+### 12. `generateStaticParams` returning an empty array with `cacheComponents: true`
+
+With `cacheComponents` disabled, returning an empty array from `generateStaticParams` is a silent production bug — Next.js trusts it is static during build but never pre-renders the page, so dynamic API usage is never discovered. With `cacheComponents: true` this is now an **explicit build error**: Next.js requires at least one param set to be returned.
+
+```tsx
+// ❌ Bad: empty array = "trust me, this page is static" — silently broken in production,
+//   explicit BUILD ERROR with cacheComponents: true
+export function generateStaticParams() {
+  return [];
+}
+
+// ✅ Good: return real params so Next.js can pre-render and discover dynamic API usage
+export async function generateStaticParams() {
+  const products = await getPopularProducts();
+  return products.map((p) => ({ category: p.category, slug: p.slug }));
+}
+```
+
+### 13. Accessing dynamic APIs outside a `<Suspense>` boundary with `cacheComponents: true`
+
+With `cacheComponents: true`, accessing `cookies()`, `headers()`, `params`, or `searchParams` outside a `<Suspense>` boundary is now a **build error**. Previously it only failed silently in production. Wrap dynamic sections in `<Suspense>` so Next.js can produce a static shell and stream the dynamic content in afterwards.
+
+```tsx
+// ❌ Bad: reading cookies/headers/params outside Suspense → build error
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params; // dynamic access with no Suspense ancestor
+  const region = (await headers()).get("x-user-region");
+  return <ProductPage slug={slug} region={region} />;
+}
+
+// ✅ Good: static shell renders instantly; dynamic section streams in via Suspense
+import { Suspense } from "react";
+
+export default function Page() {
+  return (
+    <main>
+      <ProductShell />
+      {/* cached, serves statically from edge */}
+      <Suspense fallback={<DealsSkeleton />}>
+        <UserDealsSection />
+        {/* reads headers() inside — streams in dynamically */}
+      </Suspense>
+    </main>
+  );
+}
+```
+
 ## Personal Preferences
 
 ### Branching Strategy — Trunk-Based Development (TBD)
@@ -531,6 +647,11 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **`'use cache'`**: This is a Next.js 16 directive for Cache Components — different from React's `cache()` import
 - **`proxy.ts`**: The **official Next.js 16 file convention** for request interception, replacing the deprecated `middleware.ts`. Runs on **Node.js runtime** by default (not Edge runtime), so `auth()` from Auth.js can be called directly. Official migration: `npx @next/codemod@latest middleware-to-proxy .`
 - **No `pages/` directory**: This project uses App Router only — never suggest Pages Router patterns
+- **`export const revalidate` is deprecated** when `cacheComponents: true` — use `cacheLife()` called at the top of a `use cache` function instead. Lifetime is collocated with the data that creates it, not the page/layout that consumes it.
+- **`export const dynamic = 'force-static'` is deprecated** when `cacheComponents: true` — use `use cache` + `<Suspense>` composition instead. `force-static` silently makes all request APIs (`cookies()`, `headers()`, `params`) return empty values, introducing subtle and hard-to-find bugs.
+- **`generateStaticParams` must return ≥ 1 param set** when `cacheComponents: true` — an empty array is now a build error. Next.js requires pre-rendering at least one route to discover dynamic API usage at build time (see Common Pitfalls #12).
+- **Dynamic API access outside `<Suspense>` is now a build error** when `cacheComponents: true` — wrapping dynamic components (`cookies()`, `headers()`, `params`) in `<Suspense>` is required for PPR to work (see Common Pitfalls #13).
+- **Pages are no longer simply static or dynamic** — with `cacheComponents: true`, PPR is on by default. Pages are _both_: a static shell is served instantly from the edge while `<Suspense>`-bounded dynamic sections stream in. Compose behavior with code, not segment config options.
 
 ### TypeScript 5.x
 
@@ -551,6 +672,7 @@ className={cn(buttonVariants({ variant, size }), className)}
 ### React 19
 
 - **New hooks**: `useActionState`, `useFormStatus`, `useOptimistic` are available directly from `react`
+  - **`useOptimistic` is the App Router answer to React Query mutations**: when a Server Action is pending, show the expected result immediately to keep the UI responsive. Use it for list toggles, like/unlike, archive/unarchive, and any small inline mutation where the round-trip latency would feel sluggish. Pattern: call `addOptimistic(newItem)` before `await serverAction()`, then the real server state snaps in when the action completes. Works in Client Components only — wrap the mutation caller in `"use client"` and keep the Server Action in a separate `"use server"` file or `actions.ts`.
 - **`use()` hook**: Can unwrap Promises and Context — useful in Server Components
 - **No `React.FC`**: Just write `function MyComponent({ prop }: { prop: string })` — no type annotation needed for the component itself
 
@@ -569,14 +691,19 @@ className={cn(buttonVariants({ variant, size }), className)}
 
 **Recommended model assignments** (set via `Settings → Copilot → model preferences`):
 
-| Agent mode            | Recommended model               | Why                                                     |
-| --------------------- | ------------------------------- | ------------------------------------------------------- |
-| Plan / Planner        | Claude Sonnet 4.x or GPT-o3     | Low time-to-first-token; strong at structured reasoning |
-| Implement / Autopilot | Claude Sonnet 4.5 / o3-Codex    | Highest output quality for complex multi-file code      |
-| Ask / Explore         | Fast model (Haiku, GPT-4o mini) | Interactive Q&A benefits most from responsiveness       |
-| Inline chat           | Fast model                      | Completions must feel instant                           |
+| Task / Agent mode                   | Recommended model                             | Why                                                                                 |
+| ----------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Plan / Planner                      | Claude Sonnet 4.x or GPT-o3                   | Low time-to-first-token; strong at structured reasoning                             |
+| Initial feature build (broadstroke) | Claude Sonnet 4.5 / o3-Codex                  | Best at one-shotting large multi-file features on the first attempt                 |
+| Complex debugging / bug regression  | GPT o3 / Codex                                | Excels at isolating root causes in complex stateful or multi-layer bugs             |
+| UI/UX visual polish                 | Gemini 3 Pro (or inline with ui-ux-pro skill) | Strongest model for design aesthetics; pair with `ui-ux-pro` skill for Tailwind v4  |
+| Refactoring + test-fix loop         | Fast model (Haiku, GPT-4o mini)               | High iteration speed for split/reorganize tasks; see **Test-Fix Loop** in AGENTS.md |
+| Ask / Explore                       | Fast model (Haiku, GPT-4o mini)               | Interactive Q&A benefits most from responsiveness                                   |
+| Inline chat                         | Fast model                                    | Completions must feel instant                                                       |
 
 > These are baseline recommendations based on VS Code team evals (March 2026). Thinking effort is already set high by default for Opus — do not blindly bump reasoning level upward, as it increases latency without always improving output. Verify your defaults via `Settings → Copilot → thinking effort`.
+>
+> **Multi-model workflow**: use the powerful model (Sonnet/o3-Codex) for the initial feature → switch to GPT o3 if debugging proves intractable → use Gemini / `ui-ux-pro` skill for UI polish → use a fast model for refactoring and the test-fix loop. Each model has a distinct strength; forcing one model to do everything leads to regressions (the powerful model may silently delete existing functionality when adding new features).
 
 ## VS Code Agent Hooks (Preview)
 

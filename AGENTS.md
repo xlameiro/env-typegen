@@ -113,6 +113,14 @@ Know what humans do better vs. what the agent does better:
 4. Choose your model: fast model for tests/formatting, powerful model (Claude) for refactors
 5. Monitor progress in the session logs; the agent self-reviews with Copilot code review before opening the PR
 
+**Batch-assign the backlog** — Don't limit yourself to one ticket at a time. Identify a chunk of low-risk issues (UI polish, accessibility fixes, missing tests, deprecated API updates) and assign them all to Copilot at once. The agent works on each in parallel or sequentially and opens individual PRs per issue. Use `/fleet` from the CLI for the same effect without going through the GitHub UI:
+
+```
+/fleet solve issues #12, #18, #24, and #31
+```
+
+This is especially effective for issues that "nobody wants to deal with" — backlog debt that accumulates because no single ticket justifies interrupting focused work.
+
 ### VS Code Local Agent Features (Preview)
 
 These features in VS Code >= 1.110 significantly improve the agent's ability to develop, verify, and execute tasks without leaving the editor.
@@ -264,6 +272,40 @@ You are running inside a Ralph Loop. Your context window is fresh each run.
 - [ ] Quality gate (`pnpm lint && pnpm type-check && pnpm test`) runs after the loop, not inside each iteration
 - [ ] `MAX` iterations is set conservatively — start at 20 and increase if needed
 
+### Test-Fix Loop — Automated Quality Gate Cycle
+
+A **Test-Fix Loop** uses a fast model (Haiku, GPT-4o mini) in Autopilot mode to run the test suite, fix any failing tests, and re-run until everything is green. Each iteration is cheap and fast — ideal for the final stage after a feature is functionally complete.
+
+**When to use:**
+
+- After a feature is implemented but tests are still failing (compile errors, broken assertions)
+- When refactoring a module and tests break unexpectedly
+- When a dependency upgrade causes test regressions across many files
+- For quick iteration on test correctness without touching business logic
+
+**Starter prompt (in VS Code Chat with Autopilot + fast model):**
+
+```
+Run `pnpm test -- --run --reporter=verbose`. For every failing test:
+1. Read the failure message carefully.
+2. Determine whether the source code or the test is wrong.
+   - If the source code has a bug, fix it.
+   - If the test has a wrong assertion, fix the test.
+3. Do NOT skip or comment out failing tests.
+4. After all fixes, run `pnpm test -- --run` again.
+5. Repeat until the full test suite passes.
+6. Run `pnpm type-check` as a final check. Stop only when both pass.
+```
+
+**Rules for keeping the loop safe:**
+
+- Use a **fast model** — iteration speed matters more than reasoning depth here
+- Use **Autopilot mode** — the loop must run without interruption
+- Never use `test.skip`, `it.only`, or `describe.only` to force green — fix the root cause
+- If the same test fails 3 times in different ways, stop and escalate to a more powerful model (Sonnet/o3-Codex) — the root cause is likely architectural, not a simple fix
+
+> **Difference from Ralph Loop**: A Ralph Loop implements features sequentially from a PRD. A Test-Fix Loop only repairs a broken test suite — it does not add functionality. Keep them separate.
+
 ### Good candidates for the coding agent in this project
 
 - Adding/updating Vitest unit tests for existing utilities
@@ -274,6 +316,39 @@ You are running inside a Ralph Loop. Your context window is fresh each run.
 - Migrating components to follow new accessibility patterns
 - Writing Playwright E2E tests for existing flows
 - Running batch maintenance tasks (dependency updates + multiple issue fixes at once) — use `/fleet` from Copilot CLI
+- Running a full OWASP security audit — use `.github/prompts/security-audit.prompt.md`
+- Applying Lighthouse performance/accessibility fixes — use `.github/prompts/lighthouse-audit.prompt.md`
+- Extracting design tokens from a mockup — use `.github/prompts/extract-design-tokens.prompt.md`
+
+### Cross-Functional Team Workflows
+
+AI agents don't only accelerate solo developer work — they unlock new collaboration patterns where designers, PMs, and developers hand off directly through the codebase instead of through meeting notes and Figma red-lines.
+
+**The core shift**: instead of the traditional waterfall (meetings → specs → designs → implementation → review), each role contributes directly to code and hands off to the next person at the code level.
+
+| Role      | What they can do with agents                                                                             |
+| --------- | -------------------------------------------------------------------------------------------------------- |
+| PM        | Assign backlog tickets directly to Copilot; provide a working prototype for engineers to build on top of |
+| Designer  | Open a branch, use a visual editor (Builder.io, V0, Lovable) or Figma import to polish UI, send a PR     |
+| Developer | Review PR from designer/PM, tag the bot in comments for cleanups, merge                                  |
+
+**Figma ↔ code bidirectional handoff**
+
+When a designer still prefers Figma, use tools like [Builder.io](https://www.builder.io) or [V0 by Vercel](https://v0.dev) to bridge back and forth:
+
+1. **Code → Figma**: export a component or section from the running app into Figma for the designer to polish
+2. **Designer edits in Figma**: adjusts layout, colors, typography using their preferred tool
+3. **Figma → code**: import the updated design back into the visual editor; the agent applies the diff to the codebase as a PR
+
+This eliminates the "screenshot → Figma redesign → re-implement" cycle. The designer works on real production code, not a separate mock that engineering then has to chase.
+
+**What this means for developers in this project**
+
+- When handing off a first-pass UI implementation, share the running preview URL (via `pnpm dev`) rather than a screenshot
+- When a designer sends a PR with visual changes, tag Copilot in the review to clean up any structural or naming issues before you merge — don't reject the PR just because the component structure isn't perfect
+- When a PM opens an issue or attaches a prototype, treat it as a valid starting point for `/fleet` or a Copilot issue assignment — close the loop by merging, not by rewriting from scratch
+
+---
 
 ### Daily Developer Workflow (VS Code + CLI)
 
@@ -394,18 +469,19 @@ tools:
 
 ### Good candidates for Agentic Workflows in this project
 
-| Use case                                                                                                                             | Trigger                   |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
-| Auto-label and triage new issues                                                                                                     | `issues: opened`          |
-| Generate a weekly changelog from merged PRs                                                                                          | `schedule` (weekly cron)  |
-| Check that `pnpm knip` reports zero unused exports                                                                                   | `push` to `main`          |
-| Post a dependency audit summary as a PR comment                                                                                      | `pull_request`            |
-| Close stale issues after 30 days of inactivity                                                                                       | `schedule` (daily cron)   |
-| **Super-dependabot**: detect new `next`/`react` releases, review changelog, handle breaking changes, open upgrade PR                 | `schedule` (weekly cron)  |
-| **CI doctor**: when a CI workflow fails on `main`, diagnose the root cause and open a fix PR                                         | `workflow_run: completed` |
-| **Documentation drift**: detect when `README.md` or `/docs` diverge from the actual exported API or file structure                   | `push` to `main`          |
-| **Accessibility review**: scan modified `*.tsx` components against WCAG 2.2 AA rules and comment violations on the PR                | `pull_request`            |
-| **Bug fix from stack trace**: read exception stack traces in new bug reports, determine if the fault is in project code, open fix PR | `issues: labeled (bug)`   |
+| Use case                                                                                                                                                            | Trigger                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Auto-label and triage new issues                                                                                                                                    | `issues: opened`              |
+| Generate a weekly changelog from merged PRs                                                                                                                         | `schedule` (weekly cron)      |
+| Check that `pnpm knip` reports zero unused exports                                                                                                                  | `push` to `main`              |
+| Post a dependency audit summary as a PR comment                                                                                                                     | `pull_request`                |
+| Close stale issues after 30 days of inactivity                                                                                                                      | `schedule` (daily cron)       |
+| **Super-dependabot**: detect new `next`/`react` releases, review changelog, handle breaking changes, open upgrade PR                                                | `schedule` (weekly cron)      |
+| **CI doctor**: when a CI workflow fails on `main`, diagnose the root cause and open a fix PR                                                                        | `workflow_run: completed`     |
+| **Documentation drift**: detect when `README.md` or `/docs` diverge from the actual exported API or file structure                                                  | `push` to `main`              |
+| **Accessibility review**: scan modified `*.tsx` components against WCAG 2.2 AA rules and comment violations on the PR                                               | `pull_request`                |
+| **Bug fix from stack trace**: read exception stack traces in new bug reports, determine if the fault is in project code, open fix PR                                | `issues: labeled (bug)`       |
+| **Automated bug triage**: label an issue `ai-triage` → agent locates root cause, writes failing test, fixes, opens draft PR — see `.github/workflows/bug-triage.md` | `issues: labeled (ai-triage)` |
 
 ### When to use vs. standard GitHub Actions YAML
 

@@ -191,5 +191,36 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Provider pattern for context-based state sharing
 - **Server/Client boundary** — the App Router equivalent of container/presentational: Server Components own data access and async logic; Client Components own event handling and reactive UI
 - Custom hooks for reusable logic extraction
+- **Client Wrapper pattern** — when a UI interaction (theme toggle, animation, collapse/expand) wraps server-rendered children _without affecting their content_, isolate the interactivity in the smallest possible Client Component and let the wrapped children remain as Server Components. The wrapper returns `children` directly; the interactive behavior is side-effectful but does not re-render the children. See `components/theme-provider.tsx` as the canonical example: it applies dark mode via a Zustand store and `useEffect` but the children tree stays fully server-rendered.
+
+  ```tsx
+  // ✅ Good: thin Client wrapper — children stay as Server Components
+  "use client";
+  export function CollapsibleSection({
+    children,
+    title,
+  }: {
+    children: React.ReactNode;
+    title: string;
+  }) {
+    const [isOpen, setIsOpen] = useState(true);
+    return (
+      <section>
+        <button onClick={() => setIsOpen((prev) => !prev)}>{title}</button>
+        {isOpen && children}
+      </section>
+    );
+  }
+
+  // In a Server Component — children fetched on the server, wrapper is client-only
+  export default async function Page() {
+    const data = await getServerData();
+    return (
+      <CollapsibleSection title="Results">
+        <ServerDataTable data={data} />
+      </CollapsibleSection>
+    );
+  }
+  ```
 
 ## Learnings

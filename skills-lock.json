@@ -2,6 +2,11 @@
   "version": 1,
   "lastUpdated": "2026-03-11",
   "skills": {
+    "ui-ux-pro": {
+      "source": "local",
+      "sourceType": "local",
+      "description": "UI/UX visual polish skill with design vocabulary (glassmorphism, minimalism, brutalism, neumorphism) and Tailwind v4 patterns. Use when asked to improve visual design after functional implementation."
+    },
     "agent-governance": {
       "source": "github/awesome-copilot",
       "sourceType": "github",

@@ -1,7 +1,9 @@
 import { signIn } from "@/auth";
+import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { ROUTES } from "@/lib/constants";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -32,25 +34,22 @@ export default function SignUpPage() {
               await signIn("google", { redirectTo: ROUTES.dashboard });
             }}
           >
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center gap-3 rounded-md border border-input bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-            >
+            <Button type="submit" variant="outline" className="w-full gap-3">
               {/* Google icon */}
               <GoogleIcon />
               Continue with Google
-            </button>
+            </Button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <a
+          <Link
             href={ROUTES.signIn}
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
     </main>

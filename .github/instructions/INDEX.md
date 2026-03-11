@@ -25,11 +25,14 @@ Use this file as the entry point to quickly find the right instruction file for 
 | Review rubric and issue prioritization              | `.github/instructions/code-review-generic.instructions.md`      |
 | Learning capture protocol (`learn!`)                | `.github/instructions/learnings.instructions.md`                |
 | Markdown writing standards                          | `.github/instructions/markdown.instructions.md`                 |
+| Code quality principles (naming, functions, state)  | `.github/instructions/clean-code.instructions.md`               |
+| UI/UX visual polish, design aesthetics              | `.agents/skills/ui-ux-pro/SKILL.md`                             |
+| Protecting existing functionality in complex files  | `.github/instructions/feature-context.instructions.md`          |
 
 ## Routing by Directory
 
 | Directory       | Read first                                                                                   |
-| --------------- | -------------------------------------------------------------------------------------------- |
+| --------------- | -------------------------------------------------------------------------------------------- | --- | -------- | ------------------------------------------------- |
 | `app/**`        | `.github/instructions/nextjs.instructions.md`                                                |
 | `app/api/**`    | `.github/instructions/security-and-owasp.instructions.md`                                    |
 | `app/auth/**`   | `.github/instructions/security-and-owasp.instructions.md`                                    |
@@ -37,7 +40,7 @@ Use this file as the entry point to quickly find the right instruction file for 
 | `hooks/**`      | `.github/instructions/reactjs.instructions.md`                                               |
 | `lib/**`        | `.github/instructions/typescript-5-es2022.instructions.md`                                   |
 | `tests/**`      | `.github/instructions/playwright-typescript.instructions.md`                                 |
-| `*.test.ts(x)`  | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              |
+| `*.test.ts(x)`  | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              |     | Any file | `.github/instructions/clean-code.instructions.md` |
 
 ## Selection Rules
 

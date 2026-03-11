@@ -5399,7 +5399,7 @@
   // Controls the orientation of the chat agent sessions view when it is shown alongside the chat.
   //  - stacked: Display chat sessions vertically stacked above the chat input unless a chat session is visible.
   //  - sideBySide: Display chat sessions side by side if space is sufficient, otherwise fallback to stacked above the chat input unless a chat session is visible.
-  "chat.viewSessions.orientation": "sideBySide",
+  "chat.viewSessions.orientation": "stacked",
   // Controls if files that were part of a refactoring are saved automatically
   "files.refactoring.autoSave": true,
   //

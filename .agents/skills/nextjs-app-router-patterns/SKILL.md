@@ -77,7 +77,7 @@ import { cacheLife } from 'next/cache'
 
 async function getProducts() {
   'use cache'
-  cacheLife('hours') // cache for ~1 hour; 'seconds' | 'minutes' | 'hours' | 'days' | 'max'
+  cacheLife('hours') // cache for ~1 hour; 'default' | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max'
   const res = await fetch('https://api.example.com/products')
   return res.json()
 }
@@ -103,6 +103,8 @@ export default async function HomePage() {
 ```
 
 ## Patterns
+
+> **Project-specific convention**: Examples below may reference `process.env.VARIABLE` directly. In this project, always import env vars from `@/lib/env` instead: `import { env } from '@/lib/env'`. Never access `process.env.*` outside `lib/env.ts`. See `copilot-instructions.md` §Boundaries.
 
 ### Pattern 1: Server Components with Data Fetching
 
@@ -521,7 +523,7 @@ fetch(url, { next: { revalidate: 60 } });
 fetch(url, { next: { tags: ["products"] } });
 
 // Invalidate via Server Action (use cache + updateTag — preferred in Next.js 16)
-"use server";
+("use server");
 import { updateTag, revalidateTag, revalidatePath } from "next/cache";
 
 export async function updateProduct(id: string, data: ProductData) {
@@ -545,7 +547,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 // Cache a Server Component
 export default async function ProductsPage() {
   'use cache'
-  cacheLife('hours')         // 'seconds' | 'minutes' | 'hours' | 'days' | 'max'
+  cacheLife('hours')         // 'default' | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max'
   cacheTag('products')       // tag for on-demand invalidation
 
   const products = await db.query('SELECT * FROM products')
