@@ -466,6 +466,40 @@ experimental: {
 
 > Automatically applies the `modularizeImports` optimization to the listed packages. Reduces bundle size for large icon/utility libraries by only importing the specific exports used. Equivalent to manually configuring `modularizeImports` per package.
 
+### `experimental.webVitalsAttribution`
+
+Specifies which Web Vitals metrics should include **attribution data** (source element, cause, timing breakdown) when reported via `useReportWebVitals`. Valid values are the six Core Web Vitals metric names.
+
+```ts
+experimental: {
+  webVitalsAttribution: ['CLS', 'LCP', 'INP'],
+  // full set: ['CLS', 'FCP', 'FID', 'INP', 'LCP', 'TTFB']
+}
+```
+
+| Metric | Full Name                 | What attribution adds                         |
+| ------ | ------------------------- | --------------------------------------------- |
+| `CLS`  | Cumulative Layout Shift   | Element and its shift rectangle               |
+| `FCP`  | First Contentful Paint    | n/a (not supported)                           |
+| `FID`  | First Input Delay         | Event target element                          |
+| `INP`  | Interaction to Next Paint | Event target + timing breakdown               |
+| `LCP`  | Largest Contentful Paint  | Element, URL, time to first byte, render time |
+| `TTFB` | Time to First Byte        | Navigation timing phases                      |
+
+> When `webVitalsAttribution` includes a metric, the `metric.attribution` object in `useReportWebVitals` will be populated with source details (e.g., `metric.attribution.largestContentfulPaintElement`). Without this option, `metric.attribution` is `undefined`. See `nextjs-app-router-patterns` skill § `useReportWebVitals` for the hook API.
+
+### `experimental.optimizeServerReact`
+
+Applies React-specific compiler optimizations for **server builds** — reduces dead code in the server bundle by removing client-only React internals and event system code.
+
+```ts
+experimental: {
+  optimizeServerReact: true,  // default: true in production
+}
+```
+
+> Enabled by default in production builds. Set to `false` only when `optimizeServerReact` causes mismatches with third-party libraries that rely on React client internals being present at import time. Most projects should leave this at the default.
+
 ### `experimental.inlineCss` (Next.js 16)
 
 ```ts
@@ -985,6 +1019,8 @@ const response = await unstable_getResponseFromNextConfig({
 | `experimental.turbopackFileSystemCacheForDev`   | Build       | Turbopack disk cache for dev (default `true` in Next.js 16.1)     |
 | `experimental.turbopackFileSystemCacheForBuild` | Build       | Turbopack disk cache for build (default `false`)                  |
 | `experimental.optimizePackageImports`           | Build       | Auto tree-shake large packages via modularizeImports              |
+| `experimental.webVitalsAttribution`             | Performance | Populate `metric.attribution` in `useReportWebVitals` callbacks   |
+| `experimental.optimizeServerReact`              | Build       | Dead-code elimination of client React internals (default `true`)  |
 | `experimental.inlineCss`                        | Performance | Inline CSS into HTML for faster FCP (App Router prod only)        |
 | `experimental.serverComponentsHmrCache`         | DX          | Re-use fetch data across HMR reloads (default `true`)             |
 | `experimental.globalNotFound`                   | Routing     | Single global `app/global-not-found.tsx` for all 404s             |
