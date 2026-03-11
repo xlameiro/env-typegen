@@ -711,6 +711,75 @@ experimental: {
 
 ---
 
+### `experimental.transitionIndicator`
+
+Shows a loading bar indicator during client-side View Transition navigations. Requires `experimental.viewTransition: true`.
+
+```ts
+experimental: {
+  viewTransition: true,
+  transitionIndicator: true,  // default: false
+}
+```
+
+> The indicator renders as an animated progress bar at the top of the viewport — similar to NProgress. Enable alongside `viewTransition` for a polished navigation experience.
+
+---
+
+### `experimental.typedEnv`
+
+Generates TypeScript types for `process.env` based on all environment variables declared in `.env*` files. Eliminates `string | undefined` widening on known env vars.
+
+```ts
+experimental: {
+  typedEnv: true,  // default: false
+}
+```
+
+After enabling, `pnpm type-check` will produce a `next-env.d.ts` augmentation that narrows `process.env.MY_VAR` from `string | undefined` to `string` when the variable is declared. Import validated env vars from `@/lib/env` as usual — `typedEnv` only improves editor autocomplete; it does NOT validate at runtime.
+
+---
+
+### `experimental.turbopackInferModuleSideEffects`
+
+Enables Turbopack's side effect inference for better tree-shaking. Defaults to `true` in canary builds, `false` in stable.
+
+```ts
+experimental: {
+  turbopackInferModuleSideEffects: true,
+}
+```
+
+> When enabled, Turbopack infers which modules are side-effect-free (analogous to `"sideEffects": false` in `package.json`) and can remove unused exports more aggressively. Effective for packages that don't declare `sideEffects` in their `package.json`.
+
+---
+
+### `experimental.isolatedDevBuild`
+
+Runs dev server compilation in an isolated worker process (default: `true`). Prevents compilation crashes from affecting the dev server process itself.
+
+```ts
+experimental: {
+  isolatedDevBuild: false,  // disable if you hit IPC-overflow issues in dev
+}
+```
+
+> Setting `false` runs compilations in the main dev server process — may help debugging complex server crash scenarios but is generally not recommended.
+
+---
+
+### `experimental.hideLogsAfterAbort`
+
+Suppresses server-side log output when a streaming response is aborted by the client (e.g., user navigates away mid-render). Reduces noise in production server logs. Default: `false`.
+
+```ts
+experimental: {
+  hideLogsAfterAbort: true,
+}
+```
+
+---
+
 ## Logging
 
 ```ts
@@ -848,43 +917,48 @@ const response = await unstable_getResponseFromNextConfig({
 
 ## Quick Reference
 
-| Option                                          | Category    | Notes                                                         |
-| ----------------------------------------------- | ----------- | ------------------------------------------------------------- |
-| `basePath`                                      | Routing     | Build-time only                                               |
-| `trailingSlash`                                 | Routing     | Affects all routes                                            |
-| `assetPrefix`                                   | Routing     | CDN prefix for static assets                                  |
-| `headers()`                                     | Routing     | Custom response headers                                       |
-| `redirects()`                                   | Routing     | 307/308 redirects                                             |
-| `rewrites()`                                    | Routing     | URL rewrites (no redirect)                                    |
-| `output`                                        | Build       | `'standalone'` / `'export'`                                   |
-| `distDir`                                       | Build       | Build output directory                                        |
-| `compress`                                      | Build       | gzip for SSR (disable for proxy)                              |
-| `poweredByHeader`                               | Build       | Remove `X-Powered-By` header                                  |
-| `images`                                        | Assets      | Full optimization config                                      |
-| `cacheComponents`                               | Rendering   | Next.js 16 (replaces `dynamicIO`)                             |
-| `reactStrictMode`                               | Rendering   | Strict mode checks                                            |
-| `reactCompiler`                                 | Rendering   | Auto-memoization; stable in Next.js 16                        |
-| `typedRoutes`                                   | TypeScript  | Type-safe `<Link>` and `router.push()`; stable in v16         |
-| `images.maximumRedirects`                       | Assets      | Max image redirects (default `3`, new in v16.1.6)             |
-| `experimental.authInterrupts`                   | Auth        | Enables `forbidden()`/`unauthorized()`                        |
-| `experimental.staleTimes`                       | Cache       | Router cache TTL (dynamic/static)                             |
-| `experimental.viewTransition`                   | UX          | View Transitions API                                          |
-| `experimental.browserDebugInfoInTerminal`       | DX          | Forward browser errors to terminal (Next.js 16.1)             |
-| `experimental.turbopackFileSystemCacheForDev`   | Build       | Turbopack disk cache for dev (default `true` in Next.js 16.1) |
-| `experimental.turbopackFileSystemCacheForBuild` | Build       | Turbopack disk cache for build (default `false`)              |
-| `experimental.optimizePackageImports`           | Build       | Auto tree-shake large packages via modularizeImports          |
-| `experimental.inlineCss`                        | Performance | Inline CSS into HTML for faster FCP (App Router prod only)    |
-| `experimental.serverComponentsHmrCache`         | DX          | Re-use fetch data across HMR reloads (default `true`)         |
-| `experimental.globalNotFound`                   | Routing     | Single global `app/global-not-found.tsx` for all 404s         |
-| `experimental.slowModuleDetection`              | DX          | Report modules above build-time threshold                     |
-| `experimental.turbopackMinify`                  | Build       | Turbopack minification (default `true` in prod)               |
-| `experimental.turbopackScopeHoisting`           | Build       | Module scope hoisting for smaller bundles (default `true`)    |
-| `turbopack`                                     | Build       | Turbopack-specific configuration                              |
-| `logging`                                       | DX          | Dev server fetch + incoming request logging                   |
-| `serverExternalPackages`                        | Runtime     | Exclude from server bundle                                    |
-| `transpilePackages`                             | Runtime     | Force transpile node_modules                                  |
-| `typescript.ignoreBuildErrors`                  | TypeScript  | Skip build-time type-check                                    |
-| ~~`eslint`~~                                    | ESLint      | **Removed in Next.js 16** — use ESLint CLI directly           |
+| Option                                          | Category    | Notes                                                             |
+| ----------------------------------------------- | ----------- | ----------------------------------------------------------------- |
+| `basePath`                                      | Routing     | Build-time only                                                   |
+| `trailingSlash`                                 | Routing     | Affects all routes                                                |
+| `assetPrefix`                                   | Routing     | CDN prefix for static assets                                      |
+| `headers()`                                     | Routing     | Custom response headers                                           |
+| `redirects()`                                   | Routing     | 307/308 redirects                                                 |
+| `rewrites()`                                    | Routing     | URL rewrites (no redirect)                                        |
+| `output`                                        | Build       | `'standalone'` / `'export'`                                       |
+| `distDir`                                       | Build       | Build output directory                                            |
+| `compress`                                      | Build       | gzip for SSR (disable for proxy)                                  |
+| `poweredByHeader`                               | Build       | Remove `X-Powered-By` header                                      |
+| `images`                                        | Assets      | Full optimization config                                          |
+| `cacheComponents`                               | Rendering   | Next.js 16 (replaces `dynamicIO`)                                 |
+| `reactStrictMode`                               | Rendering   | Strict mode checks                                                |
+| `reactCompiler`                                 | Rendering   | Auto-memoization; stable in Next.js 16                            |
+| `typedRoutes`                                   | TypeScript  | Type-safe `<Link>` and `router.push()`; stable in v16             |
+| `images.maximumRedirects`                       | Assets      | Max image redirects (default `3`, new in v16.1.6)                 |
+| `experimental.authInterrupts`                   | Auth        | Enables `forbidden()`/`unauthorized()`                            |
+| `experimental.staleTimes`                       | Cache       | Router cache TTL (dynamic/static)                                 |
+| `experimental.viewTransition`                   | UX          | View Transitions API                                              |
+| `experimental.browserDebugInfoInTerminal`       | DX          | Forward browser errors to terminal (Next.js 16.1)                 |
+| `experimental.turbopackFileSystemCacheForDev`   | Build       | Turbopack disk cache for dev (default `true` in Next.js 16.1)     |
+| `experimental.turbopackFileSystemCacheForBuild` | Build       | Turbopack disk cache for build (default `false`)                  |
+| `experimental.optimizePackageImports`           | Build       | Auto tree-shake large packages via modularizeImports              |
+| `experimental.inlineCss`                        | Performance | Inline CSS into HTML for faster FCP (App Router prod only)        |
+| `experimental.serverComponentsHmrCache`         | DX          | Re-use fetch data across HMR reloads (default `true`)             |
+| `experimental.globalNotFound`                   | Routing     | Single global `app/global-not-found.tsx` for all 404s             |
+| `experimental.slowModuleDetection`              | DX          | Report modules above build-time threshold                         |
+| `experimental.turbopackMinify`                  | Build       | Turbopack minification (default `true` in prod)                   |
+| `experimental.turbopackScopeHoisting`           | Build       | Module scope hoisting for smaller bundles (default `true`)        |
+| `experimental.transitionIndicator`              | UX          | Navigation progress bar during View Transitions (default `false`) |
+| `experimental.typedEnv`                         | TypeScript  | Generate TS types for `.env` variables (default `false`)          |
+| `experimental.turbopackInferModuleSideEffects`  | Build       | Turbopack side effect inference for tree-shaking                  |
+| `experimental.isolatedDevBuild`                 | DX          | Run dev compilation in isolated worker (default `true`)           |
+| `experimental.hideLogsAfterAbort`               | DX          | Suppress server logs when response is aborted (default `false`)   |
+| `turbopack`                                     | Build       | Turbopack-specific configuration                                  |
+| `logging`                                       | DX          | Dev server fetch + incoming request logging                       |
+| `serverExternalPackages`                        | Runtime     | Exclude from server bundle                                        |
+| `transpilePackages`                             | Runtime     | Force transpile node_modules                                      |
+| `typescript.ignoreBuildErrors`                  | TypeScript  | Skip build-time type-check                                        |
+| ~~`eslint`~~                                    | ESLint      | **Removed in Next.js 16** — use ESLint CLI directly               |
 
 ---
 
