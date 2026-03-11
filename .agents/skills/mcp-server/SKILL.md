@@ -1,3 +1,8 @@
+---
+name: mcp-server
+description: Build MCP (Model Context Protocol) servers inside Next.js 16 using Route Handlers. Use when exposing business logic as agent tools for AI clients (VS Code Copilot, Claude Desktop, Cursor). Covers tool definitions, Zod-to-JSON-Schema conversion, bearer token auth, and Streamable HTTP transport.
+---
+
 # MCP Server Skill
 
 ## Overview

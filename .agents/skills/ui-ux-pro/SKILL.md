@@ -1,3 +1,8 @@
+---
+name: ui-ux-pro
+description: Senior UX/UI design skill for visual polish and layout improvements. Use when asked to improve visuals, polish a design, or upgrade a component's aesthetics after functional implementation. Always researches design style first, then applies Tailwind v4 patterns.
+---
+
 # UI/UX Pro Skill
 
 **Trigger**: Use this skill when asked to "make it look better", "improve the UI", "polish the design", "spruce up the layout", or when a component needs a visual upgrade after the functional implementation is complete.

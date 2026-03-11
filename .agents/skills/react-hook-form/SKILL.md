@@ -1,3 +1,8 @@
+---
+name: react-hook-form
+description: Form validation and state management with react-hook-form and Zod resolvers. Use when writing forms in this project. Covers RHF + Zod resolver pattern, useActionState with Server Actions, and the project-owned form primitives in components/ui/form.tsx. Do NOT use Formik or manual useState forms.
+---
+
 # react-hook-form Skill
 
 Use this skill when writing forms in this project. This is the only approved form library — do NOT use Formik or uncontrolled `<form>` with manual `useState`.

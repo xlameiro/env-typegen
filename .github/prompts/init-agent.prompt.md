@@ -2,7 +2,7 @@
 name: "init-agent"
 agent: "agent"
 description: "Initializer agent for Ralph Loops. Run once before the loop begins to bootstrap the environment: creates features.json, init.sh, progress.txt, and an initial git commit."
-tools: ["read", "editFiles", "search"]
+tools: ["read", "edit/editFiles", "search"]
 ---
 
 # Init Agent — Ralph Loop Bootstrapper

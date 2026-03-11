@@ -183,12 +183,23 @@ new NextResponse(body?: BodyInit | null, init?: ResponseInit)
 
 ### Static Factory Methods
 
-| Method                  | Signature                                                             | Returns      | Description                                      |
-| ----------------------- | --------------------------------------------------------------------- | ------------ | ------------------------------------------------ |
-| `NextResponse.next`     | `(init?: ResponseInit & { request?: RequestInit }) => NextResponse`   | NextResponse | Pass through to next middleware/handler          |
-| `NextResponse.redirect` | `(url: string \| URL, init?: number \| ResponseInit) => NextResponse` | NextResponse | Redirect to URL                                  |
-| `NextResponse.rewrite`  | `(destination: string \| URL, init?: ResponseInit) => NextResponse`   | NextResponse | Serve different URL without changing address bar |
-| `NextResponse.json`     | `<T>(body: T, init?: ResponseInit) => NextResponse`                   | NextResponse | JSON response                                    |
+| Method                  | Signature                                                                                | Returns      | Description                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------ |
+| `NextResponse.next`     | `(init?: MiddlewareResponseInit) => NextResponse`                                        | NextResponse | Pass through to next middleware/handler          |
+| `NextResponse.redirect` | `(url: string \| NextURL \| URL, init?: number \| ResponseInit) => NextResponse`         | NextResponse | Redirect to URL                                  |
+| `NextResponse.rewrite`  | `(destination: string \| NextURL \| URL, init?: MiddlewareResponseInit) => NextResponse` | NextResponse | Serve different URL without changing address bar |
+| `NextResponse.json`     | `<T>(body: T, init?: ResponseInit) => NextResponse`                                      | NextResponse | JSON response                                    |
+
+```ts
+// MiddlewareResponseInit — accepted by next() and rewrite()
+interface MiddlewareResponseInit extends ResponseInit {
+  request?: {
+    headers?: Headers; // override request headers sent to next handler
+  };
+}
+```
+
+> **`request.headers` override**: Pass a mutated `Headers` object to `NextResponse.next()` or `NextResponse.rewrite()` to inject values into the request headers seen by the downstream Route Handler or Server Component. Common pattern for forwarding resolved user identity or feature flags without an extra API call.
 
 ### Instance Properties
 
@@ -254,6 +265,20 @@ function proxy(request: NextRequest) {
   response.headers.set("Access-Control-Allow-Origin", "https://example.com");
   return response;
 }
+
+// Proxy: forward modified request headers to the downstream handler
+// (use request.headers override inside MiddlewareResponseInit)
+function proxy(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-user-id", "usr_123"); // inject resolved identity
+  requestHeaders.set("x-feature-flags", "new-dashboard");
+
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+}
+// Downstream Route Handler / Server Component reads the header:
+//   const userId = (await headers()).get('x-user-id')
 ```
 
 ---
@@ -274,19 +299,21 @@ function userAgent(request: Request | { headers: Headers }): UserAgent;
 
 ### `UserAgent` Return Object
 
-| Property           | Type                                                                                      | Description                                    |
-| ------------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `isBot`            | `boolean`                                                                                 | Whether the client is a known bot/crawler      |
-| `browser.name`     | `string \| undefined`                                                                     | Browser name (e.g., `'Chrome'`, `'Safari'`)    |
-| `browser.version`  | `string \| undefined`                                                                     | Browser version                                |
-| `device.model`     | `string \| undefined`                                                                     | Device model                                   |
-| `device.type`      | `'mobile' \| 'tablet' \| 'console' \| 'smarttv' \| 'wearable' \| 'embedded' \| undefined` | Device type (`undefined` = desktop)            |
-| `device.vendor`    | `string \| undefined`                                                                     | Device vendor (e.g., `'Apple'`)                |
-| `engine.name`      | `string \| undefined`                                                                     | Rendering engine (e.g., `'Blink'`, `'WebKit'`) |
-| `engine.version`   | `string \| undefined`                                                                     | Engine version                                 |
-| `os.name`          | `string \| undefined`                                                                     | OS name (e.g., `'iOS'`, `'Windows'`)           |
-| `os.version`       | `string \| undefined`                                                                     | OS version                                     |
-| `cpu.architecture` | `string \| undefined`                                                                     | CPU architecture (e.g., `'amd64'`)             |
+| Property           | Type                                                                                      | Description                                     |
+| ------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `ua`               | `string`                                                                                  | Raw User-Agent header string                    |
+| `isBot`            | `boolean`                                                                                 | Whether the client is a known bot/crawler       |
+| `browser.name`     | `string \| undefined`                                                                     | Browser name (e.g., `'Chrome'`, `'Safari'`)     |
+| `browser.version`  | `string \| undefined`                                                                     | Full browser version string (e.g., `'120.0.0'`) |
+| `browser.major`    | `string \| undefined`                                                                     | Major version only (e.g., `'120'`)              |
+| `device.model`     | `string \| undefined`                                                                     | Device model                                    |
+| `device.type`      | `'mobile' \| 'tablet' \| 'console' \| 'smarttv' \| 'wearable' \| 'embedded' \| undefined` | Device type (`undefined` = desktop)             |
+| `device.vendor`    | `string \| undefined`                                                                     | Device vendor (e.g., `'Apple'`)                 |
+| `engine.name`      | `string \| undefined`                                                                     | Rendering engine (e.g., `'Blink'`, `'WebKit'`)  |
+| `engine.version`   | `string \| undefined`                                                                     | Engine version                                  |
+| `os.name`          | `string \| undefined`                                                                     | OS name (e.g., `'iOS'`, `'Windows'`)            |
+| `os.version`       | `string \| undefined`                                                                     | OS version                                      |
+| `cpu.architecture` | `string \| undefined`                                                                     | CPU architecture (e.g., `'amd64'`)              |
 
 ### Examples
 
@@ -398,6 +425,37 @@ const ua = userAgentFromString(
 console.log(ua.device.type); // 'mobile'
 console.log(ua.os.name); // 'iOS'
 ```
+
+---
+
+## `isBot()` — Quick Bot Check Without Full Parsing
+
+Faster alternative to `userAgent()` when you only need to know if the client is a bot — avoids parsing the full UA string.
+
+```ts
+import { isBot } from "next/server";
+```
+
+### Signature
+
+```ts
+function isBot(input: string): boolean;
+```
+
+```ts
+import { isBot } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function proxy(request: NextRequest) {
+  const ua = request.headers.get("user-agent") ?? "";
+  if (isBot(ua)) {
+    // Serve a simplified bot-friendly page
+    return Response.rewrite(new URL("/bot", request.url));
+  }
+}
+```
+
+> Prefer `isBot()` over `userAgent(request).isBot` when you don't need the rest of the parsed UA object — it has lower overhead.
 
 ---
 

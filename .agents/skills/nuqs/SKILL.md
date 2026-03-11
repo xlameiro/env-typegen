@@ -1,3 +1,8 @@
+---
+name: nuqs
+description: URL-synced state management with nuqs. Use when managing search queries, filters, pagination, tabs, or any state that should survive page refresh, be shareable via URL, and work with SSR in Next.js App Router. Never use useState for values that belong in the URL.
+---
+
 # nuqs Skill
 
 Use this skill when managing URL-synced state: search queries, filters, pagination, tabs, or any state that should survive page refresh, be shareable via URL, and work with SSR.
