@@ -208,6 +208,65 @@ export function AddToCartButton({ productId }: { productId: string }) {
 }
 ```
 
+### Pattern 2b: `React.use()` — Unwrap Promises and Context in Client Components
+
+`React.use()` is a React 19 API that lets you read a Promise or Context value **synchronously** inside a Client Component. Unlike `useEffect`, it integrates with Suspense — the component suspends while the promise resolves.
+
+**Unwrap a Promise passed from a Server Component**:
+
+```tsx
+// app/product/page.tsx (Server Component)
+import { Suspense } from "react";
+import { ProductDetails } from "./product-details";
+import { getProduct } from "@/lib/products";
+
+export default function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // Pass the un-awaited promise to the Client Component
+  const productPromise = getProduct(params.then(({ id }) => id));
+  return (
+    <Suspense fallback={<ProductSkeleton />}>
+      <ProductDetails productPromise={productPromise} />
+    </Suspense>
+  );
+}
+```
+
+```tsx
+// app/product/product-details.tsx (Client Component)
+"use client";
+import { use } from "react";
+import type { Product } from "@/types";
+
+export function ProductDetails({
+  productPromise,
+}: {
+  productPromise: Promise<Product>;
+}) {
+  const product = use(productPromise); // suspends until resolved; no useEffect needed
+  return <div>{product.name}</div>;
+}
+```
+
+**Unwrap Context**:
+
+```tsx
+"use client";
+import { use } from "react";
+import { ThemeContext } from "@/lib/theme-context";
+
+// More ergonomic than useContext in conditional branches
+export function ThemedButton({ children }: { children: React.ReactNode }) {
+  const theme = use(ThemeContext);
+  return <button data-theme={theme}>{children}</button>;
+}
+```
+
+> `use()` can be called conditionally (unlike hooks). It suspends the component when the value is not yet ready — always wrap the calling component in `<Suspense>`. For Context, `use(Context)` behaves identically to `useContext(Context)` but is callable inside conditionals and loops.
+
 ### Pattern 3: Server Actions
 
 ```typescript
