@@ -363,6 +363,238 @@ Server Actions work with HTML forms without JavaScript:
 </form>
 ```
 
+### `useFormStatus` — Pending State of Parent Form
+
+Tracks the pending state of the nearest parent `<form>`. Must be called in a **child** component of `<form>` — not in the same component.
+
+```tsx
+"use client";
+import { useFormStatus } from "react-dom";
+
+function SubmitButton() {
+  const status = useFormStatus();
+  // status.pending: boolean
+  // status.data: FormData | null      — form data being submitted
+  // status.method: string | null      — 'get' | 'post'
+  // status.action: string | function | null — the action URL or function
+  return (
+    <button type="submit" disabled={status.pending}>
+      {status.pending ? "Saving…" : "Save"}
+    </button>
+  );
+}
+
+export function ProfileForm() {
+  return (
+    <form action={updateProfile}>
+      <input name="name" />
+      <SubmitButton /> {/* useFormStatus reads this form's state */}
+    </form>
+  );
+}
+```
+
+> Import from `react-dom`, not `react`. Only reads state of forms with a Server Action as `action` or inside a `startTransition`.
+
+### `useOptimistic` — Optimistic UI Updates
+
+Shows an optimistic (expected) value immediately while a Server Action is pending, then snaps to the real value when the action completes.
+
+```tsx
+"use client";
+import { useOptimistic } from "react";
+import { toggleLike } from "./actions";
+
+export function LikeButton({ post }: { post: Post }) {
+  const [optimisticLiked, setOptimisticLiked] = useOptimistic(post.isLiked);
+
+  async function handleClick() {
+    setOptimisticLiked(!post.isLiked); // show new state instantly
+    await toggleLike(post.id); // actual mutation; real state snaps in on completion
+  }
+
+  return <button onClick={handleClick}>{optimisticLiked ? "♥" : "♡"}</button>;
+}
+```
+
+With a reducer for list mutations:
+
+```tsx
+const [optimisticItems, addOptimisticItem] = useOptimistic(
+  items,
+  (state, newItem: Item) => [...state, newItem],
+);
+```
+
+> `useOptimistic` is the App Router answer to React Query's `onMutate`. Use it for inline mutations — likes, archive, delete — where the round-trip latency would feel sluggish.
+
+### `use()` — Unwrap Promises and Context
+
+Reads the value of a Promise or Context inside a component. Unlike hooks, `use()` **can be called conditionally**.
+
+```tsx
+"use client";
+import { use } from "react";
+
+// Unwrap a Promise passed as a prop from a Server Component
+export function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
+  const user = use(userPromise); // suspends until resolved
+  return <div>{user.name}</div>;
+}
+
+// Read Context (equivalent to useContext, but callable conditionally)
+const theme = use(ThemeContext);
+```
+
+```tsx
+// Signature
+function use<T>(usable: Promise<T> | Context<T>): T;
+```
+
+> In Server Components, `await` the promise directly. `use()` is for Client Components that receive a Promise as a prop — it integrates with Suspense automatically.
+
+---
+
+## React DOM Resource Hint APIs
+
+These functions from `react-dom` let React and Next.js schedule browser resource loading as early as possible — before the browser parses the full HTML. Call them from Server Components, Client Components, or Server Actions. Next.js deduplicates duplicate hints automatically.
+
+```ts
+import {
+  prefetchDNS,
+  preconnect,
+  preload,
+  preloadModule,
+  preinit,
+  preinitModule,
+} from "react-dom";
+```
+
+### `prefetchDNS(href)`
+
+Resolved DNS for a host so TCP connections start sooner. No credentials or crossOrigin needed.
+
+```ts
+function prefetchDNS(href: string): void;
+
+// Usage — in a Server Component or layout
+prefetchDNS("https://fonts.googleapis.com");
+```
+
+### `preconnect(href, options?)`
+
+Opens a connection to a host (DNS + TCP + TLS) without fetching a resource.
+
+```ts
+interface PreconnectOptions {
+  crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
+}
+function preconnect(href: string, options?: PreconnectOptions): void;
+
+preconnect("https://cdn.example.com", { crossOrigin: "anonymous" });
+```
+
+### `preload(href, options)`
+
+Tells the browser to fetch a resource at high priority without evaluating it. `as` is required.
+
+```ts
+type PreloadAs =
+  | "audio"
+  | "document"
+  | "embed"
+  | "fetch"
+  | "font"
+  | "image"
+  | "object"
+  | "track"
+  | "script"
+  | "style"
+  | "video"
+  | "worker";
+
+interface PreloadOptions {
+  as: PreloadAs; // required
+  crossOrigin?: "anonymous" | "use-credentials" | "";
+  fetchPriority?: "high" | "low" | "auto";
+  imageSizes?: string; // only with as: 'image'
+  imageSrcSet?: string; // only with as: 'image'
+  integrity?: string;
+  type?: string;
+  nonce?: string;
+  referrerPolicy?: ReferrerPolicy;
+  media?: string;
+}
+function preload(href: string, options: PreloadOptions): void;
+
+preload("/fonts/inter.woff2", { as: "font", crossOrigin: "anonymous" });
+preload("/hero.jpg", { as: "image", fetchPriority: "high" });
+```
+
+### `preloadModule(href, options)`
+
+Preloads an ES module without executing it. `as` defaults to `"script"`.
+
+```ts
+interface PreloadModuleOptions {
+  as: RequestDestination; // defaults to "script"
+  crossOrigin?: "anonymous" | "use-credentials" | "";
+  integrity?: string;
+  nonce?: string;
+}
+function preloadModule(href: string, options: PreloadModuleOptions): void;
+```
+
+### `preinit(href, options)`
+
+Fetches **and evaluates** a script or stylesheet eagerly. Different from `preload` — the resource is actually executed, not just downloaded.
+
+```ts
+type PreinitAs = "script" | "style";
+
+interface PreinitOptions {
+  as: PreinitAs; // required
+  crossOrigin?: "anonymous" | "use-credentials" | "";
+  fetchPriority?: "high" | "low" | "auto";
+  precedence?: string; // for stylesheets: insertion order
+  integrity?: string;
+  nonce?: string;
+}
+function preinit(href: string, options: PreinitOptions): void;
+
+preinit("/analytics.js", { as: "script" });
+preinit("/critical.css", { as: "style", precedence: "high" });
+```
+
+### `preinitModule(href, options?)`
+
+Fetches **and evaluates** an ES module eagerly. `as` defaults to `"script"`.
+
+```ts
+interface PreinitModuleOptions {
+  as?: "script"; // default "script"
+  crossOrigin?: "anonymous" | "use-credentials" | "";
+  integrity?: string;
+  nonce?: string;
+}
+function preinitModule(href: string, options?: PreinitModuleOptions): void;
+```
+
+### `requestFormReset(form)`
+
+Programmatically resets a form element — useful after a Server Action completes to clear input fields.
+
+```ts
+function requestFormReset(form: HTMLFormElement): void;
+
+// Usage with useRef in a Client Component
+const formRef = useRef<HTMLFormElement>(null);
+// after Server Action resolves:
+if (formRef.current) requestFormReset(formRef.current);
+```
+
+> **Hint hierarchy**: `prefetchDNS` → `preconnect` → `preload` → `preinit` (increasing eagerness). Use the least eager hint that satisfies the performance goal.
+
 ---
 
 ## Common Pitfalls

@@ -3,7 +3,7 @@ name: nextjs-navigation-functions
 description: >
   Next.js 16 App Router navigation functions reference. Use this skill when
   working with redirect, permanentRedirect, notFound, forbidden, unauthorized,
-  useRouter, usePathname, useSearchParams, or useParams. Covers server-side
+  useRouter, usePathname, useSearchParams, useParams, useSelectedLayoutSegment, or useSelectedLayoutSegments. Covers server-side
   and client-side navigation APIs, HTTP status codes, history management, and
   Suspense requirements. Trigger for any Next.js routing, navigation, redirect,
   or programmatic URL change question.
@@ -220,7 +220,10 @@ function useRouter(): AppRouterInstance;
 
 ```ts
 type NavigateOptions = { scroll?: boolean };
-type PrefetchOptions = { kind: "auto" | "full" };
+type PrefetchOptions = {
+  kind: "auto" | "full"; // 'auto' = partial for dynamic, full for static; 'full' = always full
+  onInvalidate?: () => void; // callback fired when the prefetched entry is invalidated
+};
 ```
 
 ```tsx
@@ -385,6 +388,93 @@ export function Breadcrumbs() {
 
 ---
 
+### `useSelectedLayoutSegment()`
+
+Client Component hook that reads the active route segment **one level below** the Layout it is called from. Returns `null` when no child segment is active.
+
+```ts
+import { useSelectedLayoutSegment } from "next/navigation";
+```
+
+#### Signature
+
+```ts
+function useSelectedLayoutSegment(parallelRouteKey?: string): string | null;
+```
+
+#### Return values
+
+| Condition                              | Return value                              |
+| -------------------------------------- | ----------------------------------------- |
+| Active child segment (e.g., `blog`)    | `"blog"`                                  |
+| Leaf page (no further segments)        | `"page"`                                  |
+| No active segment below current layout | `null`                                    |
+| Accessing a parallel route slot        | Pass `parallelRouteKey` (e.g., `"modal"`) |
+
+```tsx
+"use client";
+import { useSelectedLayoutSegment } from "next/navigation";
+
+export function TabsNav() {
+  const segment = useSelectedLayoutSegment(); // e.g., "dashboard", "settings", null
+
+  return (
+    <nav>
+      {["dashboard", "settings"].map((tab) => (
+        <a
+          key={tab}
+          href={`/${tab}`}
+          aria-current={segment === tab ? "page" : undefined}
+        >
+          {tab}
+        </a>
+      ))}
+    </nav>
+  );
+}
+```
+
+---
+
+### `useSelectedLayoutSegments()`
+
+Client Component hook that reads **all** active route segments below the Layout it is called from (full segment array, not just one level).
+
+```ts
+import { useSelectedLayoutSegments } from "next/navigation";
+```
+
+#### Signature
+
+```ts
+function useSelectedLayoutSegments(parallelRouteKey?: string): string[];
+```
+
+#### Behaviour
+
+- Returns an array of all active child segments in order (e.g., `["blog", "my-post"]`)
+- Returns an empty array when no child segments are active
+- Accepts an optional `parallelRouteKey` to read segments from a named parallel route slot
+
+```tsx
+"use client";
+import { useSelectedLayoutSegments } from "next/navigation";
+
+export function Breadcrumbs() {
+  const segments = useSelectedLayoutSegments(); // e.g., ["blog", "my-post"]
+
+  return (
+    <ol>
+      {segments.map((segment, index) => (
+        <li key={index}>{segment}</li>
+      ))}
+    </ol>
+  );
+}
+```
+
+---
+
 ### `unstable_rethrow()`
 
 Rethrows internal Next.js control-flow errors — redirects, not-found signals, forbidden, and unauthorized — so the framework can handle them correctly. **Must be called before any custom error handling in a `catch` block.** Without it, a `try/catch` around data-fetching code will silently swallow `redirect()` and `notFound()` calls.
@@ -429,17 +519,83 @@ async function getPost(id: string) {
 
 ---
 
+### `unstable_isUnrecognizedActionError()`
+
+Checks whether a Server Action call failed because the server does not recognize the action — typically because the client and server are from different deployments (e.g., rolling update with active clients from the previous version).
+
+```ts
+import { unstable_isUnrecognizedActionError } from "next/navigation";
+```
+
+#### Signature
+
+```ts
+function unstable_isUnrecognizedActionError(
+  error: unknown,
+): error is UnrecognizedActionError;
+```
+
+```tsx
+"use client";
+try {
+  await myServerAction();
+} catch (err) {
+  if (unstable_isUnrecognizedActionError(err)) {
+    // Client is from a different deployment — prompt user to refresh
+    alert("Please refresh the page and try again.");
+    return;
+  }
+  throw err; // re-throw all other errors
+}
+```
+
+> Use this to give a clear user-facing message instead of a generic error when a stale client calls a Server Action that no longer exists on the current server.
+
+---
+
+### `useServerInsertedHTML()`
+
+Allows style library authors (e.g., `styled-jsx`, `emotion`) to inject styles into the server-streamed HTML. Called inside a Client Component, the callback runs on the server during streaming and its output is inserted into the HTML output before the component's content.
+
+> **Note**: This is a library-author API — you only need this if building styling primitives. Application code should use Tailwind CSS or CSS Modules instead.
+
+```ts
+import { useServerInsertedHTML } from "next/navigation";
+```
+
+#### Signature
+
+```ts
+function useServerInsertedHTML(callback: () => React.ReactNode): void;
+```
+
+```tsx
+"use client";
+import { useServerInsertedHTML } from "next/navigation";
+
+// Inside a custom style provider component
+useServerInsertedHTML(() => (
+  <style dangerouslySetInnerHTML={{ __html: extractCriticalCss() }} />
+));
+```
+
+---
+
 ## Quick Reference
 
-| Function                 | Where             | Returns                              | HTTP Code |
-| ------------------------ | ----------------- | ------------------------------------ | --------- |
-| `redirect(url)`          | Server            | `never`                              | 307 / 303 |
-| `permanentRedirect(url)` | Server            | `never`                              | 308 / 303 |
-| `notFound()`             | Server            | `never`                              | 404       |
-| `forbidden()`            | Server            | `never`                              | 403       |
-| `unauthorized()`         | Server            | `never`                              | 401       |
-| `useRouter()`            | Client            | `AppRouterInstance`                  | —         |
-| `usePathname()`          | Client            | `string`                             | —         |
-| `useSearchParams()`      | Client + Suspense | `ReadonlyURLSearchParams`            | —         |
-| `useParams()`            | Client            | `Record<string, string \| string[]>` | —         |
-| `unstable_rethrow(err)`  | Server            | `void`                               | —         |
+| Function                                  | Where             | Returns                              | HTTP Code |
+| ----------------------------------------- | ----------------- | ------------------------------------ | --------- |
+| `redirect(url)`                           | Server            | `never`                              | 307 / 303 |
+| `permanentRedirect(url)`                  | Server            | `never`                              | 308 / 303 |
+| `notFound()`                              | Server            | `never`                              | 404       |
+| `forbidden()`                             | Server            | `never`                              | 403       |
+| `unauthorized()`                          | Server            | `never`                              | 401       |
+| `useRouter()`                             | Client            | `AppRouterInstance`                  | —         |
+| `usePathname()`                           | Client            | `string`                             | —         |
+| `useSearchParams()`                       | Client + Suspense | `ReadonlyURLSearchParams`            | —         |
+| `useParams()`                             | Client            | `Record<string, string \| string[]>` | —         |
+| `useSelectedLayoutSegment()`              | Client            | `string \| null`                     | —         |
+| `useSelectedLayoutSegments()`             | Client            | `string[]`                           | —         |
+| `unstable_rethrow(err)`                   | Server            | `void`                               | —         |
+| `unstable_isUnrecognizedActionError(err)` | Client            | `boolean`                            | —         |
+| `useServerInsertedHTML(cb)`               | Client/Server     | `void`                               | —         |

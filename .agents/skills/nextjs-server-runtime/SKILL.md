@@ -37,6 +37,23 @@ const req = new NextRequest("https://example.com/api/users", {
 });
 ```
 
+The `init` parameter extends the standard `RequestInit` with Next.js-specific fields:
+
+```ts
+// NextRequest's extended RequestInit (from next/dist/server/web/spec-extension/request.d.ts)
+interface RequestInit extends globalThis.RequestInit {
+  nextConfig?: {
+    basePath?: string; // Next.js basePath config
+    i18n?: I18NConfig | null; // i18n config
+    trailingSlash?: boolean; // trailingSlash config
+  };
+  signal?: AbortSignal;
+  duplex?: "half"; // enables streaming request body
+}
+```
+
+> `duplex: 'half'` is required when streaming a request body via `ReadableStream` — some environments require it for half-duplex HTTP/1.1 or HTTP/2 streams.
+
 ### Inherited from Web `Request`
 
 | Property/Method | Type                         | Description                    |
@@ -430,8 +447,34 @@ result?.pathname.groups; // { slug: 'hello' }
 Types for typing the `proxy.ts` function and its `config` export.
 
 ```ts
-import type { NextProxy, ProxyConfig } from "next/server";
+import type { NextProxy, ProxyConfig, NextFetchEvent } from "next/server";
 ```
+
+### `NextFetchEvent`
+
+The second parameter of the `NextProxy` function (passed by Next.js runtime). Extends the standard `FetchEvent` interface.
+
+```ts
+import { NextFetchEvent } from "next/server";
+```
+
+| Member                     | Type                        | Description                                        |
+| -------------------------- | --------------------------- | -------------------------------------------------- |
+| `sourcePage`               | `string`                    | The page path that triggered this proxy invocation |
+| `waitUntil(promise)`       | `(p: Promise<any>) => void` | Keeps the runtime alive until `promise` resolves   |
+| `passThroughOnException()` | `() => void`                | Continue to the next handler if an error is thrown |
+
+```ts
+// proxy.ts — fire-and-forget analytics call
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
+  event.waitUntil(
+    logRequest(request.url, request.headers), // background, doesn't block response
+  );
+  return NextResponse.next();
+}
+```
+
+> Inside Route Handlers and Server Components, use `after()` from `next/server` for post-response tasks instead of `event.waitUntil()`.
 
 ### `NextProxy`
 
@@ -468,13 +511,47 @@ export default proxy;
 
 ### `ProxyConfig`
 
-The config shape for the `config` export (controls matcher, regions, and dynamic evaluation). See [proxy.ts file conventions](../nextjs-file-conventions/references/file-conventions-api.md) for full details on `matcher`, `regions`, and `unstable_allowDynamic`.
+The config shape for the `config` export in `proxy.ts`. Controls which routes the proxy runs on, deployment regions, and dynamic code evaluation.
 
 ```ts
 import type { ProxyConfig } from "next/server";
 
+// RouteHas union type (for has/missing conditions):
+type RouteHas =
+  | { type: "header" | "cookie" | "query"; key: string; value?: string }
+  | { type: "host"; key?: undefined; value: string };
+
+// ProxyConfig full type:
+type ProxyConfig = {
+  matcher?:
+    | string
+    | Array<
+        | string
+        | {
+            source: string;
+            locale?: false; // disable locale prefix matching
+            has?: RouteHas[]; // only run if request HAS these headers/cookies/query
+            missing?: RouteHas[]; // only run if request is MISSING these
+          }
+      >;
+  regions?: string | string[]; // deployment regions to run on (Vercel)
+  unstable_allowDynamic?: string | string[]; // globs for allowed dynamic eval
+};
+```
+
+```ts
+// proxy.ts — common patterns
 export const config: ProxyConfig = {
+  // Simple string matcher
   matcher: ["/admin/:path*", "/dashboard/:path*"],
+
+  // Advanced: conditional matching on header presence
+  matcher: [
+    {
+      source: "/api/:path*",
+      has: [{ type: "header", key: "x-api-key" }],
+    },
+  ],
 };
 ```
 

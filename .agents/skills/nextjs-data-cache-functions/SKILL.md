@@ -6,9 +6,10 @@ description: >
   unstable_cache, cacheTag, cacheLife, updateTag, after, or connection. Covers
   reading/writing cookies and headers, Draft Mode for CMS preview, cache
   invalidation strategies, ISR revalidation, post-response callbacks for
-  logging, and dynamic rendering opt-in. Trigger on any question about caching,
-  cache invalidation, cookies, headers, ISR, draft mode, or background tasks in
-  Next.js 16.
+  logging, dynamic rendering opt-in, and the `fetch()` Next.js extensions
+  (`next.revalidate`, `next.tags`, `cache`). Trigger on any question about
+  caching, cache invalidation, cookies, headers, ISR, draft mode, background
+  tasks, or fetch data fetching in Next.js 16.
 ---
 
 # Next.js 16 — Data & Cache Functions
@@ -34,13 +35,15 @@ function cookies(): Promise<RequestCookies>; // Route Handlers & Actions (read/w
 
 ### Methods
 
-| Method   | Signature                                                        | Description            |
-| -------- | ---------------------------------------------------------------- | ---------------------- |
-| `get`    | `(name: string) => { name: string; value: string } \| undefined` | Get a single cookie    |
-| `getAll` | `(name?: string) => { name: string; value: string }[]`           | Get all cookies        |
-| `has`    | `(name: string) => boolean`                                      | Check if cookie exists |
-| `set`    | `(name: string, value: string, options?: CookieOptions) => void` | Set a cookie           |
-| `delete` | `(name: string \| string[]) => void`                             | Delete a cookie        |
+| Property / Method | Signature                                                                               | Description                             |
+| ----------------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| `size`            | `number` (readonly)                                                                     | Count of received cookies               |
+| `get`             | `(name: string \| RequestCookie) => RequestCookie \| undefined`                         | Get a single cookie                     |
+| `getAll`          | `(name?: string \| RequestCookie) => RequestCookie[]`                                   | Get all cookies (or by name)            |
+| `has`             | `(name: string) => boolean`                                                             | Check if cookie exists                  |
+| `set`             | `(key: string, value: string, opts?: CookieOptions) \| (cookie: RequestCookie) => this` | Set a cookie (chainable)                |
+| `delete`          | `(name: string \| string[]) => boolean \| boolean[]`                                    | Delete cookie(s); returns true if found |
+| `clear`           | `() => this`                                                                            | Delete all cookies (chainable)          |
 
 ### `CookieOptions`
 
@@ -101,15 +104,17 @@ function headers(): Promise<ReadonlyHeaders>;
 
 ### Methods (extends Web `Headers`)
 
-| Method    | Signature                                  | Description                |
-| --------- | ------------------------------------------ | -------------------------- |
-| `get`     | `(name: string) => string \| null`         | Get first value for header |
-| `getAll`  | `(name: string) => string[]`               | All values for header name |
-| `has`     | `(name: string) => boolean`                | Check if header exists     |
-| `entries` | `() => IterableIterator<[string, string]>` | All name + value pairs     |
-| `keys`    | `() => IterableIterator<string>`           | All header names           |
-| `values`  | `() => IterableIterator<string>`           | All header values          |
-| `forEach` | `(cb: (value, name) => void) => void`      | Iterate all headers        |
+| Method         | Signature                                  | Description                                     |
+| -------------- | ------------------------------------------ | ----------------------------------------------- |
+| `get`          | `(name: string) => string \| null`         | Get first value for header                      |
+| `has`          | `(name: string) => boolean`                | Check if header exists                          |
+| `getSetCookie` | `() => string[]`                           | Returns all `Set-Cookie` header values as array |
+| `entries`      | `() => IterableIterator<[string, string]>` | All name + value pairs                          |
+| `keys`         | `() => IterableIterator<string>`           | All header names                                |
+| `values`       | `() => IterableIterator<string>`           | All header values                               |
+| `forEach`      | `(cb: (value, name) => void) => void`      | Iterate all headers                             |
+
+> `append`, `set`, `delete` are marked `@deprecated` on `ReadonlyHeaders` — calling them throws at runtime.
 
 ### Examples
 
@@ -387,6 +392,20 @@ type CacheLifeProfile =
 type CustomProfile = { stale?: number; revalidate?: number; expire?: number };
 ```
 
+### Named profile values
+
+| Profile     | `stale` | `revalidate` | `expire` | Description                               |
+| ----------- | ------- | ------------ | -------- | ----------------------------------------- |
+| `'seconds'` | 30s     | 1s           | 1min     | High-frequency data (stock prices, feeds) |
+| `'default'` | 5min    | 15min        | never    | General-purpose default                   |
+| `'minutes'` | 5min    | 1min         | 1hr      | Frequently refreshed data                 |
+| `'hours'`   | 5min    | 1hr          | 1day     | Semi-static data                          |
+| `'days'`    | 5min    | 1day         | 1week    | Slow-changing content                     |
+| `'weeks'`   | 5min    | 1week        | 30days   | Near-static reference data                |
+| `'max'`     | 5min    | 30days       | never    | Permanent — stale-while-revalidate only   |
+
+> `stale` = max time a browser/edge may serve a stale response without re-checking. `revalidate` = server revalidates in background after this TTL. `expire` = hard expiry; `never` means the entry lives until the server is restarted or manually revalidated.
+
 ```ts
 export async function getConfig() {
   "use cache";
@@ -434,7 +453,39 @@ export async function submitOrder(formData: FormData) {
 
 ---
 
-## `after(callback)`
+## `refresh()`
+
+Refreshes the **client router cache** from a Server Action — useful when data cached on the client would otherwise not be invalidated by `updateTag`.
+
+```ts
+import { refresh } from "next/cache";
+```
+
+### Signature
+
+```ts
+function refresh(): void;
+```
+
+### When to use vs `updateTag`
+
+|             | `updateTag(tag)`                            | `refresh()`                                                       |
+| ----------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| Invalidates | Server-side cache entries with matching tag | Entire client router cache                                        |
+| Context     | Server Action                               | Server Action                                                     |
+| Use case    | Fine-grained tag-based invalidation         | Broad client refresh when tag-based invalidation isn't sufficient |
+
+```ts
+"use server";
+import { refresh } from "next/cache";
+
+export async function clearUserSession() {
+  await db.session.deleteMany({ where: { userId: currentUser.id } });
+  refresh(); // force client to reload all cached route data
+}
+```
+
+> `refresh()` is equivalent to calling `router.refresh()` on the client, but initiated from a Server Action. Prefer `updateTag` for surgical invalidation — use `refresh` when you need to guarantee the client fetches fresh data for all routes.
 
 Schedules a callback to run **after** the response has been sent to the client. Use for logging, analytics, or side effects that should not block the response.
 
@@ -445,8 +496,13 @@ import { after } from "next/server";
 ### Signature
 
 ```ts
-function after(callback: () => void | Promise<void>): void;
+type AfterCallback<T = unknown> = () => T | Promise<T>;
+type AfterTask<T = unknown> = Promise<T> | AfterCallback<T>;
+
+function after<T>(task: AfterTask<T>): void;
 ```
+
+`AfterTask` accepts either a **callback function** or a **Promise** directly.
 
 ```ts
 import { after } from 'next/server'
@@ -545,21 +601,84 @@ import { cacheLife, cacheTag } from "next/cache";
 
 ---
 
+## `fetch()` — Next.js Extended Options
+
+Next.js extends the global `fetch()` with a `next` option and respects the `cache` option for fine-grained caching control.
+
+### `NextFetchRequestConfig` type
+
+```ts
+interface NextFetchRequestConfig {
+  revalidate?: number | false; // seconds to cache; false = cache forever
+  tags?: string[]; // cache tags for targeted invalidation
+}
+
+interface RequestInit {
+  next?: NextFetchRequestConfig | undefined;
+}
+```
+
+### `cache` option — standard `RequestInit`
+
+| Value         | Behavior                                        |
+| ------------- | ----------------------------------------------- |
+| `force-cache` | Always use cached response (default in Next.js) |
+| `no-store`    | Never cache — fetch fresh data every request    |
+| `default`     | Browser standard: use cache unless stale        |
+
+### `next.revalidate` — time-based ISR
+
+```ts
+// Cache for 60 seconds, then revalidate in background
+const data = await fetch("https://api.example.com/posts", {
+  next: { revalidate: 60 },
+});
+
+// Cache indefinitely (until manually invalidated)
+const config = await fetch("https://api.example.com/config", {
+  next: { revalidate: false },
+});
+
+// Never cache (equivalent to force-dynamic)
+const live = await fetch("https://api.example.com/live", {
+  cache: "no-store",
+});
+```
+
+### `next.tags` — tag-based invalidation
+
+```ts
+// Tag the response so revalidateTag('posts') will bust this cache
+const posts = await fetch("https://api.example.com/posts", {
+  next: { tags: ["posts"] },
+});
+
+// Later, in a Server Action:
+import { revalidateTag } from "next/cache";
+revalidateTag("posts"); // invalidates all fetch calls tagged 'posts'
+```
+
+> **`fetch()` is NOT available in Client Components at the data-cache level** — use it in Server Components, Route Handlers, or Server Actions. The `next` option is ignored in browser-side fetch calls.
+
+---
+
 ## Quick Reference
 
-| Function                       | Import         | Use Case                                                          |
-| ------------------------------ | -------------- | ----------------------------------------------------------------- |
-| `cookies()`                    | `next/headers` | Read/write HTTP cookies                                           |
-| `headers()`                    | `next/headers` | Read incoming request headers                                     |
-| `draftMode()`                  | `next/headers` | Enable/disable/check CMS draft preview mode                       |
-| `revalidatePath(path)`         | `next/cache`   | Invalidate cache for a URL                                        |
-| `revalidateTag(tag, profile?)` | `next/cache`   | Invalidate cache by tag; `'max'` profile = stale-while-revalidate |
-| `unstable_cache(fn)`           | `next/cache`   | ⚠️ Legacy function-level cache                                    |
-| `cacheTag(...tags)`            | `next/cache`   | Tag current `use cache` scope                                     |
-| `cacheLife(profile)`           | `next/cache`   | Set lifetime of `use cache` scope                                 |
-| `unstable_cacheTag(...tags)`   | `next/cache`   | Alias for `cacheTag` — prefer `cacheTag`                          |
-| `unstable_cacheLife(profile)`  | `next/cache`   | Alias for `cacheLife` — prefer `cacheLife`                        |
-| `unstable_noStore()`           | `next/cache`   | Opt a call out of the Data Cache                                  |
-| `updateTag(tag)`               | `next/cache`   | Immediate expiry in Server Actions                                |
-| `after(cb)`                    | `next/server`  | Post-response side effects                                        |
-| `connection()`                 | `next/server`  | Force dynamic rendering                                           |
+| Function                                     | Import         | Use Case                                                          |
+| -------------------------------------------- | -------------- | ----------------------------------------------------------------- |
+| `fetch(url, { next: { revalidate, tags } })` | built-in       | Extended fetch with ISR + tag-based caching                       |
+| `fetch(url, { cache: 'no-store' })`          | built-in       | Opt-out fetch from caching                                        |
+| `cookies()`                                  | `next/headers` | Read/write HTTP cookies                                           |
+| `headers()`                                  | `next/headers` | Read incoming request headers                                     |
+| `draftMode()`                                | `next/headers` | Enable/disable/check CMS draft preview mode                       |
+| `revalidatePath(path)`                       | `next/cache`   | Invalidate cache for a URL                                        |
+| `revalidateTag(tag, profile?)`               | `next/cache`   | Invalidate cache by tag; `'max'` profile = stale-while-revalidate |
+| `unstable_cache(fn)`                         | `next/cache`   | ⚠️ Legacy function-level cache                                    |
+| `cacheTag(...tags)`                          | `next/cache`   | Tag current `use cache` scope                                     |
+| `cacheLife(profile)`                         | `next/cache`   | Set lifetime of `use cache` scope                                 |
+| `unstable_cacheTag(...tags)`                 | `next/cache`   | Alias for `cacheTag` — prefer `cacheTag`                          |
+| `unstable_cacheLife(profile)`                | `next/cache`   | Alias for `cacheLife` — prefer `cacheLife`                        |
+| `unstable_noStore()`                         | `next/cache`   | Opt a call out of the Data Cache                                  |
+| `updateTag(tag)`                             | `next/cache`   | Immediate expiry in Server Actions                                |
+| `after(cb)`                                  | `next/server`  | Post-response side effects                                        |
+| `connection()`                               | `next/server`  | Force dynamic rendering                                           |

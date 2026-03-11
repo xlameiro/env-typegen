@@ -429,6 +429,47 @@ export default async function sitemap(props: {
 
 Accessible at: `/sitemap/0.xml`, `/sitemap/1.xml`, etc.
 
+### Full `MetadataRoute.Sitemap` entry type
+
+```ts
+type SitemapEntry = {
+  url: string;
+  lastModified?: string | Date;
+  changeFrequency?:
+    | "always"
+    | "hourly"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "yearly"
+    | "never";
+  priority?: number; // 0.0–1.0; default 0.5
+  alternates?: {
+    languages?: Record<string, string>; // locale -> absolute URL (hreflang)
+  };
+  images?: string[]; // Google Image Sitemap URLs
+  videos?: Array<{
+    // Google Video Sitemap entries
+    title: string;
+    thumbnail_loc: string; // absolute URL
+    description: string;
+    content_loc?: string;
+    player_loc?: string;
+    duration?: number; // seconds
+    expiration_date?: string;
+    rating?: number; // 0.0–5.0
+    view_count?: number;
+    publication_date?: string;
+    family_friendly?: boolean;
+    restriction?: { relationship: "allow" | "deny"; content: string };
+    platform?: { relationship: "allow" | "deny"; content: string };
+    live?: boolean;
+  }>;
+};
+```
+
+> Use `images` for Google Image sitemaps and `videos` for Google Video sitemaps — Google uses these to enrich search results. Both accept absolute URLs.
+
 ---
 
 ## `ImageResponse`

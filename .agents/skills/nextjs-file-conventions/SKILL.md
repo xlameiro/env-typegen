@@ -400,23 +400,22 @@ export function register() {
 
 // Capture errors for observability
 export function onRequestError(
-  error: { digest: string } & Error,
-  request: {
+  error: unknown, // In practice, an Error with an optional `digest` string property
+  request: Readonly<{
     path: string;
     method: string;
     headers: { [key: string]: string | string[] };
-  },
-  context: {
+  }>,
+  context: Readonly<{
     routerKind: "Pages Router" | "App Router";
     routePath: string;
     routeType: "render" | "route" | "action" | "proxy";
-    renderSource:
+    renderSource?:
       | "react-server-components"
       | "react-server-components-payload"
       | "server-rendering";
     revalidateReason: "on-demand" | "stale" | undefined;
-    renderType: "dynamic" | "dynamic-resume";
-  },
+  }>,
 ) {
   fetch("/api/errors", {
     method: "POST",
@@ -436,6 +435,24 @@ export function onRequestError(
 | `register`       | `() => void \| Promise<void>`                        | Called once on server start            |
 | `onRequestError` | `(error, request, context) => void \| Promise<void>` | Called on every unhandled server error |
 
+### TypeScript helper types
+
+```ts
+// Importable from 'next' for typed instrumentation files
+import type { Instrumentation } from "next";
+
+// Types the onRequestError export directly:
+export const onRequestError: Instrumentation.onRequestError = async (
+  error,
+  request,
+  context,
+) => {
+  await reportError({ error, path: request.path, kind: context.routerKind });
+};
+```
+
+`Instrumentation.onRequestError` is a namespace alias for `InstrumentationOnRequestError` from `next/dist/server/instrumentation/types`.
+
 ---
 
 ## Metadata Files
@@ -453,3 +470,147 @@ For full details see `references/file-conventions-api.md`.
 | `sitemap.ts`                      | `sitemap.xml`          | XML sitemap                          |
 | `robots.ts`                       | `robots.txt`           | Crawler config                       |
 | `manifest.ts`                     | `manifest.webmanifest` | PWA manifest                         |
+
+### `MetadataRoute.Robots` type
+
+```ts
+type MetadataRoute.Robots = {
+  rules:
+    | {
+        userAgent?: string | string[]; // default '*'
+        allow?: string | string[];
+        disallow?: string | string[];
+        crawlDelay?: number;           // seconds between requests
+      }
+    | Array<{ userAgent: string | string[]; allow?; disallow?; crawlDelay? }>;
+  sitemap?: string | string[];         // sitemap URL(s)
+  host?: string;                       // canonical domain
+};
+```
+
+```ts
+// app/robots.ts
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      { userAgent: "Googlebot", allow: "/", disallow: "/private/" },
+      { userAgent: "*", disallow: "/admin/" },
+    ],
+    sitemap: "https://example.com/sitemap.xml",
+    host: "https://example.com",
+  };
+}
+```
+
+### `MetadataRoute.Manifest` type
+
+Full PWA Web App Manifest. All fields are optional.
+
+```ts
+type MetadataRoute.Manifest = {
+  name?: string;
+  short_name?: string;
+  description?: string;
+  start_url?: string;                  // default '/'
+  scope?: string;
+  id?: string;                         // unique app identity hash
+  lang?: string;                       // BCP 47 language tag
+  dir?: 'auto' | 'ltr' | 'rtl';
+  display?: 'fullscreen' | 'standalone' | 'minimal-ui' | 'browser';
+  display_override?: Array<
+    | 'fullscreen' | 'standalone' | 'minimal-ui' | 'browser'
+    | 'window-controls-overlay' | 'tabbed'
+  >;
+  orientation?:
+    | 'any' | 'natural' | 'landscape' | 'portrait'
+    | 'landscape-primary' | 'landscape-secondary'
+    | 'portrait-primary' | 'portrait-secondary';
+  theme_color?: string;
+  background_color?: string;
+  icons?: Array<{
+    src: string;
+    sizes?: string;    // e.g. '192x192'
+    type?: string;     // e.g. 'image/png'
+    purpose?: 'any' | 'maskable' | 'monochrome' | 'badge';
+  }>;
+  screenshots?: Array<{
+    src: string;
+    sizes?: string;
+    type?: string;
+    label?: string;
+    form_factor?: 'narrow' | 'wide';
+  }>;
+  shortcuts?: Array<{
+    name: string;
+    url: string;
+    short_name?: string;
+    description?: string;
+    icons?: Array<{ src: string; sizes?: string; type?: string }>;
+  }>;
+  categories?: string[];
+  prefer_related_applications?: boolean;
+  related_applications?: Array<{
+    platform: string;  // 'play' | 'itunes' | 'windows' etc.
+    url: string;
+    id?: string;
+  }>;
+  protocol_handlers?: Array<{ protocol: string; url: string }>;
+  file_handlers?: Array<{
+    action: string;
+    accept: Record<string, string[]>; // MIME -> file extensions
+    icons?: Array<{ src: string; sizes?: string; type?: string }>;
+    launch_type?: 'single-client' | 'multiple-clients';
+  }>;
+  share_target?: {
+    action: string;
+    method?: 'GET' | 'POST';
+    enctype?: string;
+    params: {
+      title?: string;
+      text?: string;
+      url?: string;
+      files?: Array<{ name: string; accept: string | string[] }>;
+    };
+  };
+  launch_handler?: {
+    client_mode?: 'auto' | 'focus-existing' | 'navigate-existing' | 'navigate-new' | Array<string>;
+  };
+};
+```
+
+### `ServerRuntime` type
+
+Exported from `next` — the valid values for the `runtime` segment config option:
+
+```ts
+import type { ServerRuntime } from "next";
+
+// 'nodejs' | 'experimental-edge' | 'edge' | undefined
+export const runtime: ServerRuntime = "edge";
+```
+
+> Prefer `'edge'` over the deprecated `'experimental-edge'`.
+
+### `Route<RouteInferType>` type
+
+Exported from `next` for type-safe route strings when `typedRoutes: true` is set in `next.config.ts`:
+
+```ts
+import type { Route } from "next";
+
+// Route<string> = string & {} — narrows to valid app route paths
+function navigate(path: Route<string>) {
+  /* ... */
+}
+```
+
+With `typedRoutes: true`, the compiler emits a `__next_router_prefetch_path__` type that lists all valid routes. Passing an invalid path causes a TypeScript error.
+
+```ts
+import Link from 'next/link';
+// href is typed as Route<string> when typedRoutes: true
+<Link href="/dashboard">Dashboard</Link>  // ✅
+<Link href="/typo">Bad</Link>              // ❌ TypeScript error if route doesn't exist
+```
