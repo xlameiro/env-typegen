@@ -662,6 +662,56 @@ revalidateTag("posts"); // invalidates all fetch calls tagged 'posts'
 
 ---
 
+## `React.cache()` — Per-Request Deduplication
+
+> **Import from `react`** — not from `next/cache`. Works **server-side only** (Server Components, Route Handlers, Server Actions).
+
+`React.cache()` wraps an async function and deduplicates identical calls **within a single request**. Each new request gets a fresh cache — no cross-request sharing.
+
+```ts
+import { cache } from "react";
+import { db } from "@/lib/db";
+
+export const getCurrentUser = cache(async (userId: string) => {
+  return db.user.findUnique({ where: { id: userId } });
+});
+
+// In multiple Server Components in the same render tree:
+const user = await getCurrentUser("123"); // runs DB query
+const user2 = await getCurrentUser("123"); // returns cached result — no second query
+```
+
+**Cache key uses shallow equality (`Object.is`)** — pass primitives as arguments; inline objects always create cache misses:
+
+```ts
+// ❌ Bad — inline object creates a new reference each call, always misses
+const getUser = cache(async (params: { id: string }) =>
+  db.user.findUnique(params),
+);
+getUser({ id: "123" });
+getUser({ id: "123" }); // Cache MISS — different object reference
+
+// ✅ Good — primitive argument uses value equality
+const getUser = cache(async (id: string) =>
+  db.user.findUnique({ where: { id } }),
+);
+getUser("123");
+getUser("123"); // Cache HIT
+```
+
+**When to use `React.cache()` vs `fetch()` deduplication:**
+
+| Scenario                              | Deduplication approach                                         |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `fetch()` HTTP requests               | Automatic — Next.js deduplicates `fetch` with same URL+options |
+| Database queries (Prisma, Drizzle)    | `React.cache()` — wrap the query function                      |
+| `auth()` session checks               | `React.cache()` — avoids re-reading the session per component  |
+| Heavy computations or file system ops | `React.cache()` — wrap the async function                      |
+
+> **Scope**: `React.cache()` only deduplicates within **one request**. For data shared across sequential requests, use `'use cache'` with `cacheLife()` instead. See `vercel-react-best-practices` skill for additional patterns.
+
+---
+
 ## Quick Reference
 
 | Function                                     | Import         | Use Case                                                          |
@@ -682,3 +732,4 @@ revalidateTag("posts"); // invalidates all fetch calls tagged 'posts'
 | `updateTag(tag)`                             | `next/cache`   | Immediate expiry in Server Actions                                |
 | `after(cb)`                                  | `next/server`  | Post-response side effects                                        |
 | `connection()`                               | `next/server`  | Force dynamic rendering                                           |
+| `cache(fn)` (`React.cache()`)                | `react`        | Per-request deduplication for DB/auth/non-fetch async calls       |

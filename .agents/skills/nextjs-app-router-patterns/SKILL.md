@@ -744,6 +744,55 @@ export async function updateProduct(id: string, data: ProductData) {
 }
 ```
 
+### Per-Request Deduplication — `React.cache()`
+
+Use `cache()` from `react` to deduplicate **non-`fetch()` async calls** (database queries, auth checks, computations) within a single render pass. Identical calls with the same arguments share one result — no extra DB round-trips.
+
+```typescript
+// lib/queries.ts
+import { cache } from "react";
+
+// Wrap the async function once — export the wrapped version
+export const getUser = cache(async (id: string) => {
+  return db.user.findUnique({ where: { id } });
+});
+
+export const getCurrentSession = cache(async () => {
+  return auth(); // session read happens once per request, regardless of how
+  // many Server Components call getCurrentSession()
+});
+```
+
+```typescript
+// Any Server Component in the same request:
+import { getUser, getCurrentSession } from "@/lib/queries";
+
+export async function UserHeader() {
+  const session = await getCurrentSession(); // DB: 1 query
+  const user = await getUser(session.userId); // DB: 1 query
+  return <header>Hello {user.name}</header>;
+}
+
+export async function UserSidebar() {
+  const user = await getUser("same-id"); // Returns cached result — 0 extra queries
+  return <aside>{user.email}</aside>;
+}
+```
+
+**Cache-key rules — use primitives, not objects:**
+
+```typescript
+// ❌ Bad — inline object = new reference every call = cache miss
+const getUser = cache(async (params: { id: string }) => ...);
+getUser({ id: "1" }); getUser({ id: "1" }); // two separate DB calls
+
+// ✅ Good — primitive uses value equality
+const getUser = cache(async (id: string) => ...);
+getUser("1"); getUser("1"); // one DB call, one cache hit
+```
+
+> `React.cache()` deduplicates **within one request only** — there is no cross-request sharing. For persistent multi-request caching, use `'use cache'` with `cacheLife()` (Pattern 9). `fetch()` deduplication is automatic in Next.js and does NOT need `React.cache()`.
+
 ### Pattern 9: Cache Components with `use cache` (Next.js 16)
 
 ```typescript
