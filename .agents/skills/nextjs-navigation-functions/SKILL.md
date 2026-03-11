@@ -489,28 +489,42 @@ import { unstable_rethrow } from "next/navigation";
 function unstable_rethrow(error: unknown): void;
 ```
 
+Safe to call unconditionally — does nothing when `error` is not a Next.js internal error. Recursively checks `error.cause` chains.
+
 #### When to use
 
 | Thrown by                           | Internal error type        |
 | ----------------------------------- | -------------------------- |
 | `redirect()`, `permanentRedirect()` | `NEXT_REDIRECT`            |
-| `notFound()`                        | `NEXT_NOT_FOUND`           |
+| `notFound()`                        | `NEXT_HTTP_ERROR_FALLBACK` |
 | `forbidden()`                       | `NEXT_HTTP_ERROR_FALLBACK` |
 | `unauthorized()`                    | `NEXT_HTTP_ERROR_FALLBACK` |
 
-```tsx
-import { notFound, unstable_rethrow } from "next/navigation";
+> `notFound`, `forbidden`, and `unauthorized` all use `NEXT_HTTP_ERROR_FALLBACK` as their error code prefix (disambiguated by HTTP status: 404, 403, 401 respectively).
 
-async function getPost(id: string) {
+```tsx
+// ❌ Bad: catch swallows redirect() — route never redirects
+async function getDashboardData() {
   try {
-    const post = await db.post.findUnique({ where: { id } });
-    if (!post) notFound(); // throws internally
-    return post;
-  } catch (err) {
-    unstable_rethrow(err); // ← re-throw before your own handling
-    // Only reaches here for genuine application errors
-    console.error("DB error fetching post", err);
-    throw err;
+    const session = await getSession();
+    if (!session) redirect("/sign-in"); // throws NEXT_REDIRECT internally
+    return fetchData(session.userId);
+  } catch (error) {
+    console.error("Dashboard error", error); // catches NEXT_REDIRECT — broken!
+    return null;
+  }
+}
+
+// ✅ Good: rethrow Next.js errors before handling application errors
+async function getDashboardData() {
+  try {
+    const session = await getSession();
+    if (!session) redirect("/sign-in");
+    return fetchData(session.userId);
+  } catch (error) {
+    unstable_rethrow(error); // rethrows if it's a Next.js internal error
+    console.error("Dashboard error", error); // only runs for real app errors
+    return null;
   }
 }
 ```
@@ -598,53 +612,6 @@ export async function UserGreeting() {
 ```
 
 > The return type is inferred from the root layout's `params` shape. Requires the root layout to have a dynamic segment (e.g., `[lang]`). Enable with `experimental.rootParams: true` in `next.config.ts`.
-
----
-
-### `unstable_rethrow(error)` — Preserve Next.js Control-Flow Errors
-
-Rethrows internal Next.js errors (`NEXT_REDIRECT`, `NEXT_NOT_FOUND`, `NEXT_FORBIDDEN`, `NEXT_UNAUTHORIZED`) that have been caught by a `try/catch`. Without this, catching these errors prevents `redirect()`, `notFound()`, `forbidden()`, and `unauthorized()` from working correctly.
-
-```ts
-import { unstable_rethrow } from "next/navigation";
-```
-
-```tsx
-// ❌ Bad: catch swallows redirect() — route never redirects
-async function getDashboardData() {
-  try {
-    const session = await getSession();
-    if (!session) redirect("/sign-in"); // throws NEXT_REDIRECT internally
-    return fetchData(session.userId);
-  } catch (error) {
-    console.error("Dashboard error", error); // catches NEXT_REDIRECT — broken!
-    return null;
-  }
-}
-
-// ✅ Good: rethrow Next.js errors before handling application errors
-async function getDashboardData() {
-  try {
-    const session = await getSession();
-    if (!session) redirect("/sign-in");
-    return fetchData(session.userId);
-  } catch (error) {
-    unstable_rethrow(error); // rethrows if it's a Next.js internal error
-    console.error("Dashboard error", error); // only runs for real app errors
-    return null;
-  }
-}
-```
-
-**Signature**:
-
-```ts
-function unstable_rethrow(error: unknown): void;
-```
-
-The function **does nothing** if `error` is not a Next.js internal error — safe to call unconditionally at the top of every `catch` block that wraps Server Component logic.
-
-**Which errors are rethrown**: `NEXT_REDIRECT` (from `redirect`/`permanentRedirect`), `NEXT_NOT_FOUND` (from `notFound`), `NEXT_FORBIDDEN` (from `forbidden`), `NEXT_UNAUTHORIZED` (from `unauthorized`).
 
 ---
 
