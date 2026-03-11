@@ -326,6 +326,16 @@ typedRoutes: true;
 // Requires TypeScript
 ```
 
+### `reactMaxHeadersLength`
+
+Limits the total byte length of HTTP headers emitted by React's SSR pipeline (used by RSC and Suspense streaming). Prevents oversized header responses that could be rejected by reverse proxies or CDNs.
+
+```ts
+reactMaxHeadersLength: 6000; // default — ~6 KB
+```
+
+> Most CDNs and HTTP/2 servers have a 8–16 KB header limit. The default of `6000` bytes leaves headroom. Only increase if you are intentionally passing large amounts of metadata through RSC headers and have verified your infrastructure handles the size.
+
 ---
 
 ## Experimental Features
@@ -356,6 +366,22 @@ cacheLife: {
 
 > Built-in profiles: `'default'`, `'seconds'`, `'minutes'`, `'hours'`, `'days'`, `'weeks'`, `'max'`.
 > Custom profiles extend the built-in set and can be referenced by name: `cacheLife('editorial')`.
+
+---
+
+### `experimental.useCache` (Legacy)
+
+A precursor to the top-level `cacheComponents` option. When `true`, enables the `"use cache"` directive **without** turning on the full PPR / Cache Components pipeline. Introduced in Next.js 15's `dynamicIO` experiment.
+
+```ts
+experimental: {
+  useCache: true,  // default: undefined (not enabled)
+}
+```
+
+> **Prefer `cacheComponents: true`** (top-level, stable in Next.js 16) — it supersedes `experimental.useCache`. Use `experimental.useCache` only when migrating an existing Next.js 15 app that used `dynamicIO` and you need a step-by-step transition without enabling full PPR immediately.
+
+---
 
 ### `experimental.ppr` (Partial Prerendering)
 
@@ -529,6 +555,22 @@ experimental: {
 ```
 
 > Forwards browser-side runtime errors, client warnings, and async errors to the terminal — making them visible to AI agents and CLI-only workflows that cannot open DevTools. Introduced in Next.js 16.1. Default: `false`.
+
+---
+
+### `experimental.reactDebugChannel`
+
+In development mode only, sends the React debug info payload through a **WebSocket connection** rather than embedding it in the main RSC response. Reduces RSC payload size during development and decouples debugging data from the render stream.
+
+```ts
+experimental: {
+  reactDebugChannel: true,  // default: false
+}
+```
+
+> Has no effect in production (`next build`). Useful when profiling RSC payload size in development — separating debug info from the main stream gives a more accurate picture of what will be sent in production.
+
+---
 
 ### `experimental.turbopackFileSystemCacheForDev` / `turbopackFileSystemCacheForBuild` (Next.js 16.1)
 
@@ -1045,6 +1087,31 @@ experimental: {
 ```
 
 > Both default to `false`. Enable for large apps where `next build` time is dominated by server-side compilation. Server component count and route count determine the speedup; apps with <20 routes see minimal benefit.
+
+---
+
+### `experimental.mdxRs`
+
+Enables the [**Rust-based MDX compiler**](https://nextjs.org/docs/app/api-reference/next-config-js/mdxRs) for `@next/mdx`. Significantly faster than the JavaScript MDX compiler for large documentation sites.
+
+```ts
+experimental: {
+  // Basic boolean form:
+  mdxRs: true,
+
+  // Object form for fine-grained control:
+  mdxRs: {
+    development: false,        // only compile in production (default: on in all modes)
+    jsx: true,                 // output JSX instead of React.createElement calls
+    jsxRuntime: 'automatic',   // 'classic' | 'automatic'
+    jsxImportSource: 'react',  // import source for automatic JSX runtime
+    providerImportSource: '@mdx-js/react',  // MDX provider for custom components
+    mdxType: 'gfm',            // 'gfm' (GitHub Flavored Markdown) | 'commonmark'
+  },
+}
+```
+
+> Requires `@next/mdx` to be installed (`pnpm add @next/mdx`). This option only affects **compilation speed** — the output is identical to the JS compiler. Use `mdxType: 'gfm'` for docs sites built from GitHub READMEs; use `'commonmark'` for stricter CommonMark compliance.
 
 ---
 
