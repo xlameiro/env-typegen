@@ -159,15 +159,16 @@ import Script from "next/script";
 
 ### Props
 
-| Prop       | Type                 | Default              | Required      | Description                                                      |
-| ---------- | -------------------- | -------------------- | ------------- | ---------------------------------------------------------------- |
-| `src`      | `string`             | —                    | ✅\*          | URL of the script (\*required unless using `children`)           |
-| `strategy` | `ScriptStrategy`     | `'afterInteractive'` | —             | When to load the script                                          |
-| `id`       | `string`             | —                    | ✅ for inline | Unique ID for inline scripts                                     |
-| `onLoad`   | `() => void`         | —                    | —             | Callback after script loads (`'use client'` required)            |
-| `onReady`  | `() => void`         | —                    | —             | Callback after load AND on every mount (`'use client'` required) |
-| `onError`  | `(e: Error) => void` | —                    | —             | Callback on load failure (`'use client'` required)               |
-| `nonce`    | `string`             | —                    | —             | CSP nonce for the script                                         |
+| Prop          | Type                 | Default              | Required      | Description                                                      |
+| ------------- | -------------------- | -------------------- | ------------- | ---------------------------------------------------------------- |
+| `src`         | `string`             | —                    | ✅\*          | URL of the script (\*required unless using `children`)           |
+| `strategy`    | `ScriptStrategy`     | `'afterInteractive'` | —             | When to load the script                                          |
+| `id`          | `string`             | —                    | ✅ for inline | Unique ID for inline scripts                                     |
+| `onLoad`      | `() => void`         | —                    | —             | Callback after script loads (`'use client'` required)            |
+| `onReady`     | `() => void`         | —                    | —             | Callback after load AND on every mount (`'use client'` required) |
+| `onError`     | `(e: Error) => void` | —                    | —             | Callback on load failure (`'use client'` required)               |
+| `nonce`       | `string`             | —                    | —             | CSP nonce for the script                                         |
+| `stylesheets` | `string[]`           | —                    | —             | Preload stylesheet URLs to inject alongside the script           |
 
 ### `ScriptStrategy` Values
 

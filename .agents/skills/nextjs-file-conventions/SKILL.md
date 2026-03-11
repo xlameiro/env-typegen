@@ -125,15 +125,17 @@ export default async function BlogPost({
 
 Same as `layout.tsx`: `metadata`, `generateMetadata`, `viewport`, `generateViewport`, plus:
 
-| Export                 | Type                                                     | Description                      |
-| ---------------------- | -------------------------------------------------------- | -------------------------------- |
-| `generateStaticParams` | `() => Promise<Params[]>`                                | Static generation at build time  |
-| `dynamic`              | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'` | Rendering mode override          |
-| `revalidate`           | `number \| false`                                        | Revalidation interval in seconds |
-| `fetchCache`           | `'auto' \| 'default-cache' \| ...`                       | Fetch caching mode               |
-| `runtime`              | `'nodejs' \| 'edge'`                                     | Runtime environment              |
-| `preferredRegion`      | `string \| string[]`                                     | Deployment region(s)             |
-| `maxDuration`          | `number`                                                 | Max execution time (seconds)     |
+| Export                 | Type                                                                                                                      | Description                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `generateStaticParams` | `() => Promise<Params[]>`                                                                                                 | Static generation at build time                                                           |
+| `dynamic`              | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'`                                                                  | Rendering mode override                                                                   |
+| `dynamicParams`        | `boolean`                                                                                                                 | `true` (default): allow dynamic params not in `generateStaticParams`; `false`: return 404 |
+| `revalidate`           | `number \| false`                                                                                                         | Revalidation interval in seconds (`false` = no ISR)                                       |
+| `fetchCache`           | `'auto' \| 'default-cache' \| 'default-no-store' \| 'force-cache' \| 'force-no-store' \| 'only-cache' \| 'only-no-store'` | Override fetch caching behaviour for all fetches in this segment                          |
+| `runtime`              | `'nodejs' \| 'edge'`                                                                                                      | Runtime environment                                                                       |
+| `preferredRegion`      | `string \| string[]`                                                                                                      | Deployment region(s)                                                                      |
+| `maxDuration`          | `number`                                                                                                                  | Max execution time in seconds                                                             |
+| `unstable_prefetch`    | `Prefetch` (internal)                                                                                                     | Fine-grained prefetch config (unstable — internal use)                                    |
 
 ---
 
@@ -300,12 +302,15 @@ export async function GET(
 
 ### Segment Config Exports
 
-| Export            | Type                                                     | Description               |
-| ----------------- | -------------------------------------------------------- | ------------------------- |
-| `dynamic`         | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'` | Caching behavior          |
-| `revalidate`      | `number \| false`                                        | ISR revalidation interval |
-| `runtime`         | `'nodejs' \| 'edge'`                                     | Runtime                   |
-| `preferredRegion` | `string \| string[]`                                     | Deployment region         |
+| Export            | Type                                                                                                                      | Description                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `dynamic`         | `'auto' \| 'force-dynamic' \| 'error' \| 'force-static'`                                                                  | Caching behaviour                                                    |
+| `dynamicParams`   | `boolean`                                                                                                                 | Allow params not in `generateStaticParams` (`true`) or 404 (`false`) |
+| `revalidate`      | `number \| false`                                                                                                         | ISR revalidation interval                                            |
+| `fetchCache`      | `'auto' \| 'default-cache' \| 'default-no-store' \| 'force-cache' \| 'force-no-store' \| 'only-cache' \| 'only-no-store'` | Fetch caching mode                                                   |
+| `runtime`         | `'nodejs' \| 'edge'`                                                                                                      | Runtime                                                              |
+| `preferredRegion` | `string \| string[]`                                                                                                      | Deployment region                                                    |
+| `maxDuration`     | `number`                                                                                                                  | Max execution time (s)                                               |
 
 ---
 

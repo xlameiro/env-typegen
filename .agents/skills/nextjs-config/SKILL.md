@@ -450,6 +450,45 @@ experimental: {
 
 ---
 
+### `experimental.taint`
+
+Enables React's experimental [Data Tainting API](https://react.dev/reference/react/experimental_taintObjectReference) — `taintObjectReference` and `taintUniqueValue` — which prevents specific objects and values from being accidentally passed to Client Components.
+
+```ts
+experimental: {
+  taint: true,
+}
+```
+
+Once enabled, import the taint functions from `"next/dist/server/app-render/rsc/taint"` (Server Components only):
+
+```ts
+import "server-only";
+import {
+  taintObjectReference,
+  taintUniqueValue,
+} from "next/dist/server/app-render/rsc/taint";
+
+// Prevent an entire object from crossing the server/client boundary
+taintObjectReference("Do not pass DB user object to client", dbUser);
+
+// Prevent a specific value from being serialized (e.g., API key, secret token)
+taintUniqueValue(
+  "Do not expose the secret token",
+  process, // lifetime — value is tainted as long as this object lives
+  process.env.SECRET_TOKEN,
+);
+```
+
+| Function               | Signature                                                                                              | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `taintObjectReference` | `(message: string \| undefined, object: object) => void`                                               | Prevents the entire object from being passed to a Client Component |
+| `taintUniqueValue`     | `(message: string \| undefined, lifetime: object, value: string \| bigint \| ArrayBufferView) => void` | Prevents a specific value from crossing the server/client boundary |
+
+> `taintUniqueValue` accepts `string`, `bigint`, or `ArrayBufferView` (e.g., `Buffer`, `Uint8Array`). The `lifetime` parameter ties the taint to the lifetime of a reference object — when that object is GC'd, the taint is lifted.
+
+---
+
 ## Logging
 
 ```ts

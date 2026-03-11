@@ -491,23 +491,23 @@ new ImageResponse(
 
 ### `ImageResponseOptions`
 
-| Option       | Type                                                            | Default     | Description                 |
-| ------------ | --------------------------------------------------------------- | ----------- | --------------------------- |
-| `width`      | `number`                                                        | `1200`      | Image width in px           |
-| `height`     | `number`                                                        | `630`       | Image height in px          |
-| `emoji`      | `'twemoji' \| 'blobmoji' \| 'noto' \| 'fluent' \| 'fluentFlat'` | `'twemoji'` | Emoji renderer              |
-| `fonts`      | `FontOptions[]`                                                 | —           | Custom fonts                |
-| `debug`      | `boolean`                                                       | `false`     | Show visual debugging       |
-| `headers`    | `Record<string, string>`                                        | —           | Additional response headers |
-| `status`     | `number`                                                        | `200`       | HTTP status code            |
-| `statusText` | `string`                                                        | —           | HTTP status text            |
+| Option       | Type                                                                          | Default     | Description                 |
+| ------------ | ----------------------------------------------------------------------------- | ----------- | --------------------------- |
+| `width`      | `number`                                                                      | `1200`      | Image width in px           |
+| `height`     | `number`                                                                      | `630`       | Image height in px          |
+| `emoji`      | `'twemoji' \| 'openmoji' \| 'blobmoji' \| 'noto' \| 'fluent' \| 'fluentFlat'` | `'twemoji'` | Emoji renderer              |
+| `fonts`      | `FontOptions[]`                                                               | —           | Custom fonts                |
+| `debug`      | `boolean`                                                                     | `false`     | Show visual debugging       |
+| `headers`    | `Record<string, string>`                                                      | —           | Additional response headers |
+| `status`     | `number`                                                                      | `200`       | HTTP status code            |
+| `statusText` | `string`                                                                      | —           | HTTP status text            |
 
 ### `FontOptions`
 
 ```ts
 type FontOptions = {
   name: string;
-  data: ArrayBuffer;
+  data: Buffer | ArrayBuffer; // both node Buffer and web ArrayBuffer accepted
   weight?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
   style?: "normal" | "italic";
   lang?: string;
@@ -577,3 +577,63 @@ export default async function Image() {
 ```
 
 > If both `tw` and `style` are set on the same element, `style` takes precedence.
+
+---
+
+## `FigmaImageResponseProps`
+
+Generates OG images directly from a **Figma template frame** — no manual JSX required. The component fetches the Figma design and populates named text layers with real data at request time.
+
+```ts
+import { ImageResponse } from "next/og";
+import type { FigmaImageResponseProps } from "next/dist/compiled/@vercel/og/types";
+```
+
+### `FigmaImageResponseProps`
+
+| Property               | Type                                              | Required | Description                                                           |
+| ---------------------- | ------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| `url`                  | `string`                                          | ✅       | Figma frame URL (right-click → "Copy link" in Figma)                  |
+| `template`             | `Record<string, string \| FigmaComplexTemplate>`  | ✅       | Layer name → replacement value map                                    |
+| `fonts`                | `FontOptions[]`                                   | —        | Override fonts (names must match Figma font names)                    |
+| `imageResponseOptions` | `Omit<ImageResponseOptions, 'width' \| 'height'>` | —        | `ImageResponseOptions` without `width`/`height` (auto-set from frame) |
+
+### `FigmaComplexTemplate`
+
+```ts
+type FigmaComplexTemplate = {
+  value: string;
+  props?: {
+    centerHorizontally?: boolean;
+  } & React.CSSProperties;
+};
+```
+
+```ts
+// app/opengraph-image.tsx — Figma-driven OG image
+import { ImageResponse } from "next/og";
+
+export const contentType = "image/png";
+
+export default async function Image({ params }: { params: { slug: string } }) {
+  const post = await getPost(params.slug);
+
+  return new ImageResponse(
+    <img />,  // placeholder — Figma template is fetched server-side
+    {
+      figma: {
+        url: "https://www.figma.com/file/QjGNQixWnhu300e1Xzdl2y/OG-Images?node-id=11356-2443",
+        template: {
+          Title: post.title,
+          Description: {
+            value: post.summary,
+            props: { centerHorizontally: true, color: "#334155" },
+          },
+        },
+      },
+    } as any
+  );
+}
+```
+
+> **Note**: Figma access requires a public Figma frame URL. `width` and `height` are automatically derived from the Figma frame dimensions.
