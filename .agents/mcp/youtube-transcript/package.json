@@ -1,0 +1,11 @@
+{
+  "name": "youtube-transcript-mcp-local",
+  "version": "1.0.0",
+  "description": "Local MCP server for YouTube transcripts using youtube-transcript-plus",
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "youtube-transcript-plus": "^1.2.0"
+  }
+}

@@ -2,6 +2,7 @@
 
 // nuqs example: URL-synced state for search and pagination.
 // All state lives in the URL — shareable, bookmarkable, SSR-compatible.
+import { Button } from "@/components/ui/button";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import { useCallback } from "react";
 
@@ -53,24 +54,26 @@ export function DashboardSearch() {
       </p>
 
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           type="button"
           onClick={() => handlePageChange(Math.max(1, page - 1))}
           disabled={page <= 1}
-          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           ← Previous
-        </button>
+        </Button>
         <span className="flex items-center px-2 text-sm text-zinc-500">
           Page {page}
         </span>
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           type="button"
           onClick={() => handlePageChange(page + 1)}
-          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-accent"
         >
           Next →
-        </button>
+        </Button>
       </div>
     </div>
   );

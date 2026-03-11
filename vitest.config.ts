@@ -7,8 +7,18 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["**/*.test.ts", "**/*.test.tsx"],
-    exclude: ["node_modules", ".next", "e2e", "tests"],
+    exclude: ["node_modules", ".agents", ".next", "e2e", "tests"],
     setupFiles: ["./vitest.setup.ts"],
+    typecheck: {
+      enabled: true,
+    },
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["app/**", "components/**", "hooks/**", "lib/**", "store/**"],
+      exclude: ["**/*.test.*", "**/*.spec.*", "**/*.d.ts"],
+      thresholds: { lines: 80 },
+    },
   },
   resolve: {
     alias: {

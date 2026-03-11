@@ -147,15 +147,15 @@ This template ships with a full Copilot configuration out of the box.
 
 ### What's included
 
-| Feature                                                           | Location                                 |
-| ----------------------------------------------------------------- | ---------------------------------------- |
-| Project-wide instructions                                         | `.github/copilot-instructions.md`        |
-| Per-technology instruction files                                  | `.github/instructions/*.instructions.md` |
-| Custom VS Code agents                                             | `.github/agents/*.agent.md`              |
-| Reusable prompt files                                             | `.github/prompts/*.prompt.md`            |
-| MCP servers (Context7, Playwright, Shadcn, Next Devtools, GitHub) | `.vscode/mcp.json`                       |
-| Skills library                                                    | `.agents/skills/`                        |
-| Lifecycle hooks                                                   | `.github/hooks/`                         |
+| Feature                                                                       | Location                                 |
+| ----------------------------------------------------------------------------- | ---------------------------------------- |
+| Project-wide instructions                                                     | `.github/copilot-instructions.md`        |
+| Per-technology instruction files                                              | `.github/instructions/*.instructions.md` |
+| Custom VS Code agents                                                         | `.github/agents/*.agent.md`              |
+| Reusable prompt files                                                         | `.github/prompts/*.prompt.md`            |
+| MCP servers (Context7, Playwright, Shadcn, Next Devtools, GitHub, Markitdown) | `.vscode/mcp.json`                       |
+| Skills library                                                                | `.agents/skills/`                        |
+| Lifecycle hooks                                                               | `.github/hooks/`                         |
 
 ### MCP Servers
 
@@ -168,6 +168,7 @@ Configured in `.vscode/mcp.json`. Active servers:
 | **Shadcn MCP**        | Add and configure shadcn/ui components                                   |
 | **Next Devtools MCP** | Next.js-specific diagnostics and upgrades                                |
 | **GitHub MCP**        | Create issues, PRs, branches, and read repo data from chat               |
+| **Markitdown MCP**    | Convert any document (PDF, Word, Excel, HTML, images) to Markdown        |
 
 ### Custom Agents
 
@@ -304,6 +305,7 @@ Run `skills list` or check `.agents/skills/` for the full catalog.
 | `playwright` | Browser automation and E2E test generation                                        |
 | `shadcn`     | Component registry access                                                         |
 | `memory`     | Cross-session persistent memory for agents                                        |
+| `markitdown` | Convert documents (PDF, Word, Excel, HTML, images) to Markdown — requires `uv`    |
 
 ### Prompts (`.github/prompts/`)
 

@@ -77,6 +77,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // OAuth provider avatar domains — required for next/image to serve external images.
+    remotePatterns: [
+      { hostname: "lh3.googleusercontent.com" },
+      { hostname: "avatars.githubusercontent.com" },
+    ],
   },
   logging: {
     fetches: {

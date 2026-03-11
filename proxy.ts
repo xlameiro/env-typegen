@@ -19,9 +19,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 
-  // Redirect unauthenticated users to sign-in
+  // Redirect unauthenticated users to sign-in, preserving the intended destination
   if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/auth/sign-in", nextUrl));
+    const signInUrl = new URL("/auth/sign-in", nextUrl);
+    signInUrl.searchParams.set("returnTo", nextUrl.pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();

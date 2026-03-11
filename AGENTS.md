@@ -144,6 +144,18 @@ This project uses TBD (branches live < 1 day). Sub-PRs are an exception — they
 - Migrating components to follow new accessibility patterns
 - Writing Playwright E2E tests for existing flows
 
+### The 3-repetition rule
+
+> If a task has been done manually 3 or more times, it is a candidate for automation with a coding agent.
+
+Before starting a repetitive task (migration, bulk rename, pattern enforcement, data transformation), ask first: "Can I describe this as an agent task?" If yes, write it as an issue and assign it to Copilot instead of doing it by hand.
+
+Examples of tasks that cross the threshold:
+
+- You have renamed 3+ components to follow a new naming convention → agent task
+- You have added the same Zod boundary check to 3+ API routes → agent task
+- You have manually run the same data migration script 3+ times → automate it
+
 ### Copilot Code Review
 
 Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.

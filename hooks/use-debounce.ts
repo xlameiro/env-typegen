@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Returns a debounced version of the callback that delays invocation
@@ -11,6 +11,16 @@ export function useDebounce<T extends (...args: unknown[]) => unknown>(
   delay: number,
 ): (...args: Parameters<T>) => void {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cancel any pending timer when the component unmounts to prevent calling
+  // stale callbacks on an already-unmounted component.
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   return useCallback(
     (...args: Parameters<T>) => {

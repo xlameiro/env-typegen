@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — ThemeProvider applies html.dark via the Zustand theme store.
+ * This @custom-variant overrides the built-in dark: variant so all dark:* utilities
+ * respond to the html.dark class instead of only @media (prefers-color-scheme: dark). */
+@custom-variant dark (&:is(html.dark, html.dark *));
+
 :root {
   /* Base */
   --background: #ffffff;
@@ -89,6 +94,31 @@
     --input: #262626;
     --ring: #d4d4d4;
   }
+}
+
+/* Manual dark override — applied when ThemeProvider adds the html.dark class.
+ * Takes precedence over @media (prefers-color-scheme: dark) via selector specificity.
+ * The @media block above serves as a pre-hydration fallback for system-dark users. */
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --card: #0a0a0a;
+  --card-foreground: #ededed;
+  --popover: #0a0a0a;
+  --popover-foreground: #ededed;
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #262626;
+  --input: #262626;
+  --ring: #d4d4d4;
 }
 
 body {

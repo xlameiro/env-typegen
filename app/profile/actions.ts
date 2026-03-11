@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAuth } from "@/lib/auth";
 import { updateUserSchema } from "@/lib/schemas/user.schema";
 import type { z } from "zod";
 
@@ -15,6 +16,8 @@ export async function updateProfileAction(
   _prevState: ActionResult,
   data: UpdateUserInput,
 ): Promise<ActionResult> {
+  await requireAuth();
+
   const parsed = updateUserSchema.safeParse(data);
 
   if (!parsed.success) {

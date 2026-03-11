@@ -1,6 +1,6 @@
 import { SkipLink } from "@/components/skip-link";
 import { ThemeProvider } from "@/components/theme-provider";
-import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
+import { APP_DESCRIPTION, APP_NAME, SITE_URL } from "@/lib/constants";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -22,9 +22,7 @@ export const metadata: Metadata = {
     default: APP_NAME,
   },
   description: APP_DESCRIPTION,
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     title: APP_NAME,
     description: APP_DESCRIPTION,

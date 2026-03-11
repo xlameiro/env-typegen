@@ -37,12 +37,22 @@
       "args": ["-y", "next-devtools-mcp"],
       "type": "stdio"
     },
+    "microsoft/markitdown-mcp": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["markitdown-mcp"]
+    },
     "io.github.github/github-mcp-server": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
         "Authorization": "${input:Authorization}"
       }
+    },
+    "youtube-transcript": {
+      "command": "sh",
+      "args": [".agents/mcp/youtube-transcript/start.sh"],
+      "type": "stdio"
     }
   }
 }

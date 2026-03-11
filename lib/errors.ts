@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 /**
  * Base application error.
  * Extend this for all domain-specific errors.
@@ -54,9 +56,9 @@ export class NotFoundError extends AppError {
  * Maps to HTTP 422.
  */
 export class ValidationError extends AppError {
-  readonly issues: unknown[];
+  readonly issues: z.core.$ZodIssue[];
 
-  constructor(message = "Invalid input data", issues: unknown[] = []) {
+  constructor(message = "Invalid input data", issues: z.core.$ZodIssue[] = []) {
     super(message, "VALIDATION_ERROR", 422);
     this.name = "ValidationError";
     this.issues = issues;

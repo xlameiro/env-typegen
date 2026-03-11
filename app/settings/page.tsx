@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 import type { Metadata } from "next";
+import { ThemeToggle } from "./theme-toggle";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -26,10 +27,10 @@ export default async function SettingsPage() {
         </p>
       </header>
 
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-6 py-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Settings content goes here.
-        </p>
+      <div className="space-y-6">
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-6 py-8 dark:border-zinc-800 dark:bg-zinc-900">
+          <ThemeToggle />
+        </div>
       </div>
     </main>
   );

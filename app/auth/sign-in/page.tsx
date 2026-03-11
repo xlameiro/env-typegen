@@ -7,7 +7,21 @@ export const metadata: Metadata = {
   title: "Sign In",
 };
 
-export default function SignInPage() {
+// Only allow relative paths to prevent open redirect attacks (OWASP A01).
+function sanitizeReturnTo(url: string | undefined): string {
+  if (!url || !url.startsWith("/") || url.startsWith("//")) {
+    return ROUTES.dashboard;
+  }
+  return url;
+}
+
+export default async function SignInPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ returnTo?: string }>;
+}>) {
+  const { returnTo } = await searchParams;
+  const redirectTo = sanitizeReturnTo(returnTo);
   return (
     <main
       id="maincontent"
@@ -29,7 +43,7 @@ export default function SignInPage() {
           <form
             action={async () => {
               "use server";
-              await signIn("google", { redirectTo: ROUTES.dashboard });
+              await signIn("google", { redirectTo });
             }}
           >
             <button

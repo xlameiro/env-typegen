@@ -222,6 +222,15 @@ const eslintConfig = defineConfig([
       // Prefer .at() over [array.length - index] (S7755)
       "unicorn/prefer-at": "error",
 
+      // Prefer for...of over for(let i=0; ...) indexed loops
+      "unicorn/no-for-loop": "error",
+
+      // Prefer .includes() over .indexOf() !== -1
+      "unicorn/prefer-includes": "error",
+
+      // Prefer .slice() over .substring() / .substr()
+      "unicorn/prefer-string-slice": "error",
+
       // Prefer globalThis over window (S7764)
       // Note: Already covered by no-restricted-globals above
 
