@@ -502,6 +502,174 @@ taintUniqueValue(
 
 ---
 
+### `experimental.mcpServer` (Next.js 16.1)
+
+Enables a built-in **Model Context Protocol** endpoint at `/_next/mcp` during `next dev`. AI clients (VS Code Copilot, Claude Desktop, Cursor) can connect to it and inspect the running application.
+
+```ts
+experimental: {
+  mcpServer: true,
+  // MCP endpoint available at http://localhost:3000/_next/mcp during `next dev`
+}
+```
+
+> Enabled automatically in Next.js 16.1+ dev mode. Register the endpoint in `.vscode/mcp.json` for local VS Code Copilot discovery.
+
+---
+
+### `experimental.rootParams` (Next.js 16)
+
+Enables the `next/root-params` module, which exposes root layout `params` to deeply nested Server Components without prop-drilling.
+
+```ts
+experimental: {
+  rootParams: true,
+}
+```
+
+```ts
+// lib/root-params.ts — server-only
+import { unstable_rootParams } from "next/root-params";
+
+export async function getRootParams() {
+  return unstable_rootParams(); // returns root layout params (e.g., { lang: 'en' })
+}
+```
+
+> Useful for i18n layouts where `[lang]` is the root segment and many nested components need the locale without receiving it as a prop.
+
+---
+
+### `experimental.proxyTimeout`, `experimental.proxyClientMaxBodySize`, `experimental.proxyPrefetch`
+
+Configures behaviour of `proxy.ts` (the Next.js 16 replacement for `middleware.ts`).
+
+```ts
+experimental: {
+  proxyTimeout: 30,                  // Request timeout in seconds (default: 30)
+  proxyClientMaxBodySize: "4mb",     // Max incoming body size; same SizeLimit type as bodyParser
+  proxyPrefetch: "flexible",         // 'strict' | 'flexible' — prefetch strategy for proxied routes
+}
+```
+
+| Option                   | Type                           | Default      | Description                                               |
+| ------------------------ | ------------------------------ | ------------ | --------------------------------------------------------- |
+| `proxyTimeout`           | `number`                       | `30`         | Seconds before a proxied request times out                |
+| `proxyClientMaxBodySize` | `SizeLimit` (`number\|string`) | `"4mb"`      | Max body size for requests handled by `proxy.ts`          |
+| `proxyPrefetch`          | `'strict' \| 'flexible'`       | `'flexible'` | Controls which links trigger proxy evaluation on prefetch |
+
+> `'strict'` only invokes proxy logic on full navigation; `'flexible'` also evaluates it during link prefetches. Use `'strict'` to reduce proxy overhead when auth guards are not needed during prefetch.
+
+---
+
+### `experimental.allowedRevalidateHeaderKeys`
+
+Specifies which request headers are included in the cache key for `fetch()` calls with `next.revalidate`. By default, `authorization` and `cookie` are included. Override to restrict or extend this set.
+
+```ts
+experimental: {
+  allowedRevalidateHeaderKeys: ["x-tenant-id", "x-region"],
+}
+```
+
+> Only headers listed here (beyond the two built-in ones) will vary the cache entry. Adding `x-tenant-id` creates per-tenant caches for multi-tenant apps.
+
+---
+
+### `experimental.cssChunking`
+
+Controls how CSS is chunked in the production bundle.
+
+```ts
+experimental: {
+  cssChunking: true,       // default — CSS is chunked per route segment
+  // cssChunking: 'strict', // stricter deduplication; may break style order in some apps
+  // cssChunking: false,   // all CSS in a single bundle (increases initial load)
+}
+```
+
+> `'strict'` mode applies more aggressive deduplication but can occasionally alter CSS cascade order. Only enable after testing for visual regressions.
+
+---
+
+### `experimental.nextScriptWorkers`
+
+Enables the `strategy="worker"` option in `<Script>` (powered by [Partytown](https://partytown.builder.io/)) to run third-party scripts in a Web Worker instead of the main thread.
+
+```ts
+experimental: {
+  nextScriptWorkers: true,
+}
+```
+
+```tsx
+import Script from "next/script";
+<Script src="https://analytics.example.com/script.js" strategy="worker" />;
+```
+
+> Requires installing `@builder.io/partytown` separately. Best for analytics or ad scripts that do not need synchronous DOM access.
+
+---
+
+### `experimental.parallelServerCompiles` / `experimental.parallelServerBuildTraces`
+
+Speeds up `next build` by compiling server routes in parallel and building trace files concurrently.
+
+```ts
+experimental: {
+  parallelServerCompiles: true,       // compile server route bundles in parallel
+  parallelServerBuildTraces: true,    // parallelize build trace generation
+}
+```
+
+> Both default to `false`. Enable for large apps where `next build` time is dominated by server-side compilation. Server component count and route count determine the speedup; apps with <20 routes see minimal benefit.
+
+---
+
+### `experimental.prerenderEarlyExit`
+
+Enables an optimization that exits prerendering as soon as a dynamic boundary is detected, reducing wasted work during build time.
+
+```ts
+experimental: {
+  prerenderEarlyExit: true,
+}
+```
+
+> Particularly useful with PPR (`experimental.ppr`) — Next.js can abort prerendering a static shell the moment it encounters a dynamic API call, rather than waiting for the component tree to fully render.
+
+---
+
+### `experimental.scrollRestoration`
+
+Restores the previous scroll position when navigating back/forward in the browser history.
+
+```ts
+experimental: {
+  scrollRestoration: true,
+}
+```
+
+> Uses the History API to save and restore `window.scrollY` on navigation. Without this, Next.js resets scroll to the top on every navigation.
+
+---
+
+### `experimental.optimizeCss`
+
+Enables CSS optimization during `next build` using [Critters](https://github.com/GoogleChromeLabs/critters) to inline critical CSS and defer non-critical stylesheets.
+
+```ts
+experimental: {
+  optimizeCss: true,
+  // or pass Critters options:
+  // optimizeCss: { preload: 'media', pruneSource: false },
+}
+```
+
+> Reduces render-blocking CSS by inlining only the styles required for the initial viewport. Can significantly improve LCP and FCP scores. Requires `critters` to be installed: `pnpm add -D critters`.
+
+---
+
 ## Logging
 
 ```ts

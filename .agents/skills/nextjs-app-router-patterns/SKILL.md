@@ -696,6 +696,62 @@ export function BackButton() {
 - **Don't call your own Route Handlers from Server Components** - Extract shared logic into `lib/` modules
 - **Don't use `unstable_cache` for new code** - Use `use cache` directive instead
 
+## `useReportWebVitals()` — Web Performance Measurement
+
+Sends Core Web Vitals metrics to your analytics endpoint. Must be used in a **Client Component**.
+
+```ts
+import { useReportWebVitals } from "next/web-vitals";
+
+type Metric = {
+  id: string;
+  name: "TTFB" | "FCP" | "LCP" | "FID" | "CLS" | "INP" | string;
+  value: number;
+  delta: number;
+  rating: "good" | "needs-improvement" | "poor";
+  entries: PerformanceEntry[];
+  navigationType:
+    | "navigate"
+    | "reload"
+    | "back-forward"
+    | "back-forward-cache"
+    | "prerender";
+};
+
+function useReportWebVitals(reportFn: (metric: Metric) => void): void;
+```
+
+Place in the root `layout.tsx` via a thin Client Component wrapper:
+
+```tsx
+// app/web-vitals.tsx — 'use client' wrapper
+"use client";
+import { useReportWebVitals } from "next/web-vitals";
+
+export function WebVitals() {
+  useReportWebVitals((metric) => {
+    // Send to analytics — e.g. console, Datadog, Vercel Analytics
+    console.log(metric.name, metric.value, metric.rating);
+  });
+  return null;
+}
+
+// app/layout.tsx
+import { WebVitals } from "./web-vitals";
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <WebVitals />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+> **Note**: `useReportWebVitals` is a thin wrapper over the [web-vitals](https://github.com/GoogleChrome/web-vitals) library bundled with Next.js. Prefer Vercel Speed Insights (`@vercel/speed-insights`) or Datadog RUM for production — they handle batching and sampling automatically.
+
 ## Resources
 
 - [Next.js 16 App Router Documentation](https://nextjs.org/docs/app)
