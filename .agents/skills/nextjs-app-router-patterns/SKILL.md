@@ -259,6 +259,91 @@ export async function checkout(formData: FormData) {
 }
 ```
 
+### Pattern 3b: Server Actions + React 19 Hooks
+
+Use `useActionState`, `useFormStatus`, and `useOptimistic` to connect Server Actions to the UI with built-in pending/error states.
+
+**`useActionState` — bind action state to a form**:
+
+```tsx
+"use client";
+import { useActionState } from "react";
+import { addToCart } from "@/app/actions/cart";
+
+type ActionState = { success?: boolean; error?: string };
+
+export function AddToCartButton({ productId }: { productId: string }) {
+  const [state, formAction, isPending] = useActionState<ActionState, FormData>(
+    addToCart.bind(null, productId),
+    { success: false },
+  );
+
+  return (
+    <form action={formAction}>
+      <button type="submit" disabled={isPending}>
+        {isPending ? "Adding…" : "Add to Cart"}
+      </button>
+      {state.error && <p className="text-red-500">{state.error}</p>}
+      {state.success && <p className="text-green-500">Added!</p>}
+    </form>
+  );
+}
+```
+
+**`useFormStatus` — read pending state inside a form child**:
+
+```tsx
+"use client";
+import { useFormStatus } from "react-dom";
+
+// Must be a component rendered INSIDE a <form> — not the form component itself
+export function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} aria-busy={pending}>
+      {pending ? "Submitting…" : label}
+    </button>
+  );
+}
+```
+
+**`useOptimistic` — instantly update UI before Server Action resolves**:
+
+```tsx
+"use client";
+import { useOptimistic, useTransition } from "react";
+import { toggleLike } from "@/app/actions/likes";
+
+export function LikeButton({
+  postId,
+  initialLiked,
+}: {
+  postId: string;
+  initialLiked: boolean;
+}) {
+  const [optimisticLiked, addOptimistic] = useOptimistic(
+    initialLiked,
+    (_currentState: boolean, optimisticValue: boolean) => optimisticValue,
+  );
+  const [_isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      onClick={() => {
+        startTransition(async () => {
+          addOptimistic(!optimisticLiked); // instant UI update
+          await toggleLike(postId); // actual server mutation
+        });
+      }}
+    >
+      {optimisticLiked ? "❤️" : "🤍"}
+    </button>
+  );
+}
+```
+
+> `useActionState` is the primary hook for form-based Server Actions. `useFormStatus` reads pending state from a parent `<form>` — it must be in a child component, not the form component itself. `useOptimistic` is best for toggle/increment mutations where the optimistic result is predictable.
+
 ### Pattern 4: Parallel Routes
 
 ```typescript
