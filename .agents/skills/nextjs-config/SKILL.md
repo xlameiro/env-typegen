@@ -1644,6 +1644,124 @@ experimental: {
 
 ---
 
+### `experimental.esmExternals`
+
+Control how `serverExternalPackages` are treated as ES modules.
+
+```ts
+experimental: {
+  esmExternals: true,      // treat externals as ESM (default: true in Next.js 13+)
+  esmExternals: 'loose',   // loose mode — skip strict ESM compliance checks
+  esmExternals: false,     // legacy CommonJS behavior (Next.js 12 and earlier)
+}
+```
+
+> `true` (default) correctly handles packages that ship dual CJS/ESM builds. Use `'loose'` only as a migration escape hatch if a package fails ESM resolution checks. `false` reverts to the old CJS-only behavior and is only needed for very old packages.
+
+---
+
+### `experimental.useLightningcss`
+
+Use [Lightning CSS](https://lightningcss.dev/) instead of PostCSS for CSS processing.
+
+```ts
+experimental: {
+  useLightningcss: true,  // default: false
+}
+```
+
+> Lightning CSS is written in Rust and is significantly faster than the PostCSS pipeline. It handles vendor prefixing, nesting, and modern CSS features natively. When enabled, custom PostCSS plugins (`postcss.config.js`) are still processed per-file but Lightning CSS handles the initial parse and transform pass.
+
+---
+
+### `experimental.serverMinification`
+
+Minify the **server-side** production bundle (server components, Route Handlers, API routes).
+
+```ts
+experimental: {
+  serverMinification: true,   // default: true in stable builds
+}
+```
+
+> Server bundle minification reduces `.next/server` directory size and improves cold-start times in serverless environments. It is enabled by default; set `false` to disable if minification causes runtime errors with a specific package (rare but possible with obfuscation-sensitive code).
+
+---
+
+### `experimental.serverSourceMaps`
+
+Enable source maps for the **server** production bundle.
+
+```ts
+experimental: {
+  serverSourceMaps: true,   // default: false
+}
+```
+
+> Source maps are off by default for the server bundle to keep production cold-start sizes minimal. Enable when debugging production server errors — the source maps will map `.next/server/**/*.js` stack traces back to your TypeScript source. For client-side source maps in production see `productionBrowserSourceMaps`.
+
+---
+
+### `experimental.webpackBuildWorker` / `webpackMemoryOptimizations`
+
+Control webpack worker isolation and memory behavior during `next build`.
+
+```ts
+experimental: {
+  // Run webpack in a separate worker process (default: auto when no custom webpack config)
+  webpackBuildWorker: true,
+
+  // Reduce webpack heap size (slower compile, lower peak memory — useful on CI)
+  webpackMemoryOptimizations: false,  // default: false
+}
+```
+
+> `webpackBuildWorker: true` isolates webpack into its own process — required for `parallelServerCompiles` and `parallelServerBuildTraces` to function. `webpackMemoryOptimizations` is useful on memory-constrained CI runners (< 8 GB RAM) where build OOM errors occur.
+
+---
+
+### `experimental.forceSwcTransforms`
+
+Force SWC transforms to run even when a Babel configuration file is present.
+
+```ts
+experimental: {
+  forceSwcTransforms: true,  // default: false
+}
+```
+
+> By default, Next.js uses Babel when a `.babelrc` or `babel.config.js` is detected, falling back to SWC only when no Babel config exists. Setting `forceSwcTransforms: true` bypasses this heuristic and always uses SWC — useful when migrating away from a Babel config gradually. Incompatible with Babel-only plugins (e.g., `babel-plugin-macros`).
+
+---
+
+### `experimental.swcTraceProfiling`
+
+Enable SWC compiler trace output for profiling compilation performance.
+
+```ts
+experimental: {
+  swcTraceProfiling: true,  // default: false — emits .ndjson trace files to .next/
+}
+```
+
+> When enabled, SWC writes `.ndjson` trace files to the `.next/` directory that can be loaded into Chrome's Tracing viewer (`chrome://tracing`) or [Perfetto](https://ui.perfetto.dev/) to identify which files are taking longest to compile. Only useful for diagnosing slow builds.
+
+---
+
+### `experimental.urlImports`
+
+Allow importing modules directly from URLs (HTTP imports) — equivalent to webpack's `experiments.buildHttp`.
+
+```ts
+experimental: {
+  urlImports: ['https://cdn.skypack.dev', 'https://esm.sh'],
+}
+```
+
+> Enables `import React from 'https://esm.sh/react'` style imports. A `next.lock` file is generated on first import to pin the resolved module. **Not recommended for production** — downloaded modules are not verified for integrity at runtime. Prefer bundling dependencies via `node_modules`.
+
+---
+
 ## Cache & Server Config
 
 Top-level options for ISR cache backends, output tracing, DX tools, and HTTP behavior.
