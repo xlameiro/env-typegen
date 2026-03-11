@@ -512,12 +512,27 @@ export default async function Image() {
 
 ### JSX Limitations in `ImageResponse`
 
-| Supported                   | Not Supported                  |
-| --------------------------- | ------------------------------ |
-| Flexbox layout              | CSS Grid                       |
-| `display: flex`             | `display: block` (limited)     |
-| Absolute positioning        | `overflow: hidden` on non-root |
-| Linear/radial gradients     | All CSS animations             |
-| `background-image` with URL | External CSS files             |
-| Inline styles               | `className` / Tailwind         |
-| SVG (inline)                | Most CSS pseudo-selectors      |
+| Supported                          | Not Supported                  |
+| ---------------------------------- | ------------------------------ |
+| Flexbox layout                     | CSS Grid                       |
+| `display: flex`                    | `display: block` (limited)     |
+| Absolute positioning               | `overflow: hidden` on non-root |
+| Linear/radial gradients            | All CSS animations             |
+| `background-image` with URL        | External CSS files             |
+| Inline styles                      | `className`                    |
+| SVG (inline)                       | Most CSS pseudo-selectors      |
+| `tw` prop (Tailwind, experimental) | —                              |
+
+**`tw` prop** — `@vercel/og` augments `React.HTMLAttributes` with an experimental `tw?: string` prop that accepts Tailwind CSS utility classes as a layout shorthand inside `ImageResponse` JSX. It is distinct from `className` (which is not supported):
+
+```tsx
+// ✅ Tailwind via tw prop (experimental)
+<div tw="flex w-full h-full items-center justify-center bg-blue-200">
+  <span tw="text-6xl font-bold text-white">Hello world</span>
+</div>
+
+// ❌ className does not work inside ImageResponse
+<div className="flex w-full h-full">…</div>
+```
+
+> If both `tw` and `style` are set on the same element, `style` takes precedence.

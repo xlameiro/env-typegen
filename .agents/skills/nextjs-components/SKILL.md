@@ -104,18 +104,19 @@ import Link from "next/link";
 
 ### Props
 
-| Prop             | Type                           | Default | Description                                         |
-| ---------------- | ------------------------------ | ------- | --------------------------------------------------- |
-| `href`           | `string \| UrlObject`          | —       | ✅ Destination path or URL object                   |
-| `as`             | `string \| UrlObject`          | —       | Optional URL alias for dynamic routes               |
-| `replace`        | `boolean`                      | `false` | Replace history entry instead of push               |
-| `scroll`         | `boolean`                      | `true`  | Scroll to top on navigation                         |
-| `prefetch`       | `boolean \| null`              | `null`  | `null`=auto, `true`=always, `false`=never           |
-| `legacyBehavior` | `boolean`                      | `false` | Deprecated: v12 behavior requiring `<a>` child      |
-| `passHref`       | `boolean`                      | `false` | Force `href` on custom child component              |
-| `shallow`        | —                              | —       | **Pages Router only** — not supported in App Router |
-| `locale`         | `string \| false`              | —       | **Pages Router i18n only** — locale prefix          |
-| `ref`            | `React.Ref<HTMLAnchorElement>` | —       | Forward ref to underlying `<a>` element             |
+| Prop             | Type                                          | Default | Description                                                            |
+| ---------------- | --------------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `href`           | `string \| UrlObject`                         | —       | ✅ Destination path or URL object                                      |
+| `as`             | `string \| UrlObject`                         | —       | Optional URL alias for dynamic routes                                  |
+| `replace`        | `boolean`                                     | `false` | Replace history entry instead of push                                  |
+| `scroll`         | `boolean`                                     | `true`  | Scroll to top on navigation                                            |
+| `prefetch`       | `boolean \| 'auto' \| null`                   | `null`  | `null`/`'auto'`=smart, `true`=always, `false`=never                    |
+| `legacyBehavior` | `boolean`                                     | `false` | Deprecated: v12 behavior requiring `<a>` child                         |
+| `passHref`       | `boolean`                                     | `false` | Force `href` on custom child component                                 |
+| `onNavigate`     | `(event: { preventDefault(): void }) => void` | —       | Called when navigation starts; call `event.preventDefault()` to cancel |
+| `shallow`        | —                                             | —       | **Pages Router only** — not supported in App Router                    |
+| `locale`         | `string \| false`                             | —       | **Pages Router i18n only** — locale prefix                             |
+| `ref`            | `React.Ref<HTMLAnchorElement>`                | —       | Forward ref to underlying `<a>` element                                |
 
 ### Examples
 
@@ -134,6 +135,16 @@ import Link from "next/link";
 
 // Disable prefetch
 <Link href="/heavy-page" prefetch={false}>Heavy page</Link>
+
+// Smart prefetch (explicit) — same as null default
+<Link href="/dashboard" prefetch="auto">Dashboard</Link>
+
+// Intercept navigation (e.g. to show a confirm dialog)
+<Link href="/danger" onNavigate={(e) => {
+  if (!confirm('Leave?')) e.preventDefault();
+}}>
+  Danger zone
+</Link>
 ```
 
 ---
