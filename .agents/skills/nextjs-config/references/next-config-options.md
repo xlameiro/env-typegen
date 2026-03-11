@@ -557,7 +557,7 @@ const config: NextConfig = {
   },
 
   // Rendering
-  reactStrictMode: false,
+  reactStrictMode: true, // default for App Router (enabled by default since v13.5.1; set false to disable)
 
   // Caching (Next.js 16)
   cacheComponents: false,
