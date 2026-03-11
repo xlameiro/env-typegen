@@ -620,3 +620,18 @@ import { ImageResponse } from "next/og";
 ```
 
 > Use `ImageResponse` inside `opengraph-image.tsx` / `twitter-image.tsx` route files or inside an `app/api/og/route.ts` Route Handler. See `nextjs-metadata-functions` skill for full constructor options.
+
+---
+
+## `after()` and `connection()` — Re-exports from `next/server`
+
+Both `after` and `connection` are also accessible via `next/server` (convenience re-exports):
+
+```ts
+import { after, connection } from "next/server";
+```
+
+Full documentation for both functions lives in the **nextjs-data-cache-functions** skill:
+
+- `after()` — run non-blocking work after the response streams (Node.js runtime only)
+- `connection()` — opt out of static rendering; signals the route requires a live connection
