@@ -92,6 +92,42 @@ images: {
 }
 ```
 
+### `getImageProps()` — Advanced Use
+
+Returns the raw `<img>` props (including `srcSet`, `sizes`, `style`, `src`) resolved by the Next.js image optimizer. Use when you need more control than `<Image>` provides — art-directed `<picture>`, passing `srcSet` to a `<canvas>`, or using optimized images in CSS `background-image`.
+
+```ts
+import { getImageProps } from "next/image";
+
+// Art direction: different crops for mobile vs desktop
+const { props: desktopProps } = getImageProps({
+  src: "/hero.jpg",
+  alt: "Hero",
+  width: 1200,
+  height: 630,
+  quality: 80,
+});
+const { props: mobileProps } = getImageProps({
+  src: "/hero-mobile.jpg",
+  alt: "Hero",
+  width: 768,
+  height: 480,
+  quality: 70,
+});
+
+export function HeroImage() {
+  return (
+    <picture>
+      <source media="(min-width: 768px)" {...desktopProps} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img {...mobileProps} />
+    </picture>
+  );
+}
+```
+
+> Returns `{ props: ImgProps }` where `ImgProps` extends `ImageProps` with resolved `loading`, `width`, `height`, `style`, and `sizes` fields. Passes the same params as `<Image>` props.
+
 ---
 
 ## `<Link>` — `next/link`
