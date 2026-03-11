@@ -365,6 +365,73 @@ export async function GET(
 | `maxDuration`       | `number`                                                                                                                                                                | Max execution time (s)                                                                    |
 | `unstable_prefetch` | `{ mode: 'static'; from?: string[]; expectUnableToVerify?: boolean } \| { mode: 'runtime'; samples: RuntimeSample[]; from?: string[]; expectUnableToVerify?: boolean }` | ⚠️ Unstable — prefetch hint: `'static'` = build-time, `'runtime'` = request-time sampling |
 
+### CORS — Cross-Origin Resource Sharing
+
+Handle preflight and CORS responses entirely in a Route Handler (no `next.config.ts` headers needed for dynamic origins):
+
+```ts
+// app/api/data/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+const ALLOWED_ORIGINS = ["https://my-app.com", "https://staging.my-app.com"];
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  const allowed = ALLOWED_ORIGINS.includes(origin ?? "")
+    ? origin!
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+}
+
+// Handle preflight
+export function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return new NextResponse(null, { status: 204, headers: corsHeaders(origin) });
+}
+
+export async function GET(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  const data = await fetchData();
+  return NextResponse.json(data, { headers: corsHeaders(origin) });
+}
+```
+
+> For **static** CORS (same headers on every route), prefer `headers()` in `next.config.ts` — it's applied at the CDN layer without touching Route Handler code.
+
+### Streaming Responses (SSE)
+
+Return a `ReadableStream` for Server-Sent Events or chunked transfer:
+
+```ts
+// app/api/stream/route.ts
+export async function GET() {
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      for (let i = 0; i < 5; i++) {
+        controller.enqueue(encoder.encode(`data: chunk ${i}\n\n`));
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+```
+
+> **Streaming requires Node.js runtime** (the default). Edge runtime streams are supported but limited to 4 MB body size on Vercel.
+
 ---
 
 ## `template.tsx`
