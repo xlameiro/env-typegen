@@ -256,11 +256,14 @@ export async function onRequestError(
   },
   context: {
     routerKind: "App Router" | "Pages Router";
-    routeType: "render" | "route" | "action" | "proxy";
     routePath: string; // e.g., '/dashboard/[id]'
-    renderSource?: string; // e.g., 'react-server-components'
-    renderType?: string; // e.g., 'dynamic'
-    revalidateReason?: "on-demand" | "stale";
+    routeType: "render" | "route" | "action" | "proxy";
+    renderSource:
+      | "react-server-components"
+      | "react-server-components-payload"
+      | "server-rendering";
+    revalidateReason: "on-demand" | "stale" | undefined;
+    renderType: "dynamic" | "dynamic-resume";
   },
 ): Promise<void> {
   await reportError({ error, path: request.path });
