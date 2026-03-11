@@ -2,9 +2,10 @@
 
 // nuqs example: URL-synced state for search and pagination.
 // All state lives in the URL — shareable, bookmarkable, SSR-compatible.
+import { FormInput } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useCallback } from "react";
+import { useCallback, type ChangeEvent } from "react";
 
 const searchParsers = {
   q: parseAsString.withDefault(""),
@@ -18,7 +19,7 @@ export function DashboardSearch() {
   });
 
   const handleSearch = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       setSearch({ q: event.target.value, page: 1 });
     },
     [setSearch],
@@ -32,22 +33,21 @@ export function DashboardSearch() {
   );
 
   return (
-    <div className="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="space-y-4 rounded-lg border border-border bg-card p-6">
       <div>
         <label htmlFor="dashboard-search" className="sr-only">
           Search
         </label>
-        <input
+        <FormInput
           id="dashboard-search"
           type="search"
           value={q}
           onChange={handleSearch}
           placeholder="Search…"
-          className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
       </div>
 
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="text-sm text-muted-foreground">
         {q
           ? `Showing results for "${q}" (page ${page})`
           : "Type to search. State is stored in the URL — try refreshing."}
@@ -63,7 +63,7 @@ export function DashboardSearch() {
         >
           ← Previous
         </Button>
-        <span className="flex items-center px-2 text-sm text-zinc-500">
+        <span className="flex items-center px-2 text-sm text-muted-foreground">
           Page {page}
         </span>
         <Button

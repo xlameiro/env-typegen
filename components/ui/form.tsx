@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import type { FieldError } from "react-hook-form";
 
 // ──────────────────────────────────────────
@@ -12,7 +13,7 @@ type FormFieldProps = Readonly<{
   htmlFor: string;
   error?: FieldError;
   required?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }>;
 
 export function FormField({
@@ -42,7 +43,7 @@ export function FormField({
 // FormInput — accessible input with error state
 // ──────────────────────────────────────────
 
-type FormInputProps = React.InputHTMLAttributes<HTMLInputElement> &
+type FormInputProps = InputHTMLAttributes<HTMLInputElement> &
   Readonly<{
     hasError?: boolean;
     errorId?: string;
@@ -110,8 +111,8 @@ export function FormMessage({ type = "info", message }: FormMessageProps) {
 
   return (
     <div
-      role="status"
-      aria-live="polite"
+      role={type === "error" ? "alert" : "status"}
+      aria-live={type === "error" ? "assertive" : "polite"}
       className={cn("rounded-md border px-4 py-3 text-sm", styles[type])}
     >
       {message}

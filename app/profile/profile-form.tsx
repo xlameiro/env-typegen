@@ -35,9 +35,6 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
   // Bridge RHF validation → Server Action: RHF validates client-side first,
   // then dispatches the validated data to the Server Action via formAction.
   function handleFormSubmit(data: ProfileFormValues) {
-    const fd = new FormData();
-    if (data.name) fd.append("name", data.name);
-    if (data.email) fd.append("email", data.email);
     formAction({ name: data.name, email: data.email });
   }
 
@@ -49,7 +46,7 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
         void handleSubmit(handleFormSubmit)(event);
       }}
       noValidate
-      className="space-y-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900"
+      className="space-y-6 rounded-lg border border-border bg-background p-6"
     >
       <FormField label="Name" htmlFor="name" error={errors.name} required>
         <FormInput

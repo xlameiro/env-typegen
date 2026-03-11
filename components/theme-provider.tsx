@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppStore } from "@/store/use-app-store";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 /**
  * Reads the persisted `theme` from the Zustand store and applies
@@ -12,7 +12,7 @@ import { useEffect } from "react";
  */
 export function ThemeProvider({
   children,
-}: Readonly<{ children: React.ReactNode }>): React.ReactNode {
+}: Readonly<{ children: ReactNode }>): ReactNode {
   const theme = useAppStore((state) => state.theme);
 
   useEffect(() => {

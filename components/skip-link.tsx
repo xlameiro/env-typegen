@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, type MouseEvent } from "react";
 
 /**
  * Skip link that programmatically focuses the main content landmark.
@@ -8,8 +8,8 @@ import { useCallback } from "react";
  * WebKit/Safari which does not move focus to hash-link targets by default.
  */
 export function SkipLink() {
-  const handleClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
+  const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
     const main = document.querySelector<HTMLElement>("#maincontent");
     main?.focus();
   }, []);

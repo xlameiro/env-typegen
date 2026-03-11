@@ -160,12 +160,12 @@ import Script from "next/script";
 
 ### `ScriptStrategy` Values
 
-| Value                 | When it Loads                            | Use Case                                                                                                                         |
-| --------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `'beforeInteractive'` | Before any Next.js code; blocks page     | Critical scripts (polyfills, bot detectors)                                                                                      |
-| `'afterInteractive'`  | After page becomes interactive (default) | Tag managers, analytics                                                                                                          |
-| `'lazyOnload'`        | During idle time                         | Chat widgets, low-priority scripts                                                                                               |
-| `'worker'`            | In a Web Worker                          | CPU-intensive third-party scripts. Requires `@builder.io/partytown` + `experimental.nextScriptWorkers: true` in `next.config.ts` |
+| Value                 | When it Loads                            | Use Case                                                                                                                                                                                             |
+| --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'beforeInteractive'` | Before any Next.js code; blocks page     | Critical scripts (polyfills, bot detectors)                                                                                                                                                          |
+| `'afterInteractive'`  | After page becomes interactive (default) | Tag managers, analytics                                                                                                                                                                              |
+| `'lazyOnload'`        | During idle time                         | Chat widgets, low-priority scripts                                                                                                                                                                   |
+| `'worker'`            | In a Web Worker                          | ⚠️ **App Router NOT supported** — only works in `pages/` directory. CPU-intensive third-party scripts. Requires `@builder.io/partytown` + `experimental.nextScriptWorkers: true` in `next.config.ts` |
 
 ### Examples
 

@@ -19,14 +19,14 @@ export default async function DashboardPage() {
       tabIndex={-1}
     >
       <header className="mb-8">
-        <p className="mb-1 text-sm font-medium tracking-widest text-zinc-400 uppercase">
+        <p className="mb-1 text-sm font-medium tracking-widest text-muted-foreground uppercase">
           Dashboard
         </p>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Welcome back
           {session.user?.name ? `, ${session.user.name}` : ""}
         </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-muted-foreground">
           This is your dashboard. Build it out to suit your application.
         </p>
       </header>

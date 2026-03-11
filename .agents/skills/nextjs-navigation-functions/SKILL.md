@@ -22,37 +22,37 @@ description: >
 Redirects to another URL. Throws `NEXT_REDIRECT` error internally — **do not call inside `try/catch`**.
 
 ```ts
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function redirect(url: string, type?: RedirectType): never
+function redirect(url: string, type?: RedirectType): never;
 ```
 
 #### Parameters
 
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `url` | `string` | — | ✅ Absolute URL or relative path |
+| Param  | Type           | Default           | Description                                       |
+| ------ | -------------- | ----------------- | ------------------------------------------------- |
+| `url`  | `string`       | —                 | ✅ Absolute URL or relative path                  |
 | `type` | `RedirectType` | Context-dependent | `'push'` in Server Actions, `'replace'` elsewhere |
 
 #### `RedirectType` enum
 
 ```ts
-import { redirect, RedirectType } from 'next/navigation'
+import { redirect, RedirectType } from "next/navigation";
 
-redirect('/login', RedirectType.replace)  // replace history entry
-redirect('/dashboard', RedirectType.push) // push new history entry
+redirect("/login", RedirectType.replace); // replace history entry
+redirect("/dashboard", RedirectType.push); // push new history entry
 ```
 
 #### HTTP Status Codes
 
-| Context | Status Code |
-|---------|-------------|
+| Context                | Status Code            |
+| ---------------------- | ---------------------- |
 | Server Component (GET) | 307 Temporary Redirect |
-| Server Action (POST) | 303 See Other |
+| Server Action (POST)   | 303 See Other          |
 
 #### Usage
 
@@ -81,24 +81,24 @@ export async function createPost(formData: FormData) {
 Like `redirect()` but issues a **permanent** redirect.
 
 ```ts
-import { permanentRedirect } from 'next/navigation'
+import { permanentRedirect } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function permanentRedirect(url: string, type?: RedirectType): never
+function permanentRedirect(url: string, type?: RedirectType): never;
 ```
 
-| Context | Status Code |
-|---------|-------------|
+| Context                | Status Code            |
+| ---------------------- | ---------------------- |
 | Server Component (GET) | 308 Permanent Redirect |
-| Server Action (POST) | 308 Permanent Redirect |
+| Server Action (POST)   | 303 See Other          |
 
 ```ts
 // Use for URL migrations (old path → new canonical path)
 export default async function OldPage({ params }: { params: { id: string } }) {
-  permanentRedirect(`/new-path/${(await params).id}`)
+  permanentRedirect(`/new-path/${(await params).id}`);
 }
 ```
 
@@ -109,13 +109,13 @@ export default async function OldPage({ params }: { params: { id: string } }) {
 Renders the closest `not-found.tsx` boundary and injects `<meta name="robots" content="noindex">`.
 
 ```ts
-import { notFound } from 'next/navigation'
+import { notFound } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function notFound(): never
+function notFound(): never;
 ```
 
 ```ts
@@ -135,14 +135,16 @@ export default async function Page({ params }: { params: { slug: string } }) {
 Renders the closest `forbidden.tsx` boundary with a 403 response. Requires `experimental.authInterrupts: true`.
 
 ```ts
-import { forbidden } from 'next/navigation'
+import { forbidden } from "next/navigation";
 ```
 
 #### Activation
 
 ```ts
 // next.config.ts
-experimental: { authInterrupts: true }
+experimental: {
+  authInterrupts: true;
+}
 ```
 
 ```ts
@@ -166,7 +168,7 @@ export default async function AdminPage() {
 Renders the closest `unauthorized.tsx` boundary with a 401 response. Requires `experimental.authInterrupts: true`.
 
 ```ts
-import { unauthorized } from 'next/navigation'
+import { unauthorized } from "next/navigation";
 ```
 
 ```ts
@@ -196,48 +198,48 @@ All hooks below are **Client Component only** (`'use client'`).
 Programmatic navigation in Client Components.
 
 ```ts
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function useRouter(): AppRouterInstance
+function useRouter(): AppRouterInstance;
 ```
 
 #### `AppRouterInstance` Methods
 
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `push` | `(href: string, options?: NavigateOptions) => void` | Navigate to URL (adds history entry) |
-| `replace` | `(href: string, options?: NavigateOptions) => void` | Navigate without history entry |
-| `back` | `() => void` | Go back in browser history |
-| `forward` | `() => void` | Go forward in browser history |
-| `refresh` | `() => void` | Re-fetch Server Components for current route |
-| `prefetch` | `(href: string, options?: PrefetchOptions) => void` | Prefetch URL in background |
+| Method     | Signature                                           | Description                                  |
+| ---------- | --------------------------------------------------- | -------------------------------------------- |
+| `push`     | `(href: string, options?: NavigateOptions) => void` | Navigate to URL (adds history entry)         |
+| `replace`  | `(href: string, options?: NavigateOptions) => void` | Navigate without history entry               |
+| `back`     | `() => void`                                        | Go back in browser history                   |
+| `forward`  | `() => void`                                        | Go forward in browser history                |
+| `refresh`  | `() => void`                                        | Re-fetch Server Components for current route |
+| `prefetch` | `(href: string, options?: PrefetchOptions) => void` | Prefetch URL in background                   |
 
 ```ts
-type NavigateOptions = { scroll?: boolean }
-type PrefetchOptions = { kind: 'auto' | 'full' }
+type NavigateOptions = { scroll?: boolean };
+type PrefetchOptions = { kind: "auto" | "full" };
 ```
 
 ```tsx
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
 export function BackButton() {
-  const router = useRouter()
-  return <button onClick={() => router.back()}>← Back</button>
+  const router = useRouter();
+  return <button onClick={() => router.back()}>← Back</button>;
 }
 
 export function LogoutButton() {
-  const router = useRouter()
+  const router = useRouter();
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.replace('/login')  // no back button to logged-in page
-  }
-  return <button onClick={handleLogout}>Logout</button>
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/login"); // no back button to logged-in page
+  };
+  return <button onClick={handleLogout}>Logout</button>;
 }
 ```
 
@@ -248,30 +250,39 @@ export function LogoutButton() {
 Reads the current URL pathname reactively.
 
 ```ts
-import { usePathname } from 'next/navigation'
+import { usePathname } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function usePathname(): string
+function usePathname(): string;
 ```
 
 ```tsx
-'use client'
+"use client";
 
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
-export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const pathname = usePathname()
-  const isActive = pathname === href || pathname.startsWith(`${href}/`)
+export function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const isActive = pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <Link href={href} aria-current={isActive ? 'page' : undefined}
-      className={isActive ? 'font-bold' : ''}>
+    <Link
+      href={href}
+      aria-current={isActive ? "page" : undefined}
+      className={isActive ? "font-bold" : ""}
+    >
       {children}
     </Link>
-  )
+  );
 }
 ```
 
@@ -282,39 +293,43 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
 Reads the current URL query string reactively. **Must be wrapped in `<Suspense>`** when used in a component that might be statically rendered.
 
 ```ts
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function useSearchParams(): ReadonlyURLSearchParams
+function useSearchParams(): ReadonlyURLSearchParams;
 ```
 
 #### `ReadonlyURLSearchParams` Methods (extends `URLSearchParams`)
 
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `get` | `(name: string) => string \| null` | First value for key |
-| `getAll` | `(name: string) => string[]` | All values for key |
-| `has` | `(name: string) => boolean` | Check if key exists |
-| `entries` | `() => IterableIterator<[string, string]>` | All key/value pairs |
-| `keys` | `() => IterableIterator<string>` | All keys |
-| `values` | `() => IterableIterator<string>` | All values |
-| `toString` | `() => string` | Query string (without `?`) |
-| `size` | `number` | Number of params |
+| Method     | Signature                                  | Description                |
+| ---------- | ------------------------------------------ | -------------------------- |
+| `get`      | `(name: string) => string \| null`         | First value for key        |
+| `getAll`   | `(name: string) => string[]`               | All values for key         |
+| `has`      | `(name: string) => boolean`                | Check if key exists        |
+| `entries`  | `() => IterableIterator<[string, string]>` | All key/value pairs        |
+| `keys`     | `() => IterableIterator<string>`           | All keys                   |
+| `values`   | `() => IterableIterator<string>`           | All values                 |
+| `toString` | `() => string`                             | Query string (without `?`) |
+| `size`     | `number`                                   | Number of params           |
 
 ```tsx
-'use client'
+"use client";
 
-import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 function SearchResults() {
-  const searchParams = useSearchParams()
-  const query = searchParams.get('q') ?? ''
-  const page = Number(searchParams.get('page') ?? '1')
-  return <div>Searching: {query} — Page {page}</div>
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+  const page = Number(searchParams.get("page") ?? "1");
+  return (
+    <div>
+      Searching: {query} — Page {page}
+    </div>
+  );
 }
 
 // ✅ Always wrap in Suspense
@@ -323,7 +338,7 @@ export default function Page() {
     <Suspense fallback={<div>Loading…</div>}>
       <SearchResults />
     </Suspense>
-  )
+  );
 }
 ```
 
@@ -334,31 +349,37 @@ export default function Page() {
 Reads dynamic route parameters in Client Components.
 
 ```ts
-import { useParams } from 'next/navigation'
+import { useParams } from "next/navigation";
 ```
 
 #### Signature
 
 ```ts
-function useParams<T extends Record<string, string | string[]> = {}>(): T
+function useParams<T extends Record<string, string | string[]> = {}>(): T;
 ```
 
 ```tsx
-'use client'
+"use client";
 
-import { useParams } from 'next/navigation'
+import { useParams } from "next/navigation";
 
 // For route: app/blog/[slug]/page.tsx
 export function PostActions() {
-  const { slug } = useParams<{ slug: string }>()
-  return <button onClick={() => copyLink(`/blog/${slug}`)}>Copy link</button>
+  const { slug } = useParams<{ slug: string }>();
+  return <button onClick={() => copyLink(`/blog/${slug}`)}>Copy link</button>;
 }
 
 // Catch-all route: app/docs/[...path]/page.tsx
 export function Breadcrumbs() {
-  const { path } = useParams<{ path: string[] }>()
+  const { path } = useParams<{ path: string[] }>();
   // path = ['guide', 'installation']
-  return <nav>{path.map(segment => <span key={segment}>{segment}</span>)}</nav>
+  return (
+    <nav>
+      {path.map((segment) => (
+        <span key={segment}>{segment}</span>
+      ))}
+    </nav>
+  );
 }
 ```
 
@@ -366,14 +387,14 @@ export function Breadcrumbs() {
 
 ## Quick Reference
 
-| Function | Where | Returns | HTTP Code |
-|----------|-------|---------|-----------|
-| `redirect(url)` | Server | `never` | 307 / 303 |
-| `permanentRedirect(url)` | Server | `never` | 308 |
-| `notFound()` | Server | `never` | 404 |
-| `forbidden()` | Server | `never` | 403 |
-| `unauthorized()` | Server | `never` | 401 |
-| `useRouter()` | Client | `AppRouterInstance` | — |
-| `usePathname()` | Client | `string` | — |
-| `useSearchParams()` | Client + Suspense | `ReadonlyURLSearchParams` | — |
-| `useParams()` | Client | `Record<string, string \| string[]>` | — |
+| Function                 | Where             | Returns                              | HTTP Code |
+| ------------------------ | ----------------- | ------------------------------------ | --------- |
+| `redirect(url)`          | Server            | `never`                              | 307 / 303 |
+| `permanentRedirect(url)` | Server            | `never`                              | 308 / 303 |
+| `notFound()`             | Server            | `never`                              | 404       |
+| `forbidden()`            | Server            | `never`                              | 403       |
+| `unauthorized()`         | Server            | `never`                              | 401       |
+| `useRouter()`            | Client            | `AppRouterInstance`                  | —         |
+| `usePathname()`          | Client            | `string`                             | —         |
+| `useSearchParams()`      | Client + Suspense | `ReadonlyURLSearchParams`            | —         |
+| `useParams()`            | Client            | `Record<string, string \| string[]>` | —         |

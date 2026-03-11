@@ -622,7 +622,7 @@ export async function POST(request: Request) {
 
 - **Don't pass non-serializable data** - Server → Client boundary only accepts serializable values
 - **Don't use hooks in Server Components** - No useState, useEffect
-- **Don't fetch in Client Components** - Use Server Components; for client-side data use SWR or React Query
+- **Don't fetch in Client Components** - Use Server Components; for client mutations use `useOptimistic` / `useTransition` with Server Actions
 - **Don't over-nest layouts** - Each layout adds to the component tree
 - **Don't ignore loading states** - Always provide loading.tsx or Suspense
 - **Don't call your own Route Handlers from Server Components** - Extract shared logic into `lib/` modules

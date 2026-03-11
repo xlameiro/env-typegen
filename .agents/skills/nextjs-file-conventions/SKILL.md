@@ -359,10 +359,14 @@ export function onRequestError(
   },
   context: {
     routerKind: "Pages Router" | "App Router";
-    routeType: "render" | "route" | "action" | "proxy";
     routePath: string;
-    renderSource?: string;
-    renderType?: string;
+    routeType: "render" | "route" | "action" | "proxy";
+    renderSource:
+      | "react-server-components"
+      | "react-server-components-payload"
+      | "server-rendering";
+    revalidateReason: "on-demand" | "stale" | undefined;
+    renderType: "dynamic" | "dynamic-resume";
   },
 ) {
   fetch("/api/errors", {

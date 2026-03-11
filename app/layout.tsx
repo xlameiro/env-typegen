@@ -1,6 +1,7 @@
 import { SkipLink } from "@/components/skip-link";
 import { ThemeProvider } from "@/components/theme-provider";
 import { APP_DESCRIPTION, APP_NAME, SITE_URL } from "@/lib/constants";
+import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -53,7 +54,7 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>

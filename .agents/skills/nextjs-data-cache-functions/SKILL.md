@@ -398,6 +398,8 @@ export async function createPost(formData: FormData) {
 
 > `after()` is available in **Node.js runtime only** (not Edge).
 
+> ⚠️ **Limitation**: `cookies()` and `headers()` cannot be used inside an `after()` callback when called from a **Server Component**. They CAN be used inside `after()` from Route Handlers and Server Actions. This restriction exists because Next.js must know which parts of the tree access request APIs at render time to support Cache Components.
+
 ---
 
 ## `connection()`
