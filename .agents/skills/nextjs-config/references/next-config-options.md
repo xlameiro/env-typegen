@@ -516,6 +516,132 @@ transpilePackages: [
 
 ---
 
+## `logging` — Full Reference
+
+Controls what the Next.js development server logs to the terminal.
+
+```ts
+type IncomingRequestLoggingConfig = {
+  ignore?: RegExp[]; // suppress requests matching any of these patterns
+};
+
+type LoggingConfig = {
+  fetches?: {
+    fullUrl?: boolean; // show full URL (including domain) in fetch logs
+    hmrRefreshes?: boolean; // log HMR-cache-restored fetches during dev
+  };
+  incomingRequests?: boolean | IncomingRequestLoggingConfig;
+};
+```
+
+### `logging.fetches`
+
+```ts
+logging: {
+  fetches: {
+    fullUrl: true,       // default: false — show full URL in server fetch logs
+    hmrRefreshes: true,  // default: false — log cache-restored fetches during HMR
+  },
+}
+```
+
+> With `cacheComponents: true` + `fullUrl: true` you can trace exactly which external URLs are being fetched vs. served from cache during hot reload.
+
+### `logging.incomingRequests`
+
+```ts
+// Enable (default):
+logging: { incomingRequests: true }
+
+// Disable entirely:
+logging: { incomingRequests: false }
+
+// Suppress specific patterns (health checks, static assets):
+logging: {
+  incomingRequests: {
+    ignore: [/^\/_next\/static/, /^\/api\/health/],
+  },
+}
+```
+
+### Disable all logging
+
+```ts
+logging: false;
+```
+
+---
+
+## `experimental.browserDebugInfoInTerminal` (Next.js 16.1)
+
+```ts
+// Boolean — enable with defaults (depthLimit: 5, edgeLimit: 100):
+experimental: {
+  browserDebugInfoInTerminal: true,
+}
+
+// Object — override defaults:
+experimental: {
+  browserDebugInfoInTerminal: {
+    showSourceLocation: true,  // include source file path + line number (default: undefined)
+    depthLimit: 5,             // max object nesting depth for circular refs (default: 5)
+    edgeLimit: 100,            // max properties per object for circular refs (default: 100)
+  },
+}
+```
+
+**Type:**
+
+```ts
+type BrowserDebugInfoInTerminal =
+  | boolean
+  | {
+      depthLimit?: number; // default: 5
+      edgeLimit?: number; // default: 100
+      showSourceLocation?: boolean;
+    };
+```
+
+> Forwards browser-side runtime errors, console warnings, and async errors to the Next.js terminal output. Makes client-side errors visible to AI agents, headless CI runners, and CLI workflows that cannot open browser DevTools. Default: `false`.
+
+---
+
+## `experimental.turbopackFileSystemCacheForDev` / `turbopackFileSystemCacheForBuild` (Next.js 16.1)
+
+```ts
+experimental: {
+  turbopackFileSystemCacheForDev: true,   // on by default in Next.js 16.1
+  turbopackFileSystemCacheForBuild: false, // opt-in; off by default
+}
+```
+
+| Option                             | Default | Description                                                      |
+| ---------------------------------- | ------- | ---------------------------------------------------------------- |
+| `turbopackFileSystemCacheForDev`   | `true`  | Persist Turbopack compiler artifacts between `next dev` restarts |
+| `turbopackFileSystemCacheForBuild` | `false` | Persist Turbopack artifacts between `next build` runs            |
+
+> `turbopackFileSystemCacheForDev: true` is the default in Next.js 16.1 — no configuration needed for the dev cache. Set to `false` to disable (useful if stale cache causes issues). `turbopackFileSystemCacheForBuild` is experimental; enables incremental production builds.
+
+---
+
+## `experimental.optimizePackageImports`
+
+```ts
+experimental: {
+  optimizePackageImports: [
+    'lucide-react',
+    '@radix-ui/react-icons',
+    'date-fns',
+    '@heroicons/react',
+    'lodash',
+  ],
+}
+```
+
+> Automatically applies the `modularizeImports` optimization: transforms `import { X } from 'pkg'` into a direct sub-path import (`import X from 'pkg/X'`). Eliminates the cost of importing and tree-shaking large packages with many named exports. Use for any icon library, date utility, or component kit that ships many symbols.
+
+---
+
 ## `reactCompiler` (stable in Next.js 16)
 
 > **Promoted from `experimental.reactCompiler` to top-level stable in Next.js 16.**
@@ -662,6 +788,21 @@ const config: NextConfig = {
       bodySizeLimit: "1mb",
       allowedOrigins: [],
     },
+    // Next.js 16.1 additions:
+    browserDebugInfoInTerminal: false, // true | { showSourceLocation?, depthLimit?, edgeLimit? }
+    turbopackFileSystemCacheForDev: true, // on by default
+    turbopackFileSystemCacheForBuild: false,
+    optimizePackageImports: [],
   },
+
+  // Logging (development server)
+  logging: {
+    fetches: {
+      fullUrl: false,
+      hmrRefreshes: false,
+    },
+    incomingRequests: true, // false | { ignore?: RegExp[] }
+  },
+  // logging: false,  // disable all server logging
 };
 ```

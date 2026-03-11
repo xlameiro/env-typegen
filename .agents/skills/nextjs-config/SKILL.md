@@ -356,6 +356,71 @@ experimental: {
 }
 ```
 
+### `experimental.browserDebugInfoInTerminal` (Next.js 16.1)
+
+```ts
+experimental: {
+  // Boolean form — enable with defaults:
+  browserDebugInfoInTerminal: true,
+
+  // Object form — override defaults:
+  browserDebugInfoInTerminal: {
+    showSourceLocation: true,  // include source file + line in debug output
+    depthLimit: 5,             // max nesting depth for circular objects (default: 5)
+    edgeLimit: 100,            // max properties for circular object logging (default: 100)
+  },
+}
+```
+
+> Forwards browser-side runtime errors, client warnings, and async errors to the terminal — making them visible to AI agents and CLI-only workflows that cannot open DevTools. Introduced in Next.js 16.1. Default: `false`.
+
+### `experimental.turbopackFileSystemCacheForDev` / `turbopackFileSystemCacheForBuild` (Next.js 16.1)
+
+```ts
+experimental: {
+  turbopackFileSystemCacheForDev: true,   // default — persistent disk cache for next dev
+  turbopackFileSystemCacheForBuild: false, // default — disk cache for next build (experimental)
+}
+```
+
+> `turbopackFileSystemCacheForDev` is `true` by default in Next.js 16.1. Turbopack compiler artifacts survive across dev server restarts — significant improvement for large projects. `turbopackFileSystemCacheForBuild` enables the same for production builds (opt-in, off by default).
+
+### `experimental.optimizePackageImports`
+
+```ts
+experimental: {
+  optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns'],
+}
+```
+
+> Automatically applies the `modularizeImports` optimization to the listed packages. Reduces bundle size for large icon/utility libraries by only importing the specific exports used. Equivalent to manually configuring `modularizeImports` per package.
+
+---
+
+## Logging
+
+```ts
+logging: {
+  fetches: {
+    fullUrl: true,        // show full URL in server-side fetch logs (default: false)
+    hmrRefreshes: false,  // log HMR-cache-restored fetches during dev (default: false)
+  },
+  incomingRequests: true, // log incoming requests (default: true)
+  // Suppress specific routes from incoming request logs:
+  // incomingRequests: { ignore: [/^\/_next/, /^\/api\/health/] },
+}
+// Disable all server logging:
+// logging: false,
+```
+
+| Sub-option             | Type                               | Default | Description                                           |
+| ---------------------- | ---------------------------------- | ------- | ----------------------------------------------------- |
+| `fetches.fullUrl`      | `boolean`                          | `false` | Show full URL (including domain) in fetch logs        |
+| `fetches.hmrRefreshes` | `boolean`                          | `false` | Log HMR-cache-restored fetches during HMR refreshes   |
+| `incomingRequests`     | `boolean \| { ignore?: RegExp[] }` | `true`  | Log incoming requests; use `ignore` to suppress paths |
+
+> Useful for debugging which API calls Next.js deduplicates or caches. `fullUrl: true` paired with `cacheComponents: true` helps trace cache misses. Set `logging: false` to silence all dev server output.
+
 ---
 
 ## Turbopack
@@ -469,32 +534,37 @@ const response = await unstable_getResponseFromNextConfig({
 
 ## Quick Reference
 
-| Option                         | Category   | Notes                                                 |
-| ------------------------------ | ---------- | ----------------------------------------------------- |
-| `basePath`                     | Routing    | Build-time only                                       |
-| `trailingSlash`                | Routing    | Affects all routes                                    |
-| `assetPrefix`                  | Routing    | CDN prefix for static assets                          |
-| `headers()`                    | Routing    | Custom response headers                               |
-| `redirects()`                  | Routing    | 307/308 redirects                                     |
-| `rewrites()`                   | Routing    | URL rewrites (no redirect)                            |
-| `output`                       | Build      | `'standalone'` / `'export'`                           |
-| `distDir`                      | Build      | Build output directory                                |
-| `compress`                     | Build      | gzip for SSR (disable for proxy)                      |
-| `poweredByHeader`              | Build      | Remove `X-Powered-By` header                          |
-| `images`                       | Assets     | Full optimization config                              |
-| `cacheComponents`              | Rendering  | Next.js 16 (replaces `dynamicIO`)                     |
-| `reactStrictMode`              | Rendering  | Strict mode checks                                    |
-| `reactCompiler`                | Rendering  | Auto-memoization; stable in Next.js 16                |
-| `typedRoutes`                  | TypeScript | Type-safe `<Link>` and `router.push()`; stable in v16 |
-| `images.maximumRedirects`      | Assets     | Max image redirects (default `3`, new in v16.1.6)     |
-| `experimental.authInterrupts`  | Auth       | Enables `forbidden()`/`unauthorized()`                |
-| `experimental.staleTimes`      | Cache      | Router cache TTL (dynamic/static)                     |
-| `experimental.viewTransition`  | UX         | View Transitions API                                  |
-| `turbopack`                    | Build      | Turbopack-specific configuration                      |
-| `serverExternalPackages`       | Runtime    | Exclude from server bundle                            |
-| `transpilePackages`            | Runtime    | Force transpile node_modules                          |
-| `typescript.ignoreBuildErrors` | TypeScript | Skip build-time type-check                            |
-| ~~`eslint`~~                   | ESLint     | **Removed in Next.js 16** — use ESLint CLI directly   |
+| Option                                          | Category   | Notes                                                         |
+| ----------------------------------------------- | ---------- | ------------------------------------------------------------- |
+| `basePath`                                      | Routing    | Build-time only                                               |
+| `trailingSlash`                                 | Routing    | Affects all routes                                            |
+| `assetPrefix`                                   | Routing    | CDN prefix for static assets                                  |
+| `headers()`                                     | Routing    | Custom response headers                                       |
+| `redirects()`                                   | Routing    | 307/308 redirects                                             |
+| `rewrites()`                                    | Routing    | URL rewrites (no redirect)                                    |
+| `output`                                        | Build      | `'standalone'` / `'export'`                                   |
+| `distDir`                                       | Build      | Build output directory                                        |
+| `compress`                                      | Build      | gzip for SSR (disable for proxy)                              |
+| `poweredByHeader`                               | Build      | Remove `X-Powered-By` header                                  |
+| `images`                                        | Assets     | Full optimization config                                      |
+| `cacheComponents`                               | Rendering  | Next.js 16 (replaces `dynamicIO`)                             |
+| `reactStrictMode`                               | Rendering  | Strict mode checks                                            |
+| `reactCompiler`                                 | Rendering  | Auto-memoization; stable in Next.js 16                        |
+| `typedRoutes`                                   | TypeScript | Type-safe `<Link>` and `router.push()`; stable in v16         |
+| `images.maximumRedirects`                       | Assets     | Max image redirects (default `3`, new in v16.1.6)             |
+| `experimental.authInterrupts`                   | Auth       | Enables `forbidden()`/`unauthorized()`                        |
+| `experimental.staleTimes`                       | Cache      | Router cache TTL (dynamic/static)                             |
+| `experimental.viewTransition`                   | UX         | View Transitions API                                          |
+| `experimental.browserDebugInfoInTerminal`       | DX         | Forward browser errors to terminal (Next.js 16.1)             |
+| `experimental.turbopackFileSystemCacheForDev`   | Build      | Turbopack disk cache for dev (default `true` in Next.js 16.1) |
+| `experimental.turbopackFileSystemCacheForBuild` | Build      | Turbopack disk cache for build (default `false`)              |
+| `experimental.optimizePackageImports`           | Build      | Auto tree-shake large packages via modularizeImports          |
+| `turbopack`                                     | Build      | Turbopack-specific configuration                              |
+| `logging`                                       | DX         | Dev server fetch + incoming request logging                   |
+| `serverExternalPackages`                        | Runtime    | Exclude from server bundle                                    |
+| `transpilePackages`                             | Runtime    | Force transpile node_modules                                  |
+| `typescript.ignoreBuildErrors`                  | TypeScript | Skip build-time type-check                                    |
+| ~~`eslint`~~                                    | ESLint     | **Removed in Next.js 16** — use ESLint CLI directly           |
 
 ---
 

@@ -383,6 +383,12 @@ Shows what percentage of the model's context window is consumed by installed too
 
 **VS Code ↔ CLI continuity**: open the CLI inside VS Code's integrated terminal — it reads open files and shows diffs in VS Code's diff viewer. Sessions can be resumed from either surface with `gh copilot resume`.
 
+**Message Steering — ajustar al vuelo**:
+While the agent is working, send a follow-up message in the chat with additional details or corrections — the agent incorporates it **mid-flight** without stopping or waiting. No need to cancel and restart the session to add context.
+
+**Fork de conversación** (`/fork`):
+Type `/fork` in the chat to create a new session with the full conversation history. Ideal for exploring an alternative approach (e.g., a more minimal design, a different implementation strategy) without losing the original context.
+
 ---
 
 ### The 3-repetition rule

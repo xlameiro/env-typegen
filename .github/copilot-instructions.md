@@ -604,6 +604,18 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 
 > The AI training data frequently contains outdated patterns for the versions used in this project. Prefer the code patterns already present in this repo over your general knowledge when they conflict.
 
+### Skills invocables con slash commands
+
+Any skill in `.agents/skills/` can be loaded directly in the chat with `/skill-name` (e.g., `/zod`, `/vitest`, `/aws-ecosystem`). The agent loads the corresponding `SKILL.md` and follows its instructions. Combine multiple skills in one prompt: `/zod /vitest add validation tests`.
+
+### Message Steering
+
+While an agent is working, you can send a follow-up message in the chat with additional details or corrections — the agent incorporates it **mid-flight**, without stopping or waiting. No need to cancel and restart the session to add context.
+
+### Fork Conversations (`/fork`)
+
+Type `/fork` in the chat to create a new session with the full conversation history. Use it to explore an alternative approach (e.g., a more minimal design, a different data-fetching strategy) without losing the original context. Equivalent to branching the conversation.
+
 ### Tailwind CSS v4
 
 - **Installed version**: v4.2.1 (`tailwindcss: ^4` in `package.json`)
@@ -740,6 +752,17 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 > ```
 >
 > VS Code 1.111.0 (stable, released 2026-03-09) is the current stable release. Terminal proliferation with PostToolUse hooks persists in 1.111 — each hook invocation still creates a new Chat Terminal. The project default (PostToolUse disabled) remains correct.
+>
+> A second opt-in hook is the **`Stop` auto-commit** — makes a commit of all pending changes when the agent session stops, preventing loss of generated work. A ready-made script is available at `.github/hooks/scripts/session-stop-autocommit.sh` — add the entry below to `.github/hooks/hooks.json` to activate:
+>
+> ```json
+> {
+>   "event": "Stop",
+>   "script": ".github/hooks/scripts/session-stop-autocommit.sh"
+> }
+> ```
+>
+> The script only commits if there are pending changes, never uses `--no-verify`, and always appends `[skip ci]` to the commit message.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):
 
@@ -775,7 +798,7 @@ When you click **Share with agent** in the toolbar, the agent gets direct access
 - Iterating on styles or layout — agent takes a screenshot, compares against a design reference (e.g., Figma), then adjusts
 - Visual regression checks alongside Playwright tests
 
-**Best practice:** Use Playwright alongside the integrated browser. Playwright handles deterministic interactions (navigate, click, fill); the integrated browser's screenshot tool provides the visual feedback loop for the agent to compare rendered output against the intended design.
+**Best practice:** Use Playwright alongside the integrated browser. Playwright handles deterministic interactions (navigate, click, fill); the integrated browser's screenshot tool provides the visual feedback loop for the agent to compare rendered output against the intended design. The integrated browser can also **run Playwright code autonomously** — giving the agent a closed verify-and-fix loop without a separate test runner.
 
 > **Do not interact with the integrated browser while the agent is running** — clicking or navigating during an agent run can interfere with in-progress tool calls. Enable VS Code's Do Not Disturb or wait for the agent to complete a step before interacting.
 
