@@ -53,6 +53,26 @@
       "command": "sh",
       "args": [".agents/mcp/youtube-transcript/start.sh"],
       "type": "stdio"
+    },
+    "npm-registry": {
+      "command": "sh",
+      "args": [".agents/mcp/npm-registry/start.sh"],
+      "type": "stdio"
+    },
+    "hacker-news": {
+      "command": "sh",
+      "args": [".agents/mcp/hacker-news/start.sh"],
+      "type": "stdio"
+    },
+    "osv-vulnerability": {
+      "command": "sh",
+      "args": [".agents/mcp/osv/start.sh"],
+      "type": "stdio"
+    },
+    "rss-feed": {
+      "command": "sh",
+      "args": [".agents/mcp/rss-feed/start.sh"],
+      "type": "stdio"
     }
   }
 }
