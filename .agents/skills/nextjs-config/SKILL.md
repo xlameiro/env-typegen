@@ -390,6 +390,30 @@ experimental: {
 }
 ```
 
+---
+
+### `experimental.clientRouterFilter`, `experimental.clientRouterFilterRedirects`, `experimental.clientRouterFilterAllowedRate`
+
+At build time, Next.js generates a **bloom filter** from all known app routes (and optionally redirect sources). This filter is embedded in the client bundle so the client-side router can quickly determine whether a URL is a recognized route — avoiding unnecessary prefetch requests or server round-trips for unknown paths.
+
+```ts
+experimental: {
+  clientRouterFilter: true,              // default: true — enable bloom filter
+  clientRouterFilterRedirects: false,    // default: false — also include redirect source paths
+  clientRouterFilterAllowedRate: 0.01,   // false-positive rate (0–1, default: ~0.01)
+}
+```
+
+| Option                          | Type      | Default | Description                                                        |
+| ------------------------------- | --------- | ------- | ------------------------------------------------------------------ |
+| `clientRouterFilter`            | `boolean` | `true`  | Generates and embeds a bloom filter of known routes in the bundle  |
+| `clientRouterFilterRedirects`   | `boolean` | `false` | Also includes redirect source paths in the filter                  |
+| `clientRouterFilterAllowedRate` | `number`  | `~0.01` | Bloom filter false-positive rate; lower = larger filter, fewer FPs |
+
+> Disable (`false`) only if you have an unusually large number of routes causing bundle size issues. In most apps this filter is tiny and has no measurable impact.
+
+---
+
 ### `experimental.viewTransition`
 
 ```ts
@@ -654,6 +678,24 @@ experimental: {
 
 ---
 
+### `experimental.useSkewCookie`
+
+When enabled alongside `deploymentId`, injects a `Set-Cookie: __vdpl=<deploymentId>; Path=/; HttpOnly` response header on every request. This cookie lets your CDN or load balancer route returning users back to the **same deployment version**, preventing _deployment skew_ — the race condition where a user loads JS assets from deployment A then makes RSC data requests to deployment B.
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  deploymentId: process.env.DEPLOYMENT_ID, // unique string per deploy (e.g. git SHA)
+  experimental: {
+    useSkewCookie: true, // default: false
+  },
+};
+```
+
+> When `useSkewCookie: true`, the `deploymentId` is **not** baked into the client JS bundle (keeping builds reproducible across instances). Skew protection is handled entirely at the CDN/proxy layer via the cookie. Requires `deploymentId` to be set — the cookie is a no-op if `deploymentId` is absent.
+
+---
+
 ### `experimental.allowedRevalidateHeaderKeys`
 
 Specifies which request headers are included in the cache key for `fetch()` calls with `next.revalidate`. By default, `authorization` and `cookie` are included. Override to restrict or extend this set.
@@ -715,6 +757,34 @@ experimental: {
 ```
 
 > Both default to `false`. Enable for large apps where `next build` time is dominated by server-side compilation. Server component count and route count determine the speedup; apps with <20 routes see minimal benefit.
+
+---
+
+### `experimental.workerThreads`
+
+Enables Node.js **worker_threads** for parallel TypeScript type checking and SWC compilation during `next build`. On multi-core machines, this can meaningfully reduce build time for type-heavy projects.
+
+```ts
+experimental: {
+  workerThreads: true,  // default: false
+}
+```
+
+> Passed as `enableWorkerThreads` to both the TypeScript verification pipeline and the SWC compiler. Has no effect on `next dev`. Pairs well with `parallelServerCompiles` and `parallelServerBuildTraces` for maximum build parallelism.
+
+---
+
+### `experimental.preloadEntriesOnStart`
+
+In production (non-dev, non-minimal mode), calls `unstable_preloadEntries()` during server initialization to **warm up route entry caches** before the first real request arrives. Reduces cold-start latency for serverless deployments or freshly-started containers.
+
+```ts
+experimental: {
+  preloadEntriesOnStart: true,  // default: true
+}
+```
+
+> Set to `false` to skip the warm-up phase when cold-start latency is not a concern (e.g., long-lived Node.js processes where the first request timing is not critical) or when startup time itself must be minimized.
 
 ---
 
