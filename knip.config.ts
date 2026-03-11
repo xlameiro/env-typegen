@@ -14,6 +14,13 @@ const config: KnipConfig = {
     "commitlint.config.ts",
     "lint-staged.config.ts",
     "postcss.config.mjs",
+    // Template public API — these files are the starter kit's library surface for
+    // consumers. Exporting from them without internal usage is intentional.
+    "components/ui/**/*.{ts,tsx}",
+    "lib/schemas/**/*.{ts,tsx}",
+    "lib/auth.ts",
+    "lib/utils.ts",
+    "types/**/*.{ts,tsx}",
   ],
   project: [
     "app/**/*.{ts,tsx}",
@@ -34,6 +41,10 @@ const config: KnipConfig = {
   ignoreDependencies: [
     // Peer dependencies loaded at runtime by Next.js
     "sharp",
+    // Used via @tailwindcss/postcss in build tooling — not imported directly in code
+    "tailwindcss",
+    // Peer dep via @tailwindcss/postcss — referenced in postcss.config.mjs at runtime
+    "postcss",
   ],
 };
 
