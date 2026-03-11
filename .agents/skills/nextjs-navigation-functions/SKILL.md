@@ -581,6 +581,26 @@ useServerInsertedHTML(() => (
 
 ---
 
+### `unstable_rootParams()` — Root Layout Params
+
+Exposes the root layout `params` to deeply nested Server Components without prop-drilling. Requires `experimental.rootParams: true` in `next.config.ts`.
+
+```ts
+import { unstable_rootParams } from "next/root-params";
+import "server-only";
+
+// In any Server Component, regardless of nesting depth:
+export async function UserGreeting() {
+  const { lang } = await unstable_rootParams();
+  // lang comes from the root [lang] segment — no prop required
+  return <p>Hello in {lang}</p>;
+}
+```
+
+> The return type is inferred from the root layout's `params` shape. Requires the root layout to have a dynamic segment (e.g., `[lang]`). Enable with `experimental.rootParams: true` in `next.config.ts`.
+
+---
+
 ## Quick Reference
 
 | Function                                  | Where             | Returns                              | HTTP Code |
@@ -599,3 +619,4 @@ useServerInsertedHTML(() => (
 | `unstable_rethrow(err)`                   | Server            | `void`                               | —         |
 | `unstable_isUnrecognizedActionError(err)` | Client            | `boolean`                            | —         |
 | `useServerInsertedHTML(cb)`               | Client/Server     | `void`                               | —         |
+| `unstable_rootParams()`                   | Server            | `Promise<Record<string, string>>`    | —         |

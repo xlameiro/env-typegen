@@ -34,6 +34,47 @@ const nextConfig = {};
 module.exports = nextConfig;
 ```
 
+### Phase-based async config
+
+Export an **async function** that receives the current build `phase` to vary config per environment. Phase constants are imported from `"next/constants"`.
+
+```ts
+// next.config.ts
+import type { NextConfig } from "next";
+import {
+  PHASE_DEVELOPMENT_SERVER,
+  PHASE_PRODUCTION_BUILD,
+  PHASE_PRODUCTION_SERVER,
+  PHASE_TEST,
+} from "next/constants";
+
+export default async function config(phase: string): Promise<NextConfig> {
+  const isDev = phase === PHASE_DEVELOPMENT_SERVER;
+  const isTest = phase === PHASE_TEST;
+
+  return {
+    reactStrictMode: true,
+    // Only enable bundle analyzer in production builds
+    ...(phase === PHASE_PRODUCTION_BUILD && {
+      env: { ANALYZE: "true" },
+    }),
+    experimental: {
+      // Disable MCP server outside dev
+      mcpServer: isDev,
+    },
+  };
+}
+```
+
+| Phase constant             | When it is active                          |
+| -------------------------- | ------------------------------------------ |
+| `PHASE_DEVELOPMENT_SERVER` | `next dev`                                 |
+| `PHASE_PRODUCTION_BUILD`   | `next build`                               |
+| `PHASE_PRODUCTION_SERVER`  | `next start` (production server)           |
+| `PHASE_TEST`               | Test runner (Vitest/Jest) with `next/jest` |
+| `PHASE_EXPORT`             | `next export` (static export)              |
+| `PHASE_ANALYZE`            | `@next/bundle-analyzer` build              |
+
 ---
 
 ## Routing
