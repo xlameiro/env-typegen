@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -8,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html"], process.env.CI ? ["github"] : ["list"]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+    baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -32,7 +34,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "pnpm build && pnpm start",
-    url: "http://localhost:3000",
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
@@ -41,6 +43,10 @@ export default defineConfig({
       AUTH_SECRET:
         process.env.AUTH_SECRET ?? "e2e-test-secret-not-for-production",
       AUTH_TRUST_HOST: "true",
+      // SKIP_ENV_VALIDATION bypasses .default() in @t3-oss/env-nextjs, so the
+      // public URL must be supplied explicitly to prevent `new URL(undefined)`.
+      SKIP_ENV_VALIDATION: "true",
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? BASE_URL,
     },
   },
 });
