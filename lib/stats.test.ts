@@ -1,5 +1,17 @@
-import { describe, expect, it } from "vitest";
+import type * as UtilsModule from "@/lib/utils";
+import { describe, expect, it, vi } from "vitest";
 import { getStats } from "./stats";
+
+vi.mock("server-only", () => ({}));
+vi.mock("next/cache", () => ({
+  cacheLife: vi.fn(),
+  cacheTag: vi.fn(),
+}));
+
+vi.mock("@/lib/utils", async (importOriginal) => {
+  const original = await importOriginal<typeof UtilsModule>();
+  return { ...original, sleep: vi.fn().mockResolvedValue(undefined) };
+});
 
 describe("getStats", () => {
   it("should return an array of three stats", async () => {

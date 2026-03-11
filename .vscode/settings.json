@@ -5319,7 +5319,7 @@
     "cursor-workspace": false
   },
   // Enables the default Marketplace for Model Context Protocol (MCP) servers.
-  "chat.mcp.gallery.enabled": false,
+  "chat.mcp.gallery.enabled": true,
   // Configures which models are exposed to MCP servers for sampling (making model requests in the background). This setting can be edited in a graphical way under the `MCP: List Servers` command.
   "chat.mcp.serverSampling": {},
   // Controls whether a chat session should present the user with an OS notification when a confirmation is needed while the window is not in focus. This includes a window badge as well as notification toast.

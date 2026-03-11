@@ -399,6 +399,23 @@ experimental: {
 }
 ```
 
+### `experimental.dynamicOnHover`
+
+```ts
+experimental: {
+  dynamicOnHover: true,  // default: false
+}
+```
+
+> When enabled, hovering over a `<Link>` **upgrades the prefetch from static to dynamic** — Next.js fetches the full RSC payload (including dynamic data) on hover rather than waiting for a click. Result: near-instant navigation for links the user is about to click, at the cost of extra server requests on hover. Best enabled on pages where link targets have dynamic content that the static prefetch would miss. Default: `false`.
+
+| Value   | Prefetch on hover? | What is prefetched              |
+| ------- | ------------------ | ------------------------------- |
+| `false` | Static only        | Static shell (no dynamic data)  |
+| `true`  | Dynamic            | Full RSC payload + dynamic data |
+
+> Relates to `staleTimes` — the hover-fetched payload respects `staleTimes.dynamic` TTL.
+
 ### `experimental.serverActions`
 
 ```ts
@@ -777,6 +794,32 @@ experimental: {
   hideLogsAfterAbort: true,
 }
 ```
+
+### `experimental.sri` — Subresource Integrity
+
+Adds cryptographic hash attributes (`integrity`) to all `<script>` and `<link rel="stylesheet">` tags emitted by Next.js. Enables [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) `require-sri-for` directives and protects against supply-chain attacks from CDN or proxy tampering.
+
+```ts
+experimental: {
+  sri: {
+    algorithm: 'sha256',  // 'sha256' | 'sha384' | 'sha512'
+  },
+}
+```
+
+> Use `sha256` for broad support. `sha384` or `sha512` offer stronger guarantees. When enabled, the `integrity` attribute is added to every emitted script/style — pair this with a `Content-Security-Policy` header that includes `require-sri-for script style`. Only applies to hashes Next.js controls; third-party `<Script>` tags loaded by the browser at runtime are NOT covered.
+
+### `experimental.caseSensitiveRoutes`
+
+Makes the routing layer **case-sensitive** for URL paths. When `false` (default), `/About` and `/about` resolve to the same page. When `true`, they are treated as distinct routes — matches production behavior on Linux/macOS filesystems.
+
+```ts
+experimental: {
+  caseSensitiveRoutes: true,  // default: false
+}
+```
+
+> Enable in production to surface case-sensitivity bugs during development (macOS HFS+ is case-insensitive by default, masking issues that only appear on Linux in CI/CD). Useful when routing to user-generated slugs where case matters for identity.
 
 ---
 

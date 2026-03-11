@@ -16,7 +16,22 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["app/**", "components/**", "hooks/**", "lib/**", "store/**"],
-      exclude: ["**/*.test.*", "**/*.spec.*", "**/*.d.ts"],
+      exclude: [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/*.d.ts",
+        // Next.js file conventions with no testable business logic
+        "app/layout.tsx",
+        "app/loading.tsx",
+        "app/not-found.tsx",
+        "app/global-error.tsx",
+        "app/icon.tsx",
+        "app/opengraph-image.tsx",
+        "app/globals.css",
+        "app/favicon.ico",
+        // NextAuth route handler — re-export of library, no project logic
+        "app/**/[...nextauth]/**",
+      ],
       thresholds: { lines: 80 },
     },
   },

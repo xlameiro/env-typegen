@@ -1,5 +1,5 @@
-import { cn, formatCurrency, formatDate, truncate } from "@/lib/utils";
-import { describe, expect, it } from "vitest";
+import { cn, formatCurrency, formatDate, sleep, truncate } from "@/lib/utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("cn", () => {
   it("merges class names", () => {
@@ -61,6 +61,41 @@ describe("formatCurrency", () => {
 
   it("formats zero correctly", () => {
     expect(formatCurrency(0)).toBe("$0.00");
+  });
+});
+
+describe("sleep", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("should resolve after the specified milliseconds", async () => {
+    const promise = sleep(1000);
+
+    vi.advanceTimersByTime(1000);
+
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("should not resolve before the specified time", async () => {
+    let resolved = false;
+    const promise = sleep(500).then(() => {
+      resolved = true;
+    });
+
+    vi.advanceTimersByTime(499);
+    await Promise.resolve(); // flush microtasks
+
+    expect(resolved).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    await promise;
+
+    expect(resolved).toBe(true);
   });
 });
 

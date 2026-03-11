@@ -90,16 +90,18 @@ export default function HomePage() {
           variant="outline"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Next.js Docs (opens in new tab)"
         >
-          Next.js Docs
+          Next.js Docs ↗
         </ButtonLink>
         <ButtonLink
           href="https://authjs.dev"
           variant="outline"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Auth.js Docs (opens in new tab)"
         >
-          Auth.js Docs
+          Auth.js Docs ↗
         </ButtonLink>
       </nav>
     </main>

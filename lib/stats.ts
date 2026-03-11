@@ -1,3 +1,6 @@
+import "server-only";
+
+import { cacheLife, cacheTag } from "next/cache";
 import { sleep } from "@/lib/utils";
 
 type Stat = {
@@ -17,6 +20,11 @@ type Stat = {
  * no extra client JS is shipped.
  */
 export async function getStats(): Promise<Stat[]> {
+  "use cache";
+  // Cache for 1 hour; call revalidateTag('stats') after a mutation to invalidate.
+  cacheLife("hours");
+  cacheTag("stats");
+
   // Simulate a ~800ms database round-trip so streaming is visible in DevTools.
   // Remove or replace with `await db.query(...)` in a real application.
   await sleep(800);

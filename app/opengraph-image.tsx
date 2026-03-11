@@ -1,7 +1,9 @@
 import { ImageResponse } from "next/og";
 
+// Edge runtime is intentional — ImageResponse initialises faster on edge.
+// The build warning about "disables static generation" is expected and harmless:
+// OG images are always dynamically generated and never statically pre-rendered.
 export const runtime = "edge";
-
 export const alt = "Next.js Starter Template";
 
 export const size = { width: 1200, height: 630 };
