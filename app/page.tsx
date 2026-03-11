@@ -1,10 +1,5 @@
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from "@/lib/constants";
-import type { Metadata } from "next";
 import Link from "next/link";
-
-export const metadata: Metadata = {
-  title: "Home",
-};
 
 const stack = [
   {

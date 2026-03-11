@@ -111,6 +111,21 @@ applyTo: "**/*.ts"
 - Batch or debounce high-frequency events to reduce thrash.
 - Track resource lifetimes to prevent leaks.
 
+## Return Types
+
+- **Exported functions** must declare an explicit return type — they are library-like code consumed throughout the app, and explicit types prevent accidental signature drift. They also help AI tools (Copilot) provide more accurate completions without having to infer the return shape from the function body.
+- **Server Actions** (`'use server'` files) must always declare their return type (e.g., `Promise<ActionResult>`) — they cross the client/server boundary and callers cannot verify the shape otherwise.
+- **Route Handler exports** must declare `Promise<Response> | Response` or use `NextResponse` explicitly.
+- **Recursive functions** must always declare a return type — TypeScript cannot infer them and defaults to `any`.
+- **Tuple returns** must declare the tuple type explicitly (e.g., `[string, boolean]`) — without it TypeScript widens to `(string | boolean)[]`.
+- **Discriminated union returns** (e.g., `{ success: true; data: T } | { success: false; error: string }`) must use an explicit return type — TypeScript merges the shapes otherwise, losing the discriminant narrowing.
+
+**Do NOT add return types to:**
+
+- Local (non-exported) helper functions — inferred types are fine for locally scoped code
+- React components (`.tsx`) — JSX inference handles them; adding `JSX.Element` is verbose noise
+- Simple inline arrow functions / callbacks
+
 ## Documentation & Comments
 
 - Add JSDoc to public APIs; include `@remarks` or `@example` when helpful.

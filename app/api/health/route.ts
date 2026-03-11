@@ -1,7 +1,7 @@
 import { APP_NAME, APP_VERSION } from "@/lib/constants";
 import { NextResponse } from "next/server";
 
-export function GET() {
+export function GET(): NextResponse {
   return NextResponse.json(
     {
       status: "ok",

@@ -247,6 +247,17 @@ const eslintConfig = defineConfig([
 
       // Mark the props of the component as read-only (TypeScript S6759)
       "sonarjs/prefer-read-only-props": "error",
+
+      // Require explicit return types on exported functions (library code + AI readability)
+      // Helps Copilot provide accurate completions without inferring shapes from function bodies.
+      // See: typescript-5-es2022.instructions.md § Return Types
+      // .tsx files are excluded via override below — React components are exempt (JSX inference).
+      "@typescript-eslint/explicit-module-boundary-types": ["warn", {
+        "allowArgumentsExplicitlyTypedAsAny": false,
+        "allowDirectConstAssertionInArrowFunctions": true,
+        "allowHigherOrderFunctions": false,
+        "allowTypedFunctionExpressions": true,
+      }],
     }
   },
   // TypeScript files with type-checking (for @typescript-eslint/no-misused-promises)
@@ -289,6 +300,13 @@ const eslintConfig = defineConfig([
     files: ["lib/errors.ts"],
     rules: {
       "no-restricted-syntax": "off",
+    },
+  },
+  // React components — explicit return types not required (JSX inference handles them)
+  {
+    files: ["**/*.tsx"],
+    rules: {
+      "@typescript-eslint/explicit-module-boundary-types": "off",
     },
   },
   // Override default ignores of eslint-config-next.

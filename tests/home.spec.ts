@@ -5,7 +5,9 @@ test.describe("Home Page", () => {
     await page.goto("/");
   });
 
-  // TEMPLATE: Update this regex when you change APP_NAME in lib/constants.ts
+  // The home page has no page-level title override, so the layout's default
+  // title (APP_NAME from lib/constants.ts) is used directly.
+  // Update this regex when APP_NAME changes.
   test("has correct page title", async ({ page }) => {
     await expect(page).toHaveTitle(/Next\.js Starter/);
   });

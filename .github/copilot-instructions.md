@@ -56,6 +56,7 @@ public/                 # Static assets
 - Use early returns for readability — prefer guard clauses over deeply nested conditions
 - Prefer destructuring over direct property access — `const { id, name } = user` not `user.id`, `user.name`
 - Prefer `readonly` and `as const` for immutable data structures
+- Add explicit return types to all exported functions in `lib/`, Server Actions (`'use server'`), and Route Handlers — they are library-like code used throughout the app, and explicit return types also help Copilot provide more accurate completions. Local helper functions and React components (`.tsx`) are exempt.
 - Avoid non-null assertion operators (`!`) — use type narrowing or guards instead
 - Use `Boolean(value)` instead of `!!value` for explicit boolean coercion — clarifies intent and avoids double-negation confusion
 - Always use `type`; **never** use `interface`. To extend HTML attributes or library types, use intersections: `type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { isLoading?: boolean }` — the intersection pattern eliminates all valid reasons to reach for `interface`
@@ -600,7 +601,7 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 > }
 > ```
 >
-> VS Code 1.110.1 (stable, released 2026-03-07) is the current stable patch. VS Code 1.111 is in Insiders — if you are on 1.111 Insiders, test whether terminal proliferation is resolved and update this note with findings before 1.111 reaches stable.
+> VS Code 1.111.0 (stable, released 2026-03-09) is the current stable release. Terminal proliferation with PostToolUse hooks persists in 1.111 — each hook invocation still creates a new Chat Terminal. The project default (PostToolUse disabled) remains correct.
 
 Example — auto-lint after any file edit (`.github/hooks/quality.json`):
 
@@ -642,7 +643,9 @@ When you click **Share with agent** in the toolbar, the agent gets direct access
 
 ### Autopilot Mode (Preview)
 
-> **Enable:** Chat input → **default approvals** dropdown → switch to **Autopilot**.
+Setting: `chat.autopilot.enabled`
+
+> **Enable in Stable:** Set `chat.autopilot.enabled: true` in your VS Code settings, or select **Autopilot** from the Chat input → **default approvals** dropdown.
 
 Autopilot combines auto-approval of all tool calls with auto-retry on API errors and forceful completion prompting — the agent keeps working until it has genuinely finished the task, not just until it returns a stop token. It does not pause between phases to ask "should I continue?" — matching the autonomous behavior of cloud agents (Copilot coding agent assigned via GitHub Issues).
 
@@ -752,6 +755,8 @@ See the `mcp-server` skill (`.agents/skills/mcp-server/SKILL.md`) for the full s
 ```bash
 pnpm add @modelcontextprotocol/sdk
 ```
+
+**Skills vs MCP servers — token cost**: MCP servers register all their tools into the model's context window on every request, even when not used. Skills add far fewer tokens. If you notice the agent compacting earlier than expected, run `/context` in the CLI to see tool token usage — then consider whether any MCP server could be replaced by a skill that documents how to call an equivalent CLI command instead.
 
 ## Convention Health Audit
 

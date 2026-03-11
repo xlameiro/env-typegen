@@ -130,7 +130,7 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 
 > **Default for this project**: use **Autopilot** for all feature work. Switch to **Default Approvals** whenever you are touching AWS resources, database schema, or environment secrets. Use **Sandbox** when the agent will execute code from untrusted sources.
 
-> Both features are in preview as of VS Code 1.110. Check `configure chat → diagnostics` if either is not behaving as expected.
+> Both features are available in VS Code 1.111 Stable. Check `configure chat → diagnostics` if either is not behaving as expected. Enable Autopilot via the `chat.autopilot.enabled` setting or from the Chat input → **default approvals** dropdown.
 
 ### Handling Review Feedback (AI Agents Only)
 
@@ -181,6 +181,29 @@ Verify: `github-copilot-cli --version`
 | Tasks that depend on each other sequentially                     | Do NOT use `/fleet` — assign issues in order |
 
 > **Note**: `/fleet` is a preview feature — verify availability with `github-copilot-cli --help` before using.
+
+### Recommended Multi-Model Workflow
+
+The most robust implementation flow — validated by GitHub Copilot CLI's own PM team:
+
+1. **Generate the plan** — open the CLI in plan mode and describe the feature. Answer the clarifying questions the agent presents (this saves tokens vs. back-and-forth).
+2. **Multi-model plan review** — before implementing, ask the agent to spin up three parallel sub-agents to review the plan independently:
+   ```
+   Spin up parallel sub-agents using Opus 4.6, Codex, and Gemini to review the plan and give feedback.
+   ```
+   The agent will report where the three models agreed, where they diverged, and offer to merge the best recommendations into the plan.
+3. **Fleet implement** — once the plan is approved, enable autopilot mode and run:
+   ```
+   /fleet implement the plan
+   ```
+   Fleet dispatches parallel agents for independent tasks; autopilot keeps looping until the to-do list is empty.
+4. **Multi-model code review** — after implementation, run a final parallel review:
+   ```
+   Spin up parallel sub-agents using Opus 4.6, Codex, and Gemini to review the changes before I push.
+   ```
+   Agents often surface different classes of issues — race conditions, thread safety, logic bugs — that a single model misses.
+
+This workflow works identically from the VS Code integrated terminal and from a standalone terminal session.
 
 ### Ralph Loops — Scripted Agent Automation
 
@@ -252,6 +275,41 @@ You are running inside a Ralph Loop. Your context window is fresh each run.
 - Writing Playwright E2E tests for existing flows
 - Running batch maintenance tasks (dependency updates + multiple issue fixes at once) — use `/fleet` from Copilot CLI
 
+### Daily Developer Workflow (VS Code + CLI)
+
+This template is optimized to work with both **VS Code Copilot** (side panel + inline chat) and the **GitHub Copilot CLI** (terminal). Use whichever surface fits the task — they share context via `.github/copilot-instructions.md` and `.agents/skills/`.
+
+**Morning standup** (CLI only):
+
+```bash
+gh copilot chronicle standup
+```
+
+Summarizes open sessions and unresolved tasks from the previous day — your AI-powered standup.
+
+**End of day — improve your prompting** (CLI only):
+
+```bash
+gh copilot chronicle tips
+```
+
+Copilot indexes your sessions, checks the docs, and tells you how you could have prompted more efficiently. Treats patterns it spots (recurring tasks, long prompts that should be skills, underused features) as actionable tips.
+
+**Editing long prompts in your editor**:
+Press `Ctrl+G` in the CLI to open the current prompt in `$EDITOR` (VS Code, Vim, etc.) — useful when the prompt spans multiple paragraphs.
+
+**Checking context window usage**:
+
+```bash
+/context
+```
+
+Shows what percentage of the model's context window is consumed by installed tools and MCP servers. If you're hitting compaction earlier than expected, this is the first thing to check.
+
+**VS Code ↔ CLI continuity**: open the CLI inside VS Code's integrated terminal — it reads open files and shows diffs in VS Code's diff viewer. Sessions can be resumed from either surface with `gh copilot resume`.
+
+---
+
 ### The 3-repetition rule
 
 > If a task has been done manually 3 or more times, it is a candidate for automation with a coding agent.
@@ -308,15 +366,46 @@ Review all open issues labeled `needs-triage`. For each:
 3. Leave a comment asking for reproduction steps if it's a bug with no steps provided.
 ```
 
+### Guard rails
+
+Guard rails are declared in the workflow frontmatter and enforced **outside the agent loop** — the agentic workflow compiler acts as a firewall between the agent and the outside world. The agent cannot override them via prompt.
+
+**`safe-outputs`** — constrain what the agent is allowed to produce per run:
+
+```yaml
+safe-outputs:
+  - type: pull-request
+    max: 1 # at most 1 PR per execution; prevents runaway PR spam
+  - type: nothing # agent may also decide no action is needed
+```
+
+**`tools` allowlist** — restrict which domains the web-fetch tool can reach. Any domain not listed is blocked, even if the agent tries to access it:
+
+```yaml
+tools:
+  - web-fetch:
+      domains:
+        - docs.nextjs.org
+        - github.com
+        - npmjs.com
+```
+
+> **Security note**: these constraints are structurally enforced — not prompt instructions the agent could reason its way around. Always declare `safe-outputs` before enabling any workflow that can write to the repository or open PRs. See `security-and-owasp.instructions.md` for the broader principle of least-privilege.
+
 ### Good candidates for Agentic Workflows in this project
 
-| Use case                                           | Trigger                  |
-| -------------------------------------------------- | ------------------------ |
-| Auto-label and triage new issues                   | `issues: opened`         |
-| Generate a weekly changelog from merged PRs        | `schedule` (weekly cron) |
-| Check that `pnpm knip` reports zero unused exports | `push` to `main`         |
-| Post a dependency audit summary as a PR comment    | `pull_request`           |
-| Close stale issues after 30 days of inactivity     | `schedule` (daily cron)  |
+| Use case                                                                                                                             | Trigger                   |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Auto-label and triage new issues                                                                                                     | `issues: opened`          |
+| Generate a weekly changelog from merged PRs                                                                                          | `schedule` (weekly cron)  |
+| Check that `pnpm knip` reports zero unused exports                                                                                   | `push` to `main`          |
+| Post a dependency audit summary as a PR comment                                                                                      | `pull_request`            |
+| Close stale issues after 30 days of inactivity                                                                                       | `schedule` (daily cron)   |
+| **Super-dependabot**: detect new `next`/`react` releases, review changelog, handle breaking changes, open upgrade PR                 | `schedule` (weekly cron)  |
+| **CI doctor**: when a CI workflow fails on `main`, diagnose the root cause and open a fix PR                                         | `workflow_run: completed` |
+| **Documentation drift**: detect when `README.md` or `/docs` diverge from the actual exported API or file structure                   | `push` to `main`          |
+| **Accessibility review**: scan modified `*.tsx` components against WCAG 2.2 AA rules and comment violations on the PR                | `pull_request`            |
+| **Bug fix from stack trace**: read exception stack traces in new bug reports, determine if the fault is in project code, open fix PR | `issues: labeled (bug)`   |
 
 ### When to use vs. standard GitHub Actions YAML
 
