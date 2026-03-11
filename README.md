@@ -39,7 +39,6 @@ components/
     card.tsx            # Card, CardHeader, CardTitle, CardContent, CardFooter
 hooks/                  # Client-side React hooks
   use-debounce.ts
-  use-local-storage.ts
 lib/                    # Shared utilities + configuration
   auth.ts               # getSession(), requireAuth() server helpers
   constants.ts          # APP_NAME, ROUTES, API_ROUTES
@@ -49,6 +48,7 @@ lib/                    # Shared utilities + configuration
 store/                  # Zustand stores
   use-app-store.ts      # theme + sidebar, persisted to localStorage
 tests/                  # Playwright E2E tests
+  auth.spec.ts
   home.spec.ts
 types/
   index.ts              # ApiResponse<T>, PaginatedResponse<T>, Theme, Status…
@@ -158,28 +158,33 @@ This template ships with a full Copilot configuration out of the box.
 
 ### What's included
 
-| Feature                                                                       | Location                                 |
-| ----------------------------------------------------------------------------- | ---------------------------------------- |
-| Project-wide instructions                                                     | `.github/copilot-instructions.md`        |
-| Per-technology instruction files                                              | `.github/instructions/*.instructions.md` |
-| Custom VS Code agents                                                         | `.github/agents/*.agent.md`              |
-| Reusable prompt files                                                         | `.github/prompts/*.prompt.md`            |
-| MCP servers (Context7, Playwright, Shadcn, Next Devtools, GitHub, Markitdown) | `.vscode/mcp.json`                       |
-| Skills library                                                                | `.agents/skills/`                        |
-| Lifecycle hooks                                                               | `.github/hooks/`                         |
+| Feature                                                                                                   | Location                                 |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Project-wide instructions                                                                                 | `.github/copilot-instructions.md`        |
+| Per-technology instruction files                                                                          | `.github/instructions/*.instructions.md` |
+| Custom VS Code agents                                                                                     | `.github/agents/*.agent.md`              |
+| Reusable prompt files                                                                                     | `.github/prompts/*.prompt.md`            |
+| MCP servers (Context7, Playwright, Shadcn, Next Devtools, GitHub, Markitdown, and 5 custom local servers) | `.vscode/mcp.json`                       |
+| Skills library                                                                                            | `.agents/skills/`                        |
+| Lifecycle hooks                                                                                           | `.github/hooks/`                         |
 
 ### MCP Servers
 
 Configured in `.vscode/mcp.json`. Active servers:
 
-| Server                | What it enables                                                          |
-| --------------------- | ------------------------------------------------------------------------ |
-| **Context7**          | Up-to-date docs for any npm library, injected into context automatically |
-| **Playwright MCP**    | Browser automation and UI debugging directly from chat                   |
-| **Shadcn MCP**        | Add and configure shadcn/ui components                                   |
-| **Next Devtools MCP** | Next.js-specific diagnostics and upgrades                                |
-| **GitHub MCP**        | Create issues, PRs, branches, and read repo data from chat               |
-| **Markitdown MCP**    | Convert any document (PDF, Word, Excel, HTML, images) to Markdown        |
+| Server                 | What it enables                                                          |
+| ---------------------- | ------------------------------------------------------------------------ |
+| **Context7**           | Up-to-date docs for any npm library, injected into context automatically |
+| **Playwright MCP**     | Browser automation and UI debugging directly from chat                   |
+| **Shadcn MCP**         | Add and configure shadcn/ui components                                   |
+| **Next Devtools MCP**  | Next.js-specific diagnostics and upgrades                                |
+| **GitHub MCP**         | Create issues, PRs, branches, and read repo data from chat               |
+| **Markitdown MCP**     | Convert any document (PDF, Word, Excel, HTML, images) to Markdown        |
+| **youtube-transcript** | Transcribe and analyze YouTube videos from chat                          |
+| **npm-registry**       | Query npm package metadata and latest versions from chat                 |
+| **hacker-news**        | Browse and search Hacker News from chat                                  |
+| **osv-vulnerability**  | Scan project dependencies for known OSV security vulnerabilities         |
+| **rss-feed**           | Read and summarize RSS/Atom feeds from chat                              |
 
 ### Custom Agents
 
@@ -292,7 +297,7 @@ This template ships a fully-configured AI development environment for VS Code Co
 | `github-actions`  | CI/CD workflows, GitHub Actions                                          |
 | `prd-creator`     | Product requirements documents                                           |
 
-### Skills (`.agents/skills/` — 43 installed)
+### Skills (`.agents/skills/` — 47 installed)
 
 Skills extend agents with domain-specific knowledge. Notable skills:
 
@@ -320,7 +325,7 @@ Run `skills list` or check `.agents/skills/` for the full catalog.
 
 ### Prompts (`.github/prompts/`)
 
-11 reusable prompt files covering: component creation, API routes, Zod schemas, Zustand stores, Playwright tests, ADRs, and more. Use via `@workspace` or the Copilot Chat prompt selector.
+22 reusable prompt files covering: component creation, API routes, Zod schemas, Zustand stores, forms, Playwright tests, security audits, Lighthouse audits, feature docs, skills, and more. Use via `@workspace` or the Copilot Chat prompt selector.
 
 ### Hooks (`.github/hooks/`)
 
@@ -329,7 +334,7 @@ Run `skills list` or check `.agents/skills/` for the full catalog.
 
 ### Instruction Files (`.github/instructions/`)
 
-12 domain-specific instruction files covering: Next.js, React, TypeScript, Tailwind, Auth, Security (OWASP), Accessibility (WCAG 2.2), Vitest, Playwright, Performance, Markdown, and Context7. All are auto-discovered by VS Code Copilot via `applyTo` glob patterns.
+15 domain-specific instruction files covering: Next.js, React, TypeScript, Tailwind, Auth, Security (OWASP), Accessibility (WCAG 2.2), Vitest, Playwright, Performance, Markdown, Context7, Clean Code, Feature Context, and Code Review. All are auto-discovered by VS Code Copilot via `applyTo` glob patterns.
 
 ---
 

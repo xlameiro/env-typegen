@@ -30,7 +30,12 @@ export default defineConfig({
         "app/globals.css",
         "app/favicon.ico",
         // NextAuth route handler — re-export of library, no project logic
-        "app/**/[...nextauth]/**",
+        "app/api/auth/**",
+        // Auth pages with inline server action bodies — "use server" callbacks
+        // inside JSX action={async () => { ... }} are extracted by Next.js at
+        // build time and can never run in jsdom; ignore to avoid false negatives
+        "app/auth/sign-in/page.tsx",
+        "app/auth/sign-up/page.tsx",
       ],
       thresholds: { lines: 80 },
     },

@@ -73,7 +73,7 @@ This template includes a fully layered AI developer experience:
 
 ### Agents (`.github/agents/`)
 
-10 specialized Copilot agents routed from `copilot-instructions.md`:
+11 specialized Copilot agents routed from `copilot-instructions.md`:
 
 - `router.agent.md` — Default agent; classifies intent and delegates to specialists
 - `feature-builder.agent.md` — Builds new features following project conventions
@@ -85,14 +85,15 @@ This template includes a fully layered AI developer experience:
 - `adr-generator.agent.md` — Architectural Decision Records
 - `prd-creator.agent.md` — Product Requirements Documents from user stories
 - `github-actions.agent.md` — CI/CD workflows and GitHub Actions
+- `ui-components.agent.md` — UI component scaffolding and design system patterns
 
 ### Skills (`.agents/skills/`)
 
-43 reusable skills covering: Next.js App Router, Auth.js, Zustand, Zod, Vitest, Playwright, Tailwind design systems, TypeScript advanced types, API design, error handling, performance, security, accessibility, git workflows, and more.
+47 reusable skills covering: Next.js App Router, Auth.js, Zustand, Zod, Vitest, Playwright, Tailwind design systems, TypeScript advanced types, API design, error handling, performance, security, accessibility, git workflows, and more.
 
 ### Instruction Files (`.github/instructions/`)
 
-13 per-file instruction files scoped with `applyTo` glob patterns:
+15 per-file instruction files scoped with `applyTo` glob patterns:
 
 - `nextjs.instructions.md` — App Router, Server Components, caching
 - `nextjs-tailwind.instructions.md` — Tailwind CSS v4, design tokens
@@ -107,6 +108,8 @@ This template includes a fully layered AI developer experience:
 - `code-review-generic.instructions.md` — Structured PR review protocol
 - `learnings.instructions.md` — `learn!` command for persisting session insights
 - `markdown.instructions.md` — Markdown formatting standards
+- `clean-code.instructions.md` — Naming, function design, error handling, state principles
+- `feature-context.instructions.md` — Co-located invariant files for complex components
 
 ### Lifecycle Hooks (`.github/hooks/`)
 
@@ -119,31 +122,46 @@ This template includes a fully layered AI developer experience:
 
 ### Prompt Commands (`.github/prompts/`)
 
-13 reusable Copilot prompt files for common workflows:
+22 reusable Copilot prompt files for common workflows:
 
 - `analyze.prompt.md` — Deep analysis of a selected file or component
+- `analyze-and-generate-skills.prompt.md` — Analyze code and generate a reusable skill from it
+- `check-video.prompt.md` — Summarize and extract insights from a video URL
 - `create-api-route.prompt.md` — Scaffold a new Route Handler in `app/api/`
 - `create-component.prompt.md` — Scaffold a new Server or Client Component
+- `create-form.prompt.md` — Scaffold a new form with react-hook-form + Zod + Server Action
 - `create-page.prompt.md` — Scaffold a new App Router page with layout and loading states
 - `create-schema.prompt.md` — Create a Zod validation schema
 - `create-store.prompt.md` — Create a Zustand client state store
 - `doc-comments.prompt.md` — Add JSDoc documentation comments to a file
 - `explain.prompt.md` — Explain how a selected piece of code works
+- `extract-design-tokens.prompt.md` — Extract design tokens from a Figma/screenshot reference
 - `fix-issue.prompt.md` — Fix a GitHub issue following project conventions
+- `generate-feature-docs.prompt.md` — Generate a `.context.md` invariant file for a complex component
 - `generate-tests.prompt.md` — Generate Vitest unit or Playwright E2E tests
 - `health-check.prompt.md` — Run a full project health audit (lint + type-check + test + build)
 - `improve-skill.prompt.md` — Improve or update an agent skill file
+- `init-agent.prompt.md` — Bootstrap a Ralph Loop: create init.sh, features.json, progress.txt
+- `lighthouse-audit.prompt.md` — Map Lighthouse findings to code changes
+- `modify-complex-component.prompt.md` — Safely modify a component with a `.context.md` invariant file
 - `no-any.prompt.md` — Replace all `any` types with proper TypeScript types
+- `security-audit.prompt.md` — Run a targeted OWASP security review of auth/API routes
 
 ### MCP Servers (`.vscode/mcp.json`)
 
-5 MCP servers pre-configured for VS Code:
+11 MCP servers pre-configured for VS Code:
 
 - `@upstash/context7-mcp` — Authoritative, version-specific library documentation
 - `shadcn` — shadcn/ui component registry
-- `mcp-server-playwright` — Browser automation for testing
+- `@playwright/mcp@latest` — Browser automation for testing
 - `next-devtools-mcp` — Next.js DevTools integration
 - GitHub MCP (`api.githubcopilot.com/mcp/`) — Issues, PRs, and repository operations
+- `markitdown-mcp` — Convert documents (PDF, Word, Excel, HTML, images) to Markdown
+- `youtube-transcript` (local) — Transcribe YouTube videos from chat
+- `npm-registry` (local) — Query npm package metadata and versions
+- `hacker-news` (local) — Browse and search Hacker News from chat
+- `osv-vulnerability` (local) — Scan dependencies for known OSV vulnerabilities
+- `rss-feed` (local) — Read and summarize RSS/Atom feeds
 
 ## Docs
 

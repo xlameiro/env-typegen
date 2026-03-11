@@ -1,13 +1,13 @@
 ---
 name: "check video"
 agent: "agent"
-description: "Transcribe and analyze a YouTube video looking for improvements applicable to the Next.js 16 + VS Code + Copilot template. Usage: /revisa <url>"
+description: "Transcribe and analyze a YouTube video looking for improvements applicable to the Next.js 16 + VS Code + Copilot template. Usage: /check-video <url>"
 tools: ["youtube-transcript/get_transcript", read, search, web]
 ---
 
-# Revisa — YouTube video analyzer for the template
+# check-video — YouTube video analyzer for the template
 
-> **Usage**: `/revisa <url>` where `<url>` is a YouTube video URL.
+> **Usage**: `/check-video <url>` where `<url>` is a YouTube video URL.
 
 ## Instructions
 

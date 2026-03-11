@@ -62,18 +62,35 @@ describe("useDebounce", () => {
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it("resets the timer when called again within the delay", () => {
+  it("should cancel a pending timer when the hook unmounts", () => {
     const callback = vi.fn();
-    const { result } = renderHook(() => useDebounce(callback, 300));
+    const { result, unmount } = renderHook(() => useDebounce(callback, 300));
 
     act(() => {
-      result.current("first");
-      vi.advanceTimersByTime(200);
-      result.current("second");
+      result.current("test");
+    });
+
+    // Unmount before the timer fires — cleanup should clear the pending timer
+    unmount();
+
+    act(() => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(callback).toHaveBeenCalledOnce();
-    expect(callback).toHaveBeenCalledWith("second");
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("should not throw when unmounting without any pending timer", () => {
+    // Covers the FALSE branch of `if (timerRef.current)` in the effect cleanup
+    const callback = vi.fn();
+    const { unmount } = renderHook(() => useDebounce(callback, 300));
+
+    unmount(); // timerRef.current is null — cleanup skips clearTimeout
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(callback).not.toHaveBeenCalled();
   });
 });

@@ -30,6 +30,7 @@ export default function SignUpPage() {
           {/* Google */}
           <form
             action={async () => {
+              /* c8 ignore next 2 -- server action body cannot run in jsdom */
               "use server";
               await signIn("google", { redirectTo: ROUTES.dashboard });
             }}

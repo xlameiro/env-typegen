@@ -54,13 +54,26 @@ describe("DashboardSearch", () => {
     ).not.toBeDisabled();
   });
 
-  it("should update the search query when the user types", () => {
-    renderWithNuqs();
-    const input = screen.getByRole("searchbox");
-    fireEvent.change(input, { target: { value: "react" } });
-    // After typing, the results message should update
+  it("should increment the page when the Next button is clicked", () => {
+    renderWithNuqs("page=1");
+    fireEvent.click(screen.getByRole("button", { name: /next →/i }));
+    expect(screen.getByText("Page 2")).toBeInTheDocument();
+  });
+
+  it("should decrement the page when the Previous button is clicked on page 2", () => {
+    renderWithNuqs("page=2");
+    fireEvent.click(screen.getByRole("button", { name: /← previous/i }));
+    expect(screen.getByText("Page 1")).toBeInTheDocument();
+  });
+
+  it("should update the query and reset page to 1 when the user types", () => {
+    // Covers handleSearch — setSearch({ q, page: 1 })
+    renderWithNuqs("page=3");
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "react" },
+    });
     expect(
-      screen.getByText(/showing results for "react"/i),
+      screen.getByText(/showing results for "react" \(page 1\)/i),
     ).toBeInTheDocument();
   });
 });

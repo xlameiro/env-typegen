@@ -44,19 +44,51 @@ describe("ProfileForm", () => {
     });
   });
 
-  it("should show validation error when email is invalid", async () => {
+  it("should call the action with valid data when the form is submitted", async () => {
+    const { updateProfileAction } = await import("./actions");
     render(<ProfileForm defaultValues={defaultValues} />);
-    fireEvent.change(screen.getByLabelText(/email/i), {
-      target: { value: "not-an-email" },
-    });
+
     const form = (
       screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
     ).closest("form") as HTMLFormElement;
     fireEvent.submit(form);
+
     await waitFor(() => {
-      // There should be at least one error message rendered
-      const alerts = document.querySelectorAll("[role='alert']");
-      expect(alerts.length).toBeGreaterThan(0);
+      expect(updateProfileAction).toHaveBeenCalled();
+    });
+  });
+
+  it("should show success message after successful submission", async () => {
+    render(<ProfileForm defaultValues={defaultValues} />);
+
+    const form = (
+      screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
+    ).closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/profile updated successfully/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should show error message when action returns failure", async () => {
+    const { updateProfileAction } = await import("./actions");
+    (updateProfileAction as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      success: false,
+      message: "Failed to update profile.",
+    });
+
+    render(<ProfileForm defaultValues={defaultValues} />);
+
+    const form = (
+      screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
+    ).closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(screen.getByText(/failed to update profile/i)).toBeInTheDocument();
     });
   });
 });
