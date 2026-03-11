@@ -352,3 +352,130 @@ In Tailwind CSS (v4), after setting the variable:
 ```tsx
 <p className="font-sans">Hello</p>
 ```
+
+---
+
+## `userAgentFromString()` — Parse UA String Directly
+
+Like `userAgent()` but accepts a raw UA string instead of a `Request` object. Useful when the user-agent comes from a header value already extracted.
+
+```ts
+import { userAgentFromString } from "next/server";
+```
+
+### Signature
+
+```ts
+function userAgentFromString(input: string | undefined): UserAgent;
+```
+
+Returns the same `UserAgent` shape as `userAgent()` above.
+
+```ts
+import { userAgentFromString } from "next/server";
+
+// Parse a raw UA string (e.g., from a log or cached header value)
+const ua = userAgentFromString(
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+);
+console.log(ua.device.type); // 'mobile'
+console.log(ua.os.name); // 'iOS'
+```
+
+---
+
+## `URLPattern` — URL Pattern Matching
+
+Web-standard `URLPattern` API re-exported from `next/server` for use in proxy functions and Route Handlers without a separate import.
+
+```ts
+import { URLPattern } from "next/server";
+```
+
+### Signature
+
+```ts
+class URLPattern {
+  constructor(input: URLPatternInput, baseURL?: string);
+  test(input: URLPatternInput | string, baseURL?: string): boolean;
+  exec(
+    input: URLPatternInput | string,
+    baseURL?: string,
+  ): URLPatternResult | null;
+  readonly protocol: string;
+  readonly username: string;
+  readonly password: string;
+  readonly hostname: string;
+  readonly port: string;
+  readonly pathname: string;
+  readonly search: string;
+  readonly hash: string;
+}
+```
+
+```ts
+import { URLPattern } from "next/server";
+
+const pattern = new URLPattern({ pathname: "/blog/:slug" });
+
+pattern.test("https://example.com/blog/hello"); // true
+const result = pattern.exec("https://example.com/blog/hello");
+result?.pathname.groups; // { slug: 'hello' }
+```
+
+---
+
+## Type Exports — `ProxyConfig` / `NextProxy`
+
+Types for typing the `proxy.ts` function and its `config` export.
+
+```ts
+import type { NextProxy, ProxyConfig } from "next/server";
+```
+
+### `NextProxy`
+
+The function signature for the default export from `proxy.ts`.
+
+```ts
+// Definition (simplified)
+type NextProxy = (
+  request: NextRequest,
+  event: NextFetchEvent,
+) =>
+  | NextResponse
+  | Response
+  | null
+  | undefined
+  | void
+  | Promise<NextResponse | Response | null | undefined | void>;
+```
+
+```ts
+// proxy.ts — typed export
+import type { NextProxy } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+const proxy: NextProxy = (request: NextRequest) => {
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+};
+
+export default proxy;
+```
+
+### `ProxyConfig`
+
+The config shape for the `config` export (controls matcher, regions, and dynamic evaluation). See [proxy.ts file conventions](../nextjs-file-conventions/references/file-conventions-api.md) for full details on `matcher`, `regions`, and `unstable_allowDynamic`.
+
+```ts
+import type { ProxyConfig } from "next/server";
+
+export const config: ProxyConfig = {
+  matcher: ["/admin/:path*", "/dashboard/:path*"],
+};
+```
+
+> **Deprecated aliases**: `NextMiddleware` (use `NextProxy`) and `MiddlewareConfig` (use `ProxyConfig`) are still exported for backwards compatibility.

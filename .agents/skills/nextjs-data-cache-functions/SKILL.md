@@ -503,6 +503,48 @@ export default async function Page() {
 
 ---
 
+## `unstable_noStore()`
+
+Opts an individual Server Component or data-fetching function out of caching — without adding `'use cache'` or setting `fetch` options. An escape hatch for granular per-call cache opt-out.
+
+```ts
+import { unstable_noStore } from "next/cache";
+```
+
+### Signature
+
+```ts
+function unstable_noStore(): void;
+```
+
+> **Prefer `connection()`** when the goal is to force dynamic rendering. `unstable_noStore()` targets the Data Cache specifically; `connection()` is the semantically clearer equivalent for opting out of the full page cache.
+
+```ts
+import { unstable_noStore } from "next/cache";
+
+async function getStockPrice(ticker: string) {
+  unstable_noStore(); // ← never cache this call
+  const res = await fetch(`https://api.stocks.io/${ticker}`);
+  return res.json();
+}
+```
+
+---
+
+## `unstable_cacheLife()` / `unstable_cacheTag()` — Legacy aliases
+
+`next/cache` exports `unstable_cacheLife` and `unstable_cacheTag` as **aliases** for `cacheLife` and `cacheTag`. Both names resolve to the same function — prefer the stable names.
+
+```ts
+import { unstable_cacheLife, unstable_cacheTag } from "next/cache";
+// identical to:
+import { cacheLife, cacheTag } from "next/cache";
+```
+
+> Use the `cacheLife` / `cacheTag` imports in all new code. The `unstable_*` variants exist for backwards-compatibility with code written before Next.js 15.
+
+---
+
 ## Quick Reference
 
 | Function                       | Import         | Use Case                                                          |
@@ -515,6 +557,9 @@ export default async function Page() {
 | `unstable_cache(fn)`           | `next/cache`   | ⚠️ Legacy function-level cache                                    |
 | `cacheTag(...tags)`            | `next/cache`   | Tag current `use cache` scope                                     |
 | `cacheLife(profile)`           | `next/cache`   | Set lifetime of `use cache` scope                                 |
+| `unstable_cacheTag(...tags)`   | `next/cache`   | Alias for `cacheTag` — prefer `cacheTag`                          |
+| `unstable_cacheLife(profile)`  | `next/cache`   | Alias for `cacheLife` — prefer `cacheLife`                        |
+| `unstable_noStore()`           | `next/cache`   | Opt a call out of the Data Cache                                  |
 | `updateTag(tag)`               | `next/cache`   | Immediate expiry in Server Actions                                |
 | `after(cb)`                    | `next/server`  | Post-response side effects                                        |
 | `connection()`                 | `next/server`  | Force dynamic rendering                                           |

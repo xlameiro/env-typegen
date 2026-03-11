@@ -217,7 +217,7 @@ This workflow works identically from the VS Code integrated terminal and from a 
 
 A **Ralph Loop** runs Copilot CLI non-interactively inside a `while` loop. Each iteration starts with a **fresh context window** — avoiding the "Hoarders effect" where accumulated context degrades agent output quality over long tasks.
 
-**The key insight**: state lives in files (`progress.txt`, the PRD checkboxes), not in the context window. Each iteration reads the current state from disk, does one unit of work, persists the result, and exits — keeping the context window clean and focused.
+**The key insight**: state lives in files (`progress.txt`, the task list), not in the context window. Each iteration reads the current state from disk, does one unit of work, persists the result, and exits — keeping the context window clean and focused.
 
 **When to use:**
 
@@ -225,7 +225,58 @@ A **Ralph Loop** runs Copilot CLI non-interactively inside a `while` loop. Each 
 - Repetitive migrations (applying the same pattern to many files)
 - Fully automated periodic workflows (weekly summaries, changelog generation, dependency audits)
 
-**Pattern — `scripts/ralph.sh`:**
+#### Phase 0 — Initializer agent (run once before the loop)
+
+Before starting a Ralph Loop, run a one-shot **initializer agent** to bootstrap the environment. Based on Anthropic's Claude Code experiments, this dramatically reduces the "agent guesses at state" problem:
+
+```
+/init-agent <goal>
+```
+
+Or invoke `.github/prompts/init-agent.prompt.md` directly:
+
+```bash
+copilot --yolo -p "$(cat .github/prompts/init-agent.prompt.md)" -- "$GOAL"
+```
+
+The initializer produces:
+
+1. **`init.sh`** — starts the dev server so every subsequent session can boot immediately without setup
+2. **`features.json`** — machine-readable task list with `pass`/`fail` state per task (see schema below)
+3. **`progress.txt`** — empty file for the loop to append summaries into
+4. **Initial git commit** — records which files exist at baseline so agents can read `git log` to understand what changed
+
+**`features.json` schema** (machine-readable, preferred over markdown checkboxes for precision):
+
+```json
+[
+  {
+    "id": "feat-001",
+    "title": "User authentication with email/password",
+    "spec": "Implement sign-in and sign-up pages using Auth.js v5 credentials provider. Validate inputs with Zod. Return typed errors. Cover with Vitest unit tests and a Playwright E2E test.",
+    "priority": 1,
+    "status": "fail"
+  },
+  {
+    "id": "feat-002",
+    "title": "Dashboard page with stats section",
+    "spec": "Server Component. Fetch stats from lib/stats.ts. Wrap in <Suspense> with a skeleton fallback. No 'use client'.",
+    "priority": 2,
+    "status": "fail"
+  }
+]
+```
+
+> All tasks start as `"status": "fail"`. The agent marks each `"pass"` after verifying the implementation works end-to-end. This prevents premature completion claims — a common failure mode when using markdown checkboxes.
+
+**When to use `features.json` vs markdown `- [ ]` checkboxes:**
+
+| Approach         | Best for                                                       |
+| ---------------- | -------------------------------------------------------------- |
+| `features.json`  | 10+ tasks, long-running loops, when spec detail matters        |
+| Markdown `- [ ]` | Short PRDs (≤10 tasks), human-readable tracking, quick scripts |
+
+#### Pattern — `scripts/ralph.sh` (markdown PRD variant)
 
 ```bash
 #!/usr/bin/env bash
@@ -256,18 +307,23 @@ pnpm lint && pnpm type-check && pnpm test
 You are running inside a Ralph Loop. Your context window is fresh each run.
 
 1. Read `progress.txt` to understand what has already been done.
-2. Read `.github/prd/feature.prd.md` and find the FIRST unchecked item (`- [ ]`).
-3. Implement that one item completely. Do not start the next item.
-4. Mark it done in the PRD: change `- [ ]` to `- [x]`.
-5. Append a one-line summary to `progress.txt`.
-6. Run `pnpm type-check` — fix any type errors before stopping.
-7. Stop. Do not ask for confirmation.
+2. Read `features.json` (preferred) or `.github/prd/feature.prd.md` to find the FIRST incomplete task.
+   - In `features.json`: pick the lowest-priority `"status": "fail"` entry.
+   - In markdown PRD: find the FIRST unchecked item (`- [ ]`).
+3. Implement that one task completely. Do not start the next task.
+4. Mark it done:
+   - In `features.json`: set `"status": "pass"`.
+   - In markdown PRD: change `- [ ]` to `- [x]`.
+5. Run `init.sh` to start the dev server (if not already running), then verify the feature works end-to-end.
+6. Append a one-line summary to `progress.txt`.
+7. Commit: `git add <changed files> && git commit -m "feat(<id>): <short description>"`.
+8. Run `pnpm type-check` — fix any type errors before stopping.
+9. Stop. Do not ask for confirmation.
 ```
 
 **Safe-to-run checklist before starting a Ralph Loop:**
 
-- [ ] The PRD uses `- [ ]` / `- [x]` checkboxes for every task
-- [ ] `progress.txt` exists in the project root (empty is fine)
+- [ ] Phase 0 complete: `init.sh`, `features.json` (or markdown PRD), and `progress.txt` exist
 - [ ] No infra, AWS, or schema migrations are in the loop — use Default Approvals for those
 - [ ] Quality gate (`pnpm lint && pnpm type-check && pnpm test`) runs after the loop, not inside each iteration
 - [ ] `MAX` iterations is set conservatively — start at 20 and increase if needed
@@ -500,6 +556,62 @@ tools:
 
 ---
 
+## Harness Engineering — Long-Running Agent Systems
+
+> **Harness engineering** (coined by the Anthropic team, 2025–2026) is the discipline of designing the _system around_ an agent rather than optimising a single prompt. Prompt/context engineering maximised the output of one session; harness engineering targets multi-session coordination — how each fresh session starts with a legible environment, how the agent verifies its own output, and what tooling it needs to operate reliably across sessions.
+
+Three principles derived from Anthropic, OpenAI Codex, and Vercel internal evals:
+
+| Principle                  | What it means                                                                                       | Implementation in this template                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Legible environment**    | Every new session must quickly understand the state of work without relying on conversation history | `AGENTS.md` as documentation ToC, `progress.txt`, `features.json` task list, descriptive git commits |
+| **Fast verification loop** | The agent must be able to test its own output end-to-end — unit tests alone are insufficient        | Closed Agent Loop (`pnpm test + build`), Playwright/Puppeteer MCP for browser verification           |
+| **Generic tooling**        | Large models perform better with generic shell commands than bespoke JSON tool-call schemas         | Prefer a single batch shell command tool over multiple specialised domain tools                      |
+
+### Repository as System of Record
+
+Treat the repository as the definitive source of truth for every agent session — not the conversation history or a human's memory. If information cannot be accessed from the repository, the agent effectively doesn't know it.
+
+**Documentation index pattern** — for large or long-running projects, `AGENTS.md` should be a lightweight _table of contents_ linking to separate docs files rather than a monolithic reference. Create a `docs/` directory and link to it from `AGENTS.md` as the project grows:
+
+```
+docs/
+  architecture.md      # Component boundaries, data flows, key decisions
+  execution-plan.md    # Current sprint tasks, feature roadmap
+  db-schema.md         # Database schema and migration notes
+  security.md          # Auth model, threat model summary
+  frontend-plan.md     # UI component inventory, design system notes
+```
+
+When these files exist, add a `## Documentation Index` section at the top of `AGENTS.md`:
+
+```markdown
+## Documentation Index
+
+- Architecture: `docs/architecture.md`
+- Current execution plan: `docs/execution-plan.md`
+- DB schema: `docs/db-schema.md`
+- Security model: `docs/security.md`
+```
+
+> OpenAI's Codex team failed with a single giant `AGENTS.md` — too much context for any agent session to manage. Splitting into linked documents with `AGENTS.md` as an index solved the problem.
+
+### Generic Tools Over Specialised Tools
+
+Vercel's text-to-SQL agent replaced months of bespoke tooling with a **single batch shell command tool** (run `grep`, `npm run`, `eslint`, etc. natively):
+
+- **3.5× faster** execution
+- **37% fewer tokens** consumed
+- Success rate: **80% → 100%**
+
+Anthropics Claude Code team reported the same finding independently: one batch command tool outperformed multiple specialised JSON tool-call definitions.
+
+**Why it works**: large models have billions of training tokens on `grep`, `curl`, `npm run`, and shell pipelines. They execute these reliably. Bespoke JSON schemas require the model to produce structured output it has seen far less of.
+
+**Implication for MCP server design**: expose a single `run_command` tool rather than multiple specialised tools by default. Add specialisation only when a generic approach demonstrably fails. See also § MCP Servers in `copilot-instructions.md`.
+
+---
+
 ## Closed Agent Loop
 
 One of the most important patterns for effective autonomous coding is the **closed agent loop**: the agent can verify its own work end-to-end, without human intervention and without real credentials.
@@ -530,6 +642,25 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 ```
+
+### Browser DevTools MCP for end-to-end verification
+
+Unit tests (`pnpm test`) and TypeScript checking catch structural bugs, but they repeatedly fail to detect integration issues: a feature that passes all unit tests can still render broken UI, produce ARIA violations, or navigate incorrectly in the real browser.
+
+For long-running agent tasks, wire a browser automation tool into the agent runtime so it can verify E2E correctness autonomously:
+
+**Option 1 — VS Code Integrated Browser (already available)**: Enable in VS Code Settings → search "Integrated Browser". Click **Share with agent** to give the agent Playwright-equivalent access: navigate, screenshot, inspect, scroll. The agent can take screenshots and compare rendered output against the intended design.
+
+**Option 2 — Playwright MCP**: The `mcp_microsoft_pla_*` tools (already registered in this project) give the agent programmatic browser control. Instruct the agent to:
+
+```
+After implementing a UI change, use mcp_microsoft_pla_browser_navigate to open the dev server,
+take a screenshot with mcp_microsoft_pla_browser_take_screenshot, and verify the feature works visually.
+```
+
+**Option 3 — Puppeteer MCP**: For headless CI environments, a Puppeteer MCP server provides DOM snapshots and navigation without a display. Add to `.vscode/mcp.json` if needed.
+
+> Anthropic's Claude Code experiments showed that agents wiring browser tools caught and fixed bugs that were completely invisible from code analysis alone — including layout shifts, broken navigation, and missing ARIA attributes.
 
 ### Why this matters for AI agents
 

@@ -917,6 +917,8 @@ See the `mcp-server` skill (`.agents/skills/mcp-server/SKILL.md`) for the full s
 pnpm add @modelcontextprotocol/sdk
 ```
 
+**Prefer generic batch tools over specialised tools**: Vercel's text-to-SQL agent collapsed months of specialised bespoke tooling into a single batch shell command tool (run `grep`, `npm run`, `eslint`, etc. natively). Result: **3.5× faster**, **37% fewer tokens**, success rate from **80% → 100%**. Anthropic's Claude Code team independently reached the same conclusion. When designing MCP servers, start with a single `run_command` tool that accepts a shell string — add specialised tools only when a generic approach demonstrably fails.
+
 **Skills vs MCP servers — token cost**: MCP servers register all their tools into the model's context window on every request, even when not used. Skills add far fewer tokens. If you notice the agent compacting earlier than expected, run `/context` in the CLI to see tool token usage — then consider whether any MCP server could be replaced by a skill that documents how to call an equivalent CLI command instead.
 
 ## Convention Health Audit

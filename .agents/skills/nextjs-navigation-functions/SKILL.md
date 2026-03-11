@@ -385,6 +385,50 @@ export function Breadcrumbs() {
 
 ---
 
+### `unstable_rethrow()`
+
+Rethrows internal Next.js control-flow errors — redirects, not-found signals, forbidden, and unauthorized — so the framework can handle them correctly. **Must be called before any custom error handling in a `catch` block.** Without it, a `try/catch` around data-fetching code will silently swallow `redirect()` and `notFound()` calls.
+
+```ts
+import { unstable_rethrow } from "next/navigation";
+```
+
+#### Signature
+
+```ts
+function unstable_rethrow(error: unknown): void;
+```
+
+#### When to use
+
+| Thrown by                           | Internal error type        |
+| ----------------------------------- | -------------------------- |
+| `redirect()`, `permanentRedirect()` | `NEXT_REDIRECT`            |
+| `notFound()`                        | `NEXT_NOT_FOUND`           |
+| `forbidden()`                       | `NEXT_HTTP_ERROR_FALLBACK` |
+| `unauthorized()`                    | `NEXT_HTTP_ERROR_FALLBACK` |
+
+```tsx
+import { notFound, unstable_rethrow } from "next/navigation";
+
+async function getPost(id: string) {
+  try {
+    const post = await db.post.findUnique({ where: { id } });
+    if (!post) notFound(); // throws internally
+    return post;
+  } catch (err) {
+    unstable_rethrow(err); // ← re-throw before your own handling
+    // Only reaches here for genuine application errors
+    console.error("DB error fetching post", err);
+    throw err;
+  }
+}
+```
+
+> Also exported from `next/server` for use in Route Handlers.
+
+---
+
 ## Quick Reference
 
 | Function                 | Where             | Returns                              | HTTP Code |
@@ -398,3 +442,4 @@ export function Breadcrumbs() {
 | `usePathname()`          | Client            | `string`                             | —         |
 | `useSearchParams()`      | Client + Suspense | `ReadonlyURLSearchParams`            | —         |
 | `useParams()`            | Client            | `Record<string, string \| string[]>` | —         |
+| `unstable_rethrow(err)`  | Server            | `void`                               | —         |
