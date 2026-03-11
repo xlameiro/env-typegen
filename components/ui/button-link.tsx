@@ -1,12 +1,17 @@
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import Link, { type LinkProps } from "next/link";
+import type { PropsWithChildren } from "react";
 import { buttonVariants } from "./button";
 
 // ButtonLink is generic over RouteType (same pattern as Next.js Link) so that
 // typed routes (next.config.ts typedRoutes: true) are enforced at the call site.
-type ButtonLinkProps<RouteType extends string> = LinkProps<RouteType> &
-  VariantProps<typeof buttonVariants>;
+// PropsWithChildren and className are added explicitly because LinkProps does
+// not extend AnchorHTMLAttributes — children and className must be declared.
+type ButtonLinkProps<RouteType extends string> = PropsWithChildren<
+  LinkProps<RouteType> &
+    VariantProps<typeof buttonVariants> & { className?: string }
+>;
 
 /**
  * A Next.js Link styled as a button.
