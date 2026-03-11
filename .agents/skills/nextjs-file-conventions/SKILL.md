@@ -26,6 +26,7 @@ app/
 ├── loading.tsx             # Suspense loading UI
 ├── error.tsx               # Error boundary UI ('use client' required)
 ├── not-found.tsx           # 404 UI
+├── global-not-found.tsx    # Global 404 UI (requires experimental.globalNotFound: true)
 ├── forbidden.tsx           # 403 UI (requires experimental.authInterrupts: true)
 ├── unauthorized.tsx        # 401 UI (requires experimental.authInterrupts: true)
 ├── route.ts                # API endpoint (HTTP handlers)
@@ -33,6 +34,7 @@ app/
 ├── default.tsx             # Parallel route slot fallback
 ├── proxy.ts                # Node.js proxy (runs before every request) — renamed from middleware.ts in Next.js 16
 ├── instrumentation.ts      # Telemetry hooks (at root, not inside app/)
+├── mdx-components.tsx      # MDX component overrides (at root, not inside app/)
 ├── opengraph-image.tsx     # OG image generation
 ├── twitter-image.tsx       # Twitter card image generation
 ├── icon.tsx                # App icon
@@ -459,6 +461,107 @@ export const onRequestError: Instrumentation.onRequestError = async (
 ```
 
 `Instrumentation.onRequestError` is a namespace alias for `InstrumentationOnRequestError` from `next/dist/server/instrumentation/types`.
+
+---
+
+## `mdx-components.tsx`
+
+Lives at the **project root** (or `src/`). Required to use MDX with the App Router. Provides custom React component overrides for HTML elements rendered from `.mdx` files.
+
+**Install dependencies**:
+
+```bash
+pnpm add @next/mdx @mdx-js/loader @mdx-js/react @types/mdx
+```
+
+**Enable MDX in `next.config.ts`**:
+
+```ts
+import createMDX from "@next/mdx";
+const withMDX = createMDX({ extension: /\.mdx?$/ });
+
+export default withMDX({
+  pageExtensions: ["ts", "tsx", "md", "mdx"],
+});
+```
+
+**`mdx-components.tsx`** at project root:
+
+```tsx
+import type { MDXComponents } from "mdx/types";
+import Image, { type ImageProps } from "next/image";
+
+// Required — App Router MDX support
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    // Override specific HTML elements with custom React components
+    h1: ({ children }) => (
+      <h1 className="text-4xl font-bold mt-8 mb-4">{children}</h1>
+    ),
+    img: (props) => (
+      <Image
+        sizes="100vw"
+        className="w-full rounded-lg"
+        {...(props as ImageProps)}
+      />
+    ),
+    // Spread in any components passed from MDX files
+    ...components,
+  };
+}
+```
+
+**Use in a Server Component**:
+
+```tsx
+// app/blog/[slug]/page.tsx
+import { MDXRemote } from "next-mdx-remote/rsc";
+
+export default async function BlogPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const source = await getPostContent(slug);
+  return <MDXRemote source={source} />;
+}
+```
+
+| Export             | Signature                                      | Description                          |
+| ------------------ | ---------------------------------------------- | ------------------------------------ |
+| `useMDXComponents` | `(components: MDXComponents) => MDXComponents` | Returns merged component map for MDX |
+
+> `mdx-components.tsx` is auto-discovered by Next.js. No import needed — the framework calls `useMDXComponents` automatically when rendering `.mdx` files.
+
+---
+
+## `global-not-found.tsx` ⚠️ Experimental
+
+Requires `experimental.globalNotFound: true` in `next.config.ts`. Provides a **single global 404 page** used across all routes — replaces per-segment `not-found.tsx` for root-level 404 handling.
+
+```ts
+// next.config.ts
+experimental: {
+  globalNotFound: true,
+}
+```
+
+```tsx
+// app/global-not-found.tsx
+export default function GlobalNotFound() {
+  return (
+    <html lang="en">
+      <body>
+        <h1>Page Not Found</h1>
+        <p>The page you are looking for does not exist.</p>
+      </body>
+    </html>
+  );
+}
+```
+
+> Unlike `not-found.tsx`, `global-not-found.tsx` must render a complete `<html>` document — it is used for all unmatched routes before any layout is applied.
 
 ---
 
