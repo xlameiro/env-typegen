@@ -310,16 +310,16 @@ compiler: {
     minify: true,             // minify CSS template literals (default: true in prod)
     transpileTemplateLiterals: true,
     pure: false,              // enable pure annotation for tree shaking
-    skipDefaultConversion: false,
+    cssProp: false,           // enable the css prop (default: false)
     topLevelImportPaths: [],
     namespace: '',
-    preventFullImport: false,
-    styledBaseImport: ['styled-components', 'default'],
   },
 }
 ```
 
-> Requires `pnpm add styled-components`. The `displayName` helps React DevTools identify components; the `ssr` flag adds a unique `data-styled-*` attribute for hydration matching.
+> Requires `pnpm add styled-components`. The `displayName` helps React DevTools identify components; the `ssr` flag adds a unique `data-styled-*` attribute for hydration matching. The `cssProp` option enables the `css={...}` prop syntax (similar to Emotion's css prop).
+
+> **Note**: `skipDefaultConversion`, `preventFullImport`, and `styledBaseImport` are **not** `styledComponents` options — they belong to `modularizeImports` (see below) or `emotion.importMap` respectively.
 
 ---
 
@@ -334,16 +334,21 @@ compiler: {
   emotion: {
     autoLabel: 'dev-only',            // 'always' | 'dev-only' | 'never'
     labelFormat: '[local]',           // default: '[local]'
-    importMap: {
-      '@emotion/css': { css: { canonicalImport: ['@emotion/css', 'css'] } },
-    },
-    cssProp: true,                    // enable css prop (default: true)
     sourceMap: true,                  // source maps in dev (default: true)
+    importMap: {
+      // Map custom imports to canonical Emotion imports so the SWC transform
+      // can process them. Each entry: { canonicalImport?, styledBaseImport? }
+      '@emotion/css': { css: { canonicalImport: ['@emotion/css', 'css'] } },
+      // styledBaseImport: tells the transform what the base styled factory is
+      '@emotion/styled': { default: { styledBaseImport: ['@emotion/styled', 'default'] } },
+    },
   },
 }
 ```
 
 > The `autoLabel` option appends a class name suffix like `--MyComponent` in development, making it easy to trace styles in the browser inspector without the overhead of `displayName` string injection.
+
+> **Note**: `cssProp` is **not** an `EmotionConfig` field. The css prop is enabled by including `@emotion/react` or the Babel preset. The `importMap` field's `styledBaseImport` sub-option tells the SWC transform where to find the styled factory (e.g. `['@emotion/styled', 'default']`).
 
 ---
 
@@ -434,6 +439,43 @@ experimental: {
 ```
 
 > Each entry is a `[pluginName, options]` tuple. Plugin names are npm package names that export a Wasm binary. SWC plugins are currently in alpha — the Wasm ABI may change across Next.js versions.
+
+---
+
+### `modularizeImports`
+
+Transform barrel imports into direct file imports at compile time to reduce bundle size. Use for large icon or utility libraries where importing from the root would include the entire library.
+
+```ts
+modularizeImports: {
+  // Pattern: key is the package name / wildcard path to match
+  // transform: the output import path; {{member}} is the named export
+  '@mui/icons-material': {
+    transform: '@mui/icons-material/{{member}}',
+  },
+  'lodash': {
+    transform: 'lodash/{{member}}',
+  },
+  // preventFullImport: throw a build error if the full barrel is imported
+  '@my-company/ui': {
+    transform: '@my-company/ui/components/{{member}}',
+    preventFullImport: true,
+  },
+  // skipDefaultConversion: keep named import, don't convert to default import
+  'react-icons/ai': {
+    transform: 'react-icons/ai/{{member}}',
+    skipDefaultConversion: true,
+  },
+},
+```
+
+| Option                  | Type                               | Description                                                      |
+| ----------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| `transform`             | `string \| Record<string, string>` | Output import path with `{{member}}` placeholder for export name |
+| `preventFullImport`     | `boolean`                          | Throw a build error when the full barrel is imported             |
+| `skipDefaultConversion` | `boolean`                          | Keep as named import instead of converting to default import     |
+
+> **Prefer `experimental.optimizePackageImports`** for well-known libraries (lucide-react, @mui/icons-material, date-fns, etc.) — it applies the same optimization automatically without manual config. Use `modularizeImports` for custom or internal packages that `optimizePackageImports` doesn't cover.
 
 ---
 
@@ -1953,12 +1995,14 @@ experimental: {
 
 ---
 
-### `experimental.debugIds`
+### `turbopack.debugIds`
 
 Enables stable debug IDs in JavaScript bundles and source maps, following the [TC39 Debug ID proposal](https://github.com/tc39/ecma426/blob/main/proposals/debug-id.md). Debug IDs help error-tracking tools (Sentry, Datadog) correlate production stack frames to original source.
 
+> **Belongs to `turbopack:`, not `experimental:`** — `debugIds` is a `TurbopackOptions` field, not an `ExperimentalConfig` field.
+
 ```ts
-experimental: {
+turbopack: {
   debugIds: true,
 }
 ```
@@ -2284,30 +2328,78 @@ turbopack: {
       loaders: ['@svgr/webpack'],
       as: '*.js',
     },
-    '*.mdx': {
-      loaders: ['./my-mdx-loader.js'],
-      as: '*.js',
-    },
+    // Conditional rule: only apply in browser environment
+    '*.mdx': [
+      {
+        loaders: ['./my-mdx-loader.js'],
+        as: '*.js',
+        condition: { path: /\.mdx$/ },
+      },
+    ],
   },
   resolveAlias: {
     underscore: 'lodash',
     mocha: { browser: 'mocha/browser-entry.js' },
   },
   resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-  moduleIdStrategy: 'deterministic',  // or 'named'
-  treeShaking: true,
-  memoryLimit: 4 * 1024,  // MB
+  root: './src',     // restrict Turbopack's file resolution above this path
+  debugIds: true,    // stable debug IDs for source maps / error tracking tools
 },
 ```
 
-| Option              | Type                                            | Description                                      |
-| ------------------- | ----------------------------------------------- | ------------------------------------------------ |
-| `rules`             | `Record<string, TurboRule>`                     | Custom loader rules for file patterns            |
-| `resolveAlias`      | `Record<string, string \| { browser: string }>` | Module aliases                                   |
-| `resolveExtensions` | `string[]`                                      | File extensions to resolve (overwrites defaults) |
-| `moduleIdStrategy`  | `'deterministic' \| 'named'`                    | Module ID generation                             |
-| `treeShaking`       | `boolean`                                       | Enable/disable tree shaking                      |
-| `memoryLimit`       | `number`                                        | Memory limit in MB                               |
+| Option              | Type                                                                       | Description                                      |
+| ------------------- | -------------------------------------------------------------------------- | ------------------------------------------------ |
+| `rules`             | `Record<string, TurbopackRuleConfigCollection>`                            | Custom loader rules for file patterns            |
+| `resolveAlias`      | `Record<string, string \| string[] \| Record<string, string \| string[]>>` | Module aliases                                   |
+| `resolveExtensions` | `string[]`                                                                 | File extensions to resolve (overwrites defaults) |
+| `root`              | `string`                                                                   | Root path; files above it cannot be resolved     |
+| `debugIds`          | `boolean`                                                                  | Stable debug IDs in bundles and source maps      |
+
+> **`moduleIdStrategy`, `treeShaking`, `memoryLimit`** are **not** `turbopack:` options. They live under `experimental.turbopackModuleIds`, `experimental.turbopackTreeShaking`, and `experimental.turbopackMemoryLimit` respectively — see the Experimental section.
+
+### `TurbopackRuleConfigCollection` type
+
+The `rules` value is a union of a single rule item or an array of rule items and loaders:
+
+```ts
+// TurbopackLoaderItem: string | { loader: string; options?: Record<string, JSONValue> }
+// TurbopackRuleConfigItem: { loaders: TurbopackLoaderItem[]; as?: string; condition?: TurbopackRuleCondition }
+// TurbopackRuleConfigCollection: TurbopackRuleConfigItem | (TurbopackLoaderItem | TurbopackRuleConfigItem)[]
+```
+
+**`TurbopackRuleCondition`** — logical predicate for when the rule applies:
+
+```ts
+type TurbopackLoaderBuiltinCondition =
+  | "browser"
+  | "foreign"
+  | "development"
+  | "production"
+  | "node"
+  | "edge-light";
+
+type TurbopackRuleCondition =
+  | { all: TurbopackRuleCondition[] } // AND: all must match
+  | { any: TurbopackRuleCondition[] } // OR: at least one must match
+  | { not: TurbopackRuleCondition } // NOT
+  | TurbopackLoaderBuiltinCondition // built-in environment check
+  | { path?: string | RegExp; content?: RegExp }; // path/content pattern
+```
+
+```ts
+// Example: apply loader only in browser environment, for files matching a pattern
+turbopack: {
+  rules: {
+    '*.svg': [
+      {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+        condition: { all: ['browser', { path: /components/ }] },
+      },
+    ],
+  },
+},
+```
 
 > **Note**: Turbopack is the **default bundler for both `next dev` and `next build`** in Next.js 16. The `--turbopack` flag is no longer needed — it will be ignored. To opt out and use webpack, pass `--no-turbopack` to the CLI command.
 
