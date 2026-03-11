@@ -459,6 +459,20 @@ experimental: {
 
 ---
 
+### `experimental.optimisticClientCache`
+
+When `true` (default), Next.js **caches prefetch responses on the client** for the duration of a navigation session. If a `<Link>` target was already prefetched, subsequent hover events on the same link will NOT trigger a new prefetch request — the cached response is reused.
+
+```ts
+experimental: {
+  optimisticClientCache: true,  // default: true
+}
+```
+
+> Set to `false` if you need prefetch responses to always be fresh — for example, in apps where the content of a route can change rapidly and a stale prefetch would display visually outdated data on hover. Disabling this increases server load from repeated `<Link>` prefetches.
+
+---
+
 ### `experimental.appNavFailHandling`
 
 When enabled, the App Router registers `window.addEventListener('unhandledrejection')` and `window.addEventListener('error')` listeners. If an unhandled exception occurs **during a client-side navigation**, the handler triggers a **hard navigation** (full page reload) to recover to a usable state.
@@ -760,6 +774,30 @@ const nextConfig: NextConfig = {
 
 ---
 
+### `experimental.adapterPath`
+
+Path to a **deployment adapter module** that exports a `modifyConfig(config, { phase })` function. When set, Next.js calls this function during config loading to allow deployment platforms to inject or override configuration values declaratively.
+
+```ts
+experimental: {
+  adapterPath: './adapters/my-platform-adapter.js',
+  // default: process.env.NEXT_ADAPTER_PATH || undefined
+}
+```
+
+```ts
+// adapters/my-platform-adapter.js
+export const name = "my-platform";
+export async function modifyConfig(config, { phase }) {
+  // Mutate or return a modified config for the given build phase
+  return { ...config, compress: false };
+}
+```
+
+> Typically set via the `NEXT_ADAPTER_PATH` environment variable by the deployment platform — not manually by application developers. Used by platforms like Vercel to inject telemetry, output modes, or cache behavior. If you are an end user, this option is unlikely to improve your Next.js config directly.
+
+---
+
 ### `experimental.validateRSCRequestHeaders`
 
 During RSC (React Server Component) requests, validates that the request headers match the cache-busting search parameter sent by the client. Prevents serving a cached RSC payload to a mismatched request.
@@ -785,6 +823,21 @@ experimental: {
 ```
 
 > The default Next.js listeners prevent the process from exiting on unhandled errors, which can interfere with platforms that rely on uncaught errors to trigger restarts or health checks. This is experimental until the impact on various deployment environments is well-understood.
+
+---
+
+### `experimental.clientTraceMetadata`
+
+An array of **HTTP header names** whose values are injected into client-side OpenTelemetry trace spans. Enables distributed trace correlation between server-side trace propagation headers (e.g., `traceparent`, `x-b3-traceid`) and client-initiated spans.
+
+```ts
+experimental: {
+  clientTraceMetadata: ['traceparent', 'tracestate', 'x-b3-traceid'],
+  // default: undefined (no headers forwarded)
+}
+```
+
+> Requires an OpenTelemetry SDK configured on both server and client. The listed headers are read from the server response and forwarded as trace attributes — enabling full distributed traces across SSR → client transitions. Only include headers that are safe to expose to the browser.
 
 ---
 
@@ -963,6 +1016,20 @@ import Script from "next/script";
 ```
 
 > Requires installing `@builder.io/partytown` separately. Best for analytics or ad scripts that do not need synchronous DOM access.
+
+---
+
+### `experimental.disableOptimizedLoading`
+
+Changes how Next.js emits `<script>` tags in the Pages Router HTML document. When `false` (default), scripts use `defer` — they execute after the HTML is parsed, in order. When `true`, scripts use `async` — they execute as soon as downloaded, potentially out-of-order.
+
+```ts
+experimental: {
+  disableOptimizedLoading: true,  // default: false
+}
+```
+
+> **App Router is unaffected** — this option only applies to Pages Router (`_document.tsx`). The `defer` default (optimized loading) is correct for almost all cases; set to `true` only if you have a specific reason to use `async` script execution semantics.
 
 ---
 
