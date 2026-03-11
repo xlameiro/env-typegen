@@ -861,6 +861,76 @@ experimental: {
 
 ---
 
+### `experimental.imgOptConcurrency`
+
+Caps the number of **concurrent image optimization requests** processed by the built-in image server. By default there is no limit (`null`), which means incoming requests are queued only by the underlying Node.js event loop.
+
+```ts
+experimental: {
+  imgOptConcurrency: 4,  // default: null (unlimited)
+}
+```
+
+> Set a limit on memory-constrained servers where each sharp call allocates significant heap. A value of `4–8` is a reasonable starting point for typical App Runner / Lambda deployments.
+
+---
+
+### `experimental.imgOptTimeoutInSeconds`
+
+Maximum number of seconds the image optimization server will wait for a single image to be processed before returning a 503.
+
+```ts
+experimental: {
+  imgOptTimeoutInSeconds: 15,  // default: 7
+}
+```
+
+> Increase if you serve very large source images (prints, high-res photography) that legitimately take more than 7 s to optimize. Clients that exceed the timeout receive the original unoptimized image as a fallback.
+
+---
+
+### `experimental.imgOptMaxInputPixels`
+
+Largest source image (in total pixels, `width × height`) that the image optimization server will accept. Requests exceeding this limit are rejected immediately, protecting the server from decompression-bomb attacks.
+
+```ts
+experimental: {
+  imgOptMaxInputPixels: 100_000_000,  // default: 268_402_689 (~16383×16383 px)
+}
+```
+
+> The default (`268_402_689`) equals `(2^14 - 1)^2` — the maximum size sharp can handle. Lower this if you want an earlier safety valve for unexpectedly large user-uploaded images.
+
+---
+
+### `experimental.imgOptSequentialRead`
+
+Forces sharp (the underlying image processing library) to read source images **sequentially** rather than randomly. Beneficial for spinning-disk storage where random seeks are expensive.
+
+```ts
+experimental: {
+  imgOptSequentialRead: true,  // default: null (let sharp decide)
+}
+```
+
+> Only relevant when Next.js serves images from a network-attached or spinning-disk filesystem. Has no measurable effect on SSDs or cloud object storage (S3, GCS).
+
+---
+
+### `experimental.imgOptSkipMetadata`
+
+Instructs sharp to **skip reading and preserving** EXIF/XMP metadata when optimizing images, reducing memory usage and processing time at the cost of stripping metadata from the output.
+
+```ts
+experimental: {
+  imgOptSkipMetadata: true,  // default: null (preserve metadata)
+}
+```
+
+> Safe to enable for most web applications where EXIF data serves no user-facing purpose. Do **not** enable if your app displays GPS coordinates, camera settings, or any metadata extracted from image files.
+
+---
+
 ### `experimental.cssChunking`
 
 Controls how CSS is chunked in the production bundle.
