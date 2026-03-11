@@ -41,6 +41,10 @@ handoffs:
     agent: PRD Creator
     prompt: "Please create a PRD for the feature described in the conversation above."
     send: true
+  - label: "→ UI Components (component / button / card / badge / design system)"
+    agent: UI Components
+    prompt: "Please help with the UI component task described in the conversation above."
+    send: true
 tools: [read, search]
 ---
 

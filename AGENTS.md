@@ -278,6 +278,57 @@ To activate: go to [coderabbit.ai](https://coderabbit.ai), sign in with GitHub, 
 
 ---
 
+## Agentic Workflows — GitHub Actions in Markdown
+
+> **Reference**: [github.github.com/ghaww](https://github.github.com/ghaww) — official examples library.
+
+Agentic Workflows let you write GitHub Actions workflows as **Markdown files** instead of YAML, placed in `.github/workflows/`. The AI agent reads the Markdown instructions and executes CI/CD tasks — running tests, generating reports, triaging issues — without you writing a single line of YAML.
+
+### How they work
+
+A Markdown workflow file lives at `.github/workflows/<name>.md`. Its frontmatter declares permissions, imported tools, and steps; the Markdown body contains natural-language instructions for the agent:
+
+```markdown
+---
+name: Nightly Issue Triage
+on:
+  schedule:
+    - cron: "0 2 * * *"
+permissions:
+  issues: write
+  contents: read
+---
+
+## Instructions
+
+Review all open issues labeled `needs-triage`. For each:
+
+1. Identify if it's a bug, feature request, or question.
+2. Add the appropriate label.
+3. Leave a comment asking for reproduction steps if it's a bug with no steps provided.
+```
+
+### Good candidates for Agentic Workflows in this project
+
+| Use case                                           | Trigger                  |
+| -------------------------------------------------- | ------------------------ |
+| Auto-label and triage new issues                   | `issues: opened`         |
+| Generate a weekly changelog from merged PRs        | `schedule` (weekly cron) |
+| Check that `pnpm knip` reports zero unused exports | `push` to `main`         |
+| Post a dependency audit summary as a PR comment    | `pull_request`           |
+| Close stale issues after 30 days of inactivity     | `schedule` (daily cron)  |
+
+### When to use vs. standard GitHub Actions YAML
+
+| Scenario                                                                             | Use                         |
+| ------------------------------------------------------------------------------------ | --------------------------- |
+| Complex CI/CD with shell commands, matrix builds, Docker                             | Standard YAML workflow      |
+| High-level automation driven by natural language (triage, reports, issue management) | Agentic Workflow (Markdown) |
+
+> Run a workflow manually from the GitHub UI: **Actions → select workflow → Run workflow**.
+
+---
+
 ## Closed Agent Loop
 
 One of the most important patterns for effective autonomous coding is the **closed agent loop**: the agent can verify its own work end-to-end, without human intervention and without real credentials.
