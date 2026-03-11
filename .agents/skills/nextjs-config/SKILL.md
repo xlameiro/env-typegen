@@ -485,6 +485,26 @@ experimental: {
 
 ---
 
+### `experimental.testProxy` / `experimental.defaultTestRunner`
+
+Part of the `next experimental-test` command workflow. `testProxy` routes all `fetch()` calls inside tests through an internal proxy server, enabling request interception and mocking without patching Node.js globals. `defaultTestRunner` sets the test runner invoked by `next experimental-test`.
+
+```ts
+experimental: {
+  testProxy: true,                   // default: false (undefined)
+  defaultTestRunner: 'playwright',   // only supported value as of Next.js 16.1.6
+}
+```
+
+```bash
+# Runs your test files through the Next.js test proxy
+npx next experimental-test
+```
+
+> `testProxy` enables the interceptable fetch proxy that `next experimental-test` uses to assert on HTTP calls made by Server Actions and Route Handlers during testing. Enable only in test environments — it adds request overhead and is not designed for production use.
+
+---
+
 ### `experimental.optimisticClientCache`
 
 When `true` (default), Next.js **caches prefetch responses on the client** for the duration of a navigation session. If a `<Link>` target was already prefetched, subsequent hover events on the same link will NOT trigger a new prefetch request — the cached response is reused.
@@ -679,6 +699,20 @@ experimental: {
 ```
 
 > `turbopackMinify` controls Terser-compatible minification during Turbopack builds. `turbopackScopeHoisting` enables scope hoisting (inlines small modules into their importers), reducing bundle size and improving runtime performance. Both default to `true` in production builds.
+
+---
+
+### `experimental.turbopackMemoryLimit`
+
+Sets a **target memory limit** (in bytes) for the Turbopack compiler. When memory usage approaches this limit, Turbopack will attempt to free cached data to stay within bounds.
+
+```ts
+experimental: {
+  turbopackMemoryLimit: 4 * 1024 ** 3,  // 4 GB in bytes; default: undefined (no limit)
+}
+```
+
+> Useful on CI machines or containers where memory is constrained. Turbopack will trade build speed for memory when approaching the limit. Set to `0` to disable memory management entirely.
 
 ---
 
@@ -1126,6 +1160,20 @@ experimental: {
 ```
 
 > Passed as `enableWorkerThreads` to both the TypeScript verification pipeline and the SWC compiler. Has no effect on `next dev`. Pairs well with `parallelServerCompiles` and `parallelServerBuildTraces` for maximum build parallelism.
+
+---
+
+### `experimental.memoryBasedWorkersCount`
+
+When `true`, Next.js automatically scales the number of build worker processes based on **available system memory** rather than CPU count alone. Prevents OOM kills on systems where CPU count exceeds what memory can comfortably support.
+
+```ts
+experimental: {
+  memoryBasedWorkersCount: true,  // default: false
+}
+```
+
+> Particularly useful in CI pipelines with many cores but limited RAM (e.g., GitHub Actions runners reporting 32 cores but only 7 GB RAM). When enabled, the worker count formula uses `min(cpus, floor(memory / perWorkerEstimate))` to avoid over-scheduling.
 
 ---
 
