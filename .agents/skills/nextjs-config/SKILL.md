@@ -726,6 +726,51 @@ const nextConfig: NextConfig = {
 
 ---
 
+### `experimental.runtimeServerDeploymentId`
+
+When `true`, `process.env.NEXT_DEPLOYMENT_ID` is resolved at **runtime** on the server rather than being baked into the build output at build time.
+
+```ts
+const nextConfig: NextConfig = {
+  deploymentId: process.env.DEPLOYMENT_ID,
+  experimental: {
+    runtimeServerDeploymentId: true, // default: false
+  },
+};
+```
+
+> Useful in immutable build artifact workflows where the same build is promoted across environments (staging → production). Without this, `deploymentId` must be known at build time and is embedded in the bundle; with it, the ID is read from the environment at server start, so the build artifact stays identical.
+
+---
+
+### `experimental.validateRSCRequestHeaders`
+
+During RSC (React Server Component) requests, validates that the request headers match the cache-busting search parameter sent by the client. Prevents serving a cached RSC payload to a mismatched request.
+
+```ts
+experimental: {
+  validateRSCRequestHeaders: true,  // default: true
+}
+```
+
+> Rarely needs to be changed. Set to `false` only when debugging RSC cache matching issues or if a non-standard proxy strips the cache-busting parameter from RSC requests.
+
+---
+
+### `experimental.removeUncaughtErrorAndRejectionListeners`
+
+When `true`, removes the global `unhandledRejection` and `uncaughtException` process listeners that Next.js registers by default. Useful in deployment environments (AWS Lambda, containers) where the platform's own error handler should control process exit behavior.
+
+```ts
+experimental: {
+  removeUncaughtErrorAndRejectionListeners: true,  // default: false
+}
+```
+
+> The default Next.js listeners prevent the process from exiting on unhandled errors, which can interfere with platforms that rely on uncaught errors to trigger restarts or health checks. This is experimental until the impact on various deployment environments is well-understood.
+
+---
+
 ### `experimental.allowedRevalidateHeaderKeys`
 
 Specifies which request headers are included in the cache key for `fetch()` calls with `next.revalidate`. By default, `authorization` and `cookie` are included. Override to restrict or extend this set.
