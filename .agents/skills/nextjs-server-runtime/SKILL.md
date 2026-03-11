@@ -609,14 +609,14 @@ export const config: ProxyConfig = {
 
 ## `ImageResponse` — OG Image Generation
 
-`ImageResponse` is **re-exported from `next/server`** as a convenience — the canonical import is `next/og`. Full API reference and JSX limitations are in the **nextjs-metadata-functions** skill.
+`ImageResponse` moved from `next/server` to `next/og` in Next.js 14 — the `next/server` re-export is **deprecated** (typed as `never`). Always import from `next/og`. Full API reference and JSX limitations are in the **nextjs-metadata-functions** skill.
 
 ```ts
-// Canonical import (preferred)
+// ✅ Correct: import from next/og
 import { ImageResponse } from "next/og";
 
-// Also available as a re-export (identical)
-import { ImageResponse } from "next/server";
+// ❌ Deprecated: next/server re-export throws at runtime
+// import { ImageResponse } from "next/server";
 ```
 
 > Use `ImageResponse` inside `opengraph-image.tsx` / `twitter-image.tsx` route files or inside an `app/api/og/route.ts` Route Handler. See `nextjs-metadata-functions` skill for full constructor options.

@@ -25,6 +25,7 @@ app/
 ├── page.tsx                # Route page UI
 ├── loading.tsx             # Suspense loading UI
 ├── error.tsx               # Error boundary UI ('use client' required)
+├── global-error.tsx        # Root layout error boundary ('use client', must render <html>)
 ├── not-found.tsx           # 404 UI
 ├── global-not-found.tsx    # Global 404 UI (requires experimental.globalNotFound: true)
 ├── forbidden.tsx           # 403 UI (requires experimental.authInterrupts: true)
@@ -197,6 +198,54 @@ export default function Error({
 | `reset` | `() => void`                  | Retry — re-renders the segment's children        |
 
 > `global-error.tsx` at `app/` root catches errors in the root `layout.tsx`. It must render its own `<html>` and `<body>`.
+
+---
+
+## `global-error.tsx`
+
+Catches errors thrown inside the root `layout.tsx` — the one scenario `error.tsx` cannot handle (because `error.tsx` must be wrapped by a layout to work). Must be a Client Component and must render a full `<html>` document because it replaces the entire page tree when activated.
+
+Place only at `app/global-error.tsx` (root level). Route-segment `error.tsx` files handle errors everywhere else.
+
+```tsx
+"use client"; // ← Required
+
+import { useEffect } from "react";
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error("Root layout error:", error);
+  }, [error]);
+
+  return (
+    // MUST include <html> and <body> — GlobalError replaces the whole page
+    <html lang="en">
+      <body>
+        <h1>Critical error</h1>
+        <p>Something went wrong at the application level.</p>
+        <button onClick={reset}>Try again</button>
+      </body>
+    </html>
+  );
+}
+```
+
+### Props
+
+Same as `error.tsx`:
+
+| Prop    | Type                          | Description                                      |
+| ------- | ----------------------------- | ------------------------------------------------ |
+| `error` | `Error & { digest?: string }` | The thrown error; `digest` is a server-side hash |
+| `reset` | `() => void`                  | Retry — re-renders from the root layout down     |
+
+> In development, `global-error.tsx` is **not shown** — Next.js overlays the dev error overlay instead. It only activates in production when the root layout throws.
 
 ---
 
