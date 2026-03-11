@@ -374,6 +374,25 @@ const apiKey = process.env.THIRD_PARTY_API_KEY;
 if (!apiKey) throw new Error("THIRD_PARTY_API_KEY is not set");
 ```
 
+### 9. Making a link look like a button using a disabled `<button>` hack
+
+```tsx
+// ❌ Bad: disabled button used for visual style — semantically wrong and inaccessible
+<Button disabled tabIndex={0} onClick={() => router.push("/dashboard")}>
+  Go to Dashboard
+</Button>;
+
+// ✅ Good: use ButtonLink — renders a semantic <a> with button styles
+import { ButtonLink } from "@/components/ui/button-link";
+<ButtonLink href="/dashboard">Go to Dashboard</ButtonLink>;
+
+// ✅ Good: or use buttonVariants() directly if you need custom markup
+import { buttonVariants } from "@/components/ui/button";
+<a href="/dashboard" className={buttonVariants({ variant: "primary" })}>
+  Go to Dashboard
+</a>;
+```
+
 ## Personal Preferences
 
 ### Branching Strategy — Trunk-Based Development (TBD)
@@ -416,6 +435,8 @@ Never mark a task as done if any of these commands fail. Fix all errors before c
 
 Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.
 
+This repository also includes a `.coderabbit.yaml` config — for open-source repos, CodeRabbit is free and provides a second automated review layer. To activate: go to [coderabbit.ai](https://coderabbit.ai), sign in with GitHub, and install the App on this repo.
+
 ## When Stuck
 
 If you are unsure how to proceed during a task:
@@ -431,6 +452,7 @@ If you are unsure how to proceed during a task:
 9. **Never guess CLI flags** — always check `--help` before using an unfamiliar command or flag
 10. **Prefer smaller reversible changes** — break large tasks into smaller committed steps that can be reviewed and rolled back independently
 11. **Stop after 2–3 failed attempts** — if the same fix fails repeatedly, document what you tried and ask rather than continuing to guess
+12. **Start a fresh chat when the context window feels overloaded** — more context is not always better. If the agent starts repeating itself, contradicting earlier decisions, or producing lower-quality output than before, open a new chat with a concise summary of what remains. A fresh context window consistently outperforms a "Hoarders-effect" one where every previous exchange is in scope.
 
 > If you are about to change 5+ files, touch shared types or API contracts, or make a breaking change — stop and propose a plan first.
 
@@ -471,6 +493,30 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 - **Directives**: Use `@import "tailwindcss"` (NOT the three `@tailwind base/components/utilities` directives from v3)
 - **Plugins**: Use `@plugin` directive in CSS, not `plugins: []` in config
 
+### CVA (class-variance-authority)
+
+- **Purpose**: The standard Tailwind ecosystem library for typed, exportable component variants. Use it whenever a component accepts `variant` or `size` props.
+- **Export `*Variants` from every component that has variants** — e.g., `buttonVariants`, `badgeVariants`. This lets any element adopt button/badge styles without using the component itself and without duplicating class strings.
+- **`ButtonLink` pattern**: when a link must visually look like a button, use `<ButtonLink>` from `@/components/ui/button-link` (renders a `<Link>` with button styles). Never use a `<button disabled>` as a visual-only anchor.
+- **Typing**: derive props from `VariantProps<typeof myVariants>` — do not define variant union types manually.
+- **Merge with `cn()`**: always wrap CVA output with `cn()` when accepting an external `className` prop so `tailwind-merge` can deduplicate classes.
+
+```ts
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+export const buttonVariants = cva("base-classes", {
+  variants: { variant: { primary: "...", secondary: "..." } },
+  defaultVariants: { variant: "primary" },
+});
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants>;
+
+// In render:
+className={cn(buttonVariants({ variant, size }), className)}
+```
+
 ### Auth.js v5
 
 - **Install**: `pnpm add next-auth@beta` — the npm package is still `next-auth`, version 5 is in beta. **Before installing, run `pnpm info next-auth dist-tags` to check whether v5 has a stable tag** — the `@beta` tag may become stale without notice. If `stable` or `latest` points to v5, drop the `@beta` suffix.
@@ -506,6 +552,30 @@ These are guidelines, not rigid rules. Adjust based on scope and context. When u
 - **New hooks**: `useActionState`, `useFormStatus`, `useOptimistic` are available directly from `react`
 - **`use()` hook**: Can unwrap Promises and Context — useful in Server Components
 - **No `React.FC`**: Just write `function MyComponent({ prop }: { prop: string })` — no type annotation needed for the component itself
+
+### GitHub Copilot Approval Modes & Model Selection
+
+**Approval modes** (Chat input → **default approvals** dropdown):
+
+| Mode              | What it does                                         | When to use                                         |
+| ----------------- | ---------------------------------------------------- | --------------------------------------------------- |
+| Default Approvals | Prompts before every tool call                       | Infra, AWS, schema changes, irreversible operations |
+| Bypass Approvals  | Auto-approves all tool calls (YOLO)                  | Speed + full trust in the agent                     |
+| Autopilot         | Bypass + auto-retry API errors + forceful completion | **Default for all feature work**                    |
+| Sandbox           | Bypass + process/network isolation                   | Running untrusted or external-facing code           |
+
+> Switch to **Default Approvals** whenever the task involves AWS resources, database migrations, or secret rotation — never let Autopilot touch infra unattended.
+
+**Recommended model assignments** (set via `Settings → Copilot → model preferences`):
+
+| Agent mode            | Recommended model               | Why                                                     |
+| --------------------- | ------------------------------- | ------------------------------------------------------- |
+| Plan / Planner        | Claude Sonnet 4.x or GPT-o3     | Low time-to-first-token; strong at structured reasoning |
+| Implement / Autopilot | Claude Sonnet 4.5 / o3-Codex    | Highest output quality for complex multi-file code      |
+| Ask / Explore         | Fast model (Haiku, GPT-4o mini) | Interactive Q&A benefits most from responsiveness       |
+| Inline chat           | Fast model                      | Completions must feel instant                           |
+
+> These are baseline recommendations based on VS Code team evals (March 2026). Thinking effort is already set high by default for Opus — do not blindly bump reasoning level upward, as it increases latency without always improving output. Verify your defaults via `Settings → Copilot → thinking effort`.
 
 ## VS Code Agent Hooks (Preview)
 
@@ -552,6 +622,53 @@ Generate hooks with AI: type `/create-hook` in Chat and describe the automation.
 
 > Hooks execute with full shell permissions — always review hook configs before enabling, especially in shared repos.
 
+### Integrated Browser (Preview)
+
+> **Enable:** VS Code Settings → search **"Integrated Browser"** → toggle on. Requires VS Code >= 1.110.
+
+The integrated browser is a full Electron-based browser running inside VS Code — no external dependencies and no separate install. Unlike the older Simple Browser, it behaves like Chrome or Edge and exposes developer tools natively.
+
+When you click **Share with agent** in the toolbar, the agent gets direct access to browser inspection tools (equivalent to Playwright): navigate, click, scroll, take screenshots, and read the DOM — all without leaving VS Code.
+
+**When to use it:**
+
+- Implementing UI features — the agent can verify rendering in real time and self-correct against the live page
+- Iterating on styles or layout — agent takes a screenshot, compares against a design reference (e.g., Figma), then adjusts
+- Visual regression checks alongside Playwright tests
+
+**Best practice:** Use Playwright alongside the integrated browser. Playwright handles deterministic interactions (navigate, click, fill); the integrated browser's screenshot tool provides the visual feedback loop for the agent to compare rendered output against the intended design.
+
+> **Do not interact with the integrated browser while the agent is running** — clicking or navigating during an agent run can interfere with in-progress tool calls. Enable VS Code's Do Not Disturb or wait for the agent to complete a step before interacting.
+
+### Autopilot Mode (Preview)
+
+> **Enable:** Chat input → **default approvals** dropdown → switch to **Autopilot**.
+
+Autopilot combines auto-approval of all tool calls with auto-retry on API errors and forceful completion prompting — the agent keeps working until it has genuinely finished the task, not just until it returns a stop token. It does not pause between phases to ask "should I continue?" — matching the autonomous behavior of cloud agents (Copilot coding agent assigned via GitHub Issues).
+
+**Approval mode quick reference:**
+
+| Mode              | Auto-approve tools | Auto-retry errors | Forceful completion |
+| ----------------- | ------------------ | ----------------- | ------------------- |
+| Default Approvals | ❌                 | ❌                | ❌                  |
+| Bypass Approvals  | ✅                 | ❌                | ❌                  |
+| **Autopilot**     | ✅                 | ✅                | ✅                  |
+| Sandbox           | ✅ + isolated      | ❌                | ❌                  |
+
+**When to use:**
+
+- After agreeing on a plan via Plan mode — the plan is written to session memory and stays in context even if the conversation compacts
+- Multi-phase features where each phase logically follows the previous one
+- When you prefer to review the full diff at the end rather than approving each step individually
+
+**When NOT to use:**
+
+- Exploratory sessions where you want to steer the agent at each decision point
+- Tasks involving irreversible operations (destructive refactors, schema changes, AWS infra) — use Default Approvals so each step can be reviewed
+- When running code from untrusted or external sources — use Sandbox mode instead
+
+> **Recommended workflow:** Use **Plan mode** first → agree on the plan → verify it appears in session memory → enable **Autopilot** → the agent executes to completion without interruption.
+
 ## Agent Routing (Default Behaviour)
 
 Routing logic and the full intent-to-agent decision table live in `.github/agents/router.agent.md`. Use the **Router** agent as the default entry point — it reads your intent and delegates to the appropriate specialist automatically.
@@ -559,6 +676,8 @@ Routing logic and the full intent-to-agent decision table live in `.github/agent
 Available specialist agents: **Feature Builder**, **Debug**, **Planner**, **Code Reviewer**, **Test Generator**, **Architect**, **ADR Generator**, **GitHub Actions**, **PRD Creator**.
 
 If already inside a specialist agent context, skip routing and proceed directly with the work.
+
+For running multiple independent agent tasks in parallel from the CLI, use the `/fleet` command — see `AGENTS.md` § Running Parallel Agent Tasks with `/fleet`.
 
 ## Infrastructure & Cloud
 
@@ -614,6 +733,24 @@ See the `cheerio` skill (`.agents/skills/cheerio/SKILL.md`) for full patterns.
 
 ```bash
 pnpm add cheerio
+```
+
+### MCP Servers — Exposing tools to AI agents
+
+When a feature needs to be callable by an AI client (VS Code Copilot, Claude Desktop, Cursor), expose it as an **MCP (Model Context Protocol) server** via a Route Handler.
+
+- MCP server Route Handler lives at `app/api/mcp/route.ts` — use Streamable HTTP transport
+- Tool handler logic lives in `lib/mcp/tools.ts` (marked `import 'server-only'`) so it can be unit-tested in isolation
+- All tool inputs validated with `inputSchema.parse(args)` using Zod — never trust raw MCP arguments
+- Add `.describe("...")` to every Zod field in tool input schemas — this is what AI clients show users
+- `z.toJSONSchema(schema)` is built-in in Zod v4 — no extra packages needed
+- Protect endpoints with bearer token auth — never expose unauthenticated MCP tools in production
+- Register the endpoint in `.vscode/mcp.json` for local VS Code Copilot discovery
+
+See the `mcp-server` skill (`.agents/skills/mcp-server/SKILL.md`) for the full skeleton.
+
+```bash
+pnpm add @modelcontextprotocol/sdk
 ```
 
 ## Convention Health Audit

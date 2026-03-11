@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-03-09",
+  "lastUpdated": "2026-03-11",
   "skills": {
     "agent-governance": {
       "source": "github/awesome-copilot",
@@ -216,6 +216,11 @@
       "source": "gocallum/nextjs16-agent-skills",
       "sourceType": "github",
       "computedHash": "0f40cfbf0b85134df334c5574fa9829a36410fd6f8cb0eb37b93a4ae851315c8"
+    },
+    "mcp-server": {
+      "source": "local",
+      "sourceType": "local",
+      "computedHash": ""
     }
   }
 }

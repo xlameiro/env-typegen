@@ -1,0 +1,80 @@
+# CodeRabbit configuration
+# Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
+# Free for open-source repositories.
+# To activate: go to https://coderabbit.ai, sign in with GitHub, and install
+# the GitHub App on this repository. CodeRabbit will pick up this file automatically.
+
+language: "en-US"
+
+tone_instructions: |
+  Be direct and concise. Focus on actionable feedback.
+  Do not flag style issues already enforced by ESLint or TypeScript.
+  Prioritize: security vulnerabilities, logic bugs, accessibility regressions,
+  and misuse of project conventions (see .github/copilot-instructions.md).
+
+early_access: false
+
+reviews:
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  # Paths to ignore in reviews (auto-generated, lock files, assets)
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!next-env.d.ts"
+    - "!public/**"
+    - "!playwright-report/**"
+    - "!test-results/**"
+    - "!.next/**"
+
+  # Custom instructions aligned with project conventions
+  path_instructions:
+    - path: "app/api/**"
+      instructions: |
+        - All inputs must be validated with Zod at the API boundary.
+        - Never expose raw error objects — return structured error shapes.
+        - Check for OWASP Top 10 issues: injection, broken auth, SSRF.
+
+    - path: "app/auth/**"
+      instructions: |
+        - Authorization checks belong in page.tsx or proxy.ts — never in layout.tsx.
+        - Follow Auth.js v5 patterns. auth() is safe to call in proxy.ts (Node.js runtime).
+        - Verify CSRF protection and secure cookie attributes.
+
+    - path: "components/**"
+      instructions: |
+        - Server Components by default — "use client" requires a clear justification.
+        - All interactive elements must be keyboard accessible (WCAG 2.2 AA).
+        - Use Tailwind utility classes only — no inline styles.
+
+    - path: "**/*.test.ts"
+      instructions: |
+        - Tests must be self-contained and not depend on execution order.
+        - Each it() block should test one behavior only.
+        - No test.only, it.only, or describe.only.
+        - Mock all external services so tests run with zero real credentials.
+
+    - path: "**/*.test.tsx"
+      instructions: |
+        - Tests must be self-contained and not depend on execution order.
+        - Each it() block should test one behavior only.
+        - No test.only, it.only, or describe.only.
+        - Mock all external services so tests run with zero real credentials.
+
+    - path: "proxy.ts"
+      instructions: |
+        - This is the Next.js 16 equivalent of middleware.ts (which is deprecated).
+        - auth() from Auth.js can be called directly — proxy.ts runs on Node.js runtime.
+        - Never perform authorization checks in layout.tsx.
+
+    - path: "lib/**"
+      instructions: |
+        - No classes except Error subclasses in lib/errors.ts.
+        - No enums — use string union types.
+        - Import env vars from @/lib/env, never process.env directly.
+
+chat:
+  auto_reply: true

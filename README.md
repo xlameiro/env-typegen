@@ -96,21 +96,32 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+> **HTTPS tip**: Use `pnpm dev:local:https` when you need local HTTPS (e.g. some OAuth providers, HTTP/2 performance testing, or working with multiple projects on port 3000 simultaneously). It uses [Portless](https://port1355.dev) to add automatic TLS certificates and a named `.localhost` domain — no manual cert setup required.
+>
+> ```bash
+> pnpm dev:local:https
+> # Opens: https://nextjs16-starter-template.localhost
+> ```
+>
+> Add `https://nextjs16-starter-template.localhost/api/auth/callback/google` as an **Authorized redirect URI** in [Google Cloud Console](https://console.cloud.google.com/) and set `NEXT_PUBLIC_APP_URL=https://nextjs16-starter-template.localhost` in your `.env.local`.
+
 ## Scripts
 
-| Script                 | Description                            |
-| ---------------------- | -------------------------------------- |
-| `pnpm dev`             | Start development server               |
-| `pnpm build`           | Production build                       |
-| `pnpm start`           | Start production server                |
-| `pnpm lint`            | ESLint                                 |
-| `pnpm type-check`      | TypeScript type check (`tsc --noEmit`) |
-| `pnpm test`            | Vitest unit tests                      |
-| `pnpm test:watch`      | Vitest in watch mode                   |
-| `pnpm test:e2e`        | Playwright E2E (headless)              |
-| `pnpm test:e2e:ui`     | Playwright UI mode                     |
-| `pnpm test:e2e:headed` | Playwright with visible browser        |
-| `pnpm test:all`        | Unit + E2E                             |
+| Script                 | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `pnpm dev`             | Start development server                           |
+| `pnpm dev:local`       | Dev with stable `.localhost` URL (Portless)        |
+| `pnpm dev:local:https` | Dev with HTTPS + named `.localhost` URL (Portless) |
+| `pnpm build`           | Production build                                   |
+| `pnpm start`           | Start production server                            |
+| `pnpm lint`            | ESLint                                             |
+| `pnpm type-check`      | TypeScript type check (`tsc --noEmit`)             |
+| `pnpm test`            | Vitest unit tests                                  |
+| `pnpm test:watch`      | Vitest in watch mode                               |
+| `pnpm test:e2e`        | Playwright E2E (headless)                          |
+| `pnpm test:e2e:ui`     | Playwright UI mode                                 |
+| `pnpm test:e2e:headed` | Playwright with visible browser                    |
+| `pnpm test:all`        | Unit + E2E                                         |
 
 ## Quality Gates
 

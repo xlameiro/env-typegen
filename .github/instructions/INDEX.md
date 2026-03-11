@@ -16,6 +16,7 @@ Use this file as the entry point to quickly find the right instruction file for 
 | React component patterns, hooks, composition        | `.github/instructions/reactjs.instructions.md`                  |
 | TypeScript architecture and typing rules            | `.github/instructions/typescript-5-es2022.instructions.md`      |
 | API security, auth hardening, OWASP controls        | `.github/instructions/security-and-owasp.instructions.md`       |
+| Building MCP server tools for AI agent integration  | `.agents/skills/mcp-server/SKILL.md`                            |
 | Accessibility, WCAG 2.2 AA, keyboard/focus          | `.github/instructions/a11y.instructions.md`                     |
 | Unit tests with Vitest                              | `.github/instructions/nodejs-javascript-vitest.instructions.md` |
 | E2E tests with Playwright                           | `.github/instructions/playwright-typescript.instructions.md`    |
