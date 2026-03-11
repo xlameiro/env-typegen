@@ -428,34 +428,24 @@ console.log(ua.os.name); // 'iOS'
 
 ---
 
-## `isBot()` — Quick Bot Check Without Full Parsing
+## Bot Detection
 
-Faster alternative to `userAgent()` when you only need to know if the client is a bot — avoids parsing the full UA string.
-
-```ts
-import { isBot } from "next/server";
-```
-
-### Signature
+`isBot` is exposed as a **property** on the `UserAgent` return object — it is NOT a standalone export from `next/server`. Use `userAgent(request).isBot` in proxy functions:
 
 ```ts
-function isBot(input: string): boolean;
-```
-
-```ts
-import { isBot } from "next/server";
+import { NextResponse, userAgent } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const ua = request.headers.get("user-agent") ?? "";
-  if (isBot(ua)) {
-    // Serve a simplified bot-friendly page
-    return Response.rewrite(new URL("/bot", request.url));
+  const { isBot } = userAgent(request);
+  if (isBot) {
+    // Return a simplified response for crawlers
+    return NextResponse.rewrite(new URL("/bot-landing", request.url));
   }
 }
 ```
 
-> Prefer `isBot()` over `userAgent(request).isBot` when you don't need the rest of the parsed UA object — it has lower overhead.
+> `isBot` is detected by matching the User-Agent string against a known list of crawlers (Googlebot, Bingbot, DuckDuckBot, Yandex, Slackbot, Discordbot, WhatsApp, etc.). It is NOT exported as a standalone function from the public `next/server` API.
 
 ---
 
@@ -614,3 +604,19 @@ export const config: ProxyConfig = {
 ```
 
 > **Deprecated aliases**: `NextMiddleware` (use `NextProxy`) and `MiddlewareConfig` (use `ProxyConfig`) are still exported for backwards compatibility.
+
+---
+
+## `ImageResponse` — OG Image Generation
+
+`ImageResponse` is **re-exported from `next/server`** as a convenience — the canonical import is `next/og`. Full API reference and JSX limitations are in the **nextjs-metadata-functions** skill.
+
+```ts
+// Canonical import (preferred)
+import { ImageResponse } from "next/og";
+
+// Also available as a re-export (identical)
+import { ImageResponse } from "next/server";
+```
+
+> Use `ImageResponse` inside `opengraph-image.tsx` / `twitter-image.tsx` route files or inside an `app/api/og/route.ts` Route Handler. See `nextjs-metadata-functions` skill for full constructor options.
