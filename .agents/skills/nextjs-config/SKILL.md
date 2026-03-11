@@ -1760,6 +1760,127 @@ experimental: {
 
 > Enables `import React from 'https://esm.sh/react'` style imports. A `next.lock` file is generated on first import to pin the resolved module. **Not recommended for production** — downloaded modules are not verified for integrity at runtime. Prefer bundling dependencies via `node_modules`.
 
+### `experimental.staticGenerationRetryCount`
+
+Number of times to retry static generation for a page before failing the build (default: `0`).
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  experimental: {
+    staticGenerationRetryCount: 2, // retry each failing page up to 2 times
+  },
+};
+```
+
+Use when transient network or DB errors cause intermittent static gen failures.
+
+---
+
+### `experimental.staticGenerationMaxConcurrency`
+
+Maximum number of pages exported in parallel across workers (default: Next.js decides based on CPU count).
+
+```ts
+experimental: {
+  staticGenerationMaxConcurrency: 8,
+}
+```
+
+Lower this value to reduce peak memory pressure on small build machines; raise it on beefy CI runners.
+
+---
+
+### `experimental.staticGenerationMinPagesPerWorker`
+
+Minimum number of pages assigned to each export worker (default: `25`). Prevents spawning too many workers for small page counts.
+
+```ts
+experimental: {
+  staticGenerationMinPagesPerWorker: 50,
+}
+```
+
+---
+
+### `experimental.proxyPrefetch`
+
+Controls when `<Link>` prefetch requests are sent through the proxy (formerly `middlewarePrefetch`, deprecated).
+
+| Value        | Behavior                                      |
+| ------------ | --------------------------------------------- |
+| `'strict'`   | Only prefetch links currently in the viewport |
+| `'flexible'` | Prefetch on hover + viewport (default)        |
+
+```ts
+experimental: {
+  proxyPrefetch: 'strict', // reduces prefetch traffic on high-traffic sites
+}
+```
+
+> The deprecated `middlewarePrefetch` option still works as an alias but will be removed in a future major.
+
+---
+
+### `experimental.proxyClientMaxBodySize`
+
+Maximum allowed body size for proxied requests (replaces deprecated `middlewareClientMaxBodySize`). Defaults to `10mb`. Increase when proxying file uploads.
+
+```ts
+experimental: {
+  proxyClientMaxBodySize: '50mb',
+}
+```
+
+Accepts any string that [`bytes`](https://www.npmjs.com/package/bytes) can parse (`'500kb'`, `'10mb'`, `'1gb'`, etc.).
+
+---
+
+### `experimental.extensionAlias`
+
+Map file extensions so both TypeScript **and** webpack resolve `.js` imports to `.ts`/`.tsx` files (required for strict ESM output where imports must have `.js` extensions).
+
+```ts
+experimental: {
+  extensionAlias: {
+    '.js':  ['.ts', '.tsx', '.js'],
+    '.jsx': ['.tsx', '.jsx'],
+    '.mjs': ['.mts', '.mjs'],
+    '.cjs': ['.cts', '.cjs'],
+  },
+}
+```
+
+Use together with `experimental.fullySpecified` to ship pure ESM packages.
+
+---
+
+### `experimental.fullySpecified`
+
+Require fully-specified ESM import paths — every import must include its exact file extension (`.js`, `.mjs`, etc.). Useful when authoring packages that must comply with strict ESM resolvers.
+
+```ts
+experimental: {
+  fullySpecified: true,
+}
+```
+
+> This changes how webpack resolves modules inside `node_modules`. Enable only when your codebase already uses explicit extensions on all imports.
+
+---
+
+### `experimental.fallbackNodePolyfills`
+
+Setting this to `false` disables automatic browser-side polyfills for Node.js built-ins (`buffer`, `path`, `stream`, etc.). Reduces bundle size when the app does not use any Node.js-specific APIs in client code.
+
+```ts
+experimental: {
+  fallbackNodePolyfills: false,
+}
+```
+
+> Only accepted value is `false`; omitting the option preserves the default behaviour (polyfills included).
+
 ---
 
 ## Cache & Server Config
@@ -1926,6 +2047,53 @@ sassOptions: {
 ```
 
 > `pnpm add sass` (or `sass-embedded` for better performance) is required for `.scss` / `.sass` support. The `implementation` key selects between `sass` (default) and `sass-embedded`. Other options (`additionalData`, `quietDeps`, etc.) are passed through unchanged.
+
+---
+
+### `reactProductionProfiling`
+
+Enable React's production profiler (equivalent to importing the `react-dom/profiler` bundle). Adds a small overhead (~2–5%) so it is disabled by default. Useful when diagnosing production rendering performance with React DevTools.
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  reactProductionProfiling: true,
+};
+```
+
+Default: `false`.
+
+---
+
+### `staticPageGenerationTimeout`
+
+Seconds allowed for a single page's static generation before Next.js kills the worker and fails the build (default: `60`). Increase for pages with very slow data-fetching calls.
+
+```ts
+const nextConfig: NextConfig = {
+  staticPageGenerationTimeout: 120, // 2 minutes
+};
+```
+
+---
+
+### `watchOptions`
+
+Webpack watch configuration for `next dev`. Useful in environments where filesystem events are unreliable (Docker, WSL, network mounts).
+
+```ts
+const nextConfig: NextConfig = {
+  watchOptions: {
+    pollIntervalMs: 300, // poll every 300 ms instead of using inotify/FSEvents
+  },
+};
+```
+
+| Sub-option       | Type     | Description                                                       |
+| ---------------- | -------- | ----------------------------------------------------------------- |
+| `pollIntervalMs` | `number` | Polling interval in ms. Use `0` to fall back to native FS events. |
+
+> When using Turbopack dev server (`next dev --turbopack`), set `turbopackWatchOptions` instead — webpack `watchOptions` has no effect on Turbopack's file watcher.
 
 ---
 
