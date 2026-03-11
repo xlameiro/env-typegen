@@ -2,12 +2,13 @@
 name: nextjs-data-cache-functions
 description: >
   Next.js 16 App Router data and cache functions reference. Use this skill when
-  working with cookies, headers, revalidatePath, revalidateTag, unstable_cache,
-  cacheTag, cacheLife, updateTag, after, or connection. Covers reading/writing
-  cookies and headers, cache invalidation strategies, ISR revalidation,
-  post-response callbacks for logging, and dynamic rendering opt-in. Trigger on
-  any question about caching, cache invalidation, cookies, headers, ISR, or
-  background tasks in Next.js 16.
+  working with cookies, headers, draftMode, revalidatePath, revalidateTag,
+  unstable_cache, cacheTag, cacheLife, updateTag, after, or connection. Covers
+  reading/writing cookies and headers, Draft Mode for CMS preview, cache
+  invalidation strategies, ISR revalidation, post-response callbacks for
+  logging, and dynamic rendering opt-in. Trigger on any question about caching,
+  cache invalidation, cookies, headers, ISR, draft mode, or background tasks in
+  Next.js 16.
 ---
 
 # Next.js 16 — Data & Cache Functions
@@ -131,6 +132,76 @@ export default async function Page() {
 ```
 
 > `headers()` is read-only. Use `NextResponse` in middleware to set response headers.
+
+---
+
+## `draftMode()`
+
+Check or toggle Draft Mode (preview unpublished CMS content) in Server Components, Route Handlers, and Server Actions.
+
+```ts
+import { draftMode } from "next/headers";
+```
+
+### Signature
+
+```ts
+async function draftMode(): Promise<{
+  isEnabled: boolean;
+  enable(): void;
+  disable(): void;
+}>;
+```
+
+### Properties & Methods
+
+| Member      | Type         | Description                                                     |
+| ----------- | ------------ | --------------------------------------------------------------- |
+| `isEnabled` | `boolean`    | `true` if Draft Mode is active for this request                 |
+| `enable()`  | `() => void` | Activates Draft Mode by setting the `__prerender_bypass` cookie |
+| `disable()` | `() => void` | Deactivates Draft Mode by deleting that cookie                  |
+
+### Examples
+
+```ts
+// Check status in a Server Component
+export default async function Page() {
+  const { isEnabled } = await draftMode();
+  return <p>Draft Mode: {isEnabled ? "On" : "Off"}</p>;
+}
+```
+
+```ts
+// Enable via a protected Route Handler (secret token required)
+import { draftMode } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get("secret");
+  const slug = searchParams.get("slug");
+
+  if (secret !== process.env.DRAFT_SECRET || !slug) {
+    return new Response("Invalid token", { status: 401 });
+  }
+
+  const draft = await draftMode();
+  draft.enable();
+  redirect(`/posts/${slug}`);
+}
+```
+
+```ts
+// Disable via a Route Handler
+export async function GET() {
+  const draft = await draftMode();
+  draft.disable();
+  return new Response("Draft mode disabled");
+}
+```
+
+> Draft Mode opts out of Full Route Cache (makes the route dynamic). Always validate the `secret`
+> token before calling `enable()` to prevent unauthorized draft access.
 
 ---
 
@@ -438,6 +509,7 @@ export default async function Page() {
 | ------------------------------ | -------------- | ----------------------------------------------------------------- |
 | `cookies()`                    | `next/headers` | Read/write HTTP cookies                                           |
 | `headers()`                    | `next/headers` | Read incoming request headers                                     |
+| `draftMode()`                  | `next/headers` | Enable/disable/check CMS draft preview mode                       |
 | `revalidatePath(path)`         | `next/cache`   | Invalidate cache for a URL                                        |
 | `revalidateTag(tag, profile?)` | `next/cache`   | Invalidate cache by tag; `'max'` profile = stale-while-revalidate |
 | `unstable_cache(fn)`           | `next/cache`   | ⚠️ Legacy function-level cache                                    |

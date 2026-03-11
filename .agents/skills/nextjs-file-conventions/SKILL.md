@@ -3,10 +3,11 @@ name: nextjs-file-conventions
 description: >
   Next.js 16 App Router file conventions reference. Use this skill when creating
   or working with layout.tsx, page.tsx, loading.tsx, error.tsx, not-found.tsx,
-  route.ts, template.tsx, default.tsx, proxy.ts, instrumentation.ts,
-  opengraph-image, sitemap.ts, robots.ts, or manifest.ts. Covers all props,
-  exports, TypeScript signatures, and sub-segment behavior. Trigger on any
-  question about special files, routing, API routes, proxy, or metadata files.
+  forbidden.tsx, unauthorized.tsx, route.ts, template.tsx, default.tsx,
+  proxy.ts, instrumentation.ts, opengraph-image, sitemap.ts, robots.ts, or
+  manifest.ts. Covers all props, exports, TypeScript signatures, and sub-segment
+  behavior. Trigger on any question about special files, routing, API routes,
+  proxy, auth boundaries, or metadata files.
   See references/file-conventions-api.md for exhaustive per-file API details.
 ---
 
@@ -25,6 +26,8 @@ app/
 ├── loading.tsx             # Suspense loading UI
 ├── error.tsx               # Error boundary UI ('use client' required)
 ├── not-found.tsx           # 404 UI
+├── forbidden.tsx           # 403 UI (requires experimental.authInterrupts: true)
+├── unauthorized.tsx        # 401 UI (requires experimental.authInterrupts: true)
 ├── route.ts                # API endpoint (HTTP handlers)
 ├── template.tsx            # Re-mounting layout alternative
 ├── default.tsx             # Parallel route slot fallback
@@ -213,6 +216,52 @@ export default function NotFound() {
 // Optional metadata
 export const metadata = { title: "Not Found" };
 ```
+
+---
+
+## `forbidden.tsx` ⚠️ Experimental
+
+Rendered when `forbidden()` is called. Returns a **403** response. Requires `experimental.authInterrupts: true` in `next.config.ts`.
+
+```tsx
+// app/forbidden.tsx
+export default function Forbidden() {
+  return (
+    <main>
+      <h1>403 — Access Denied</h1>
+      <p>You do not have permission to view this page.</p>
+    </main>
+  );
+}
+
+// Optional metadata
+export const metadata = { title: "Forbidden" };
+```
+
+> Place at `app/forbidden.tsx` for app-wide coverage or inside a route segment folder for scoped coverage. Activated by `forbidden()` from `next/navigation`.
+
+---
+
+## `unauthorized.tsx` ⚠️ Experimental
+
+Rendered when `unauthorized()` is called. Returns a **401** response. Requires `experimental.authInterrupts: true` in `next.config.ts`.
+
+```tsx
+// app/unauthorized.tsx
+export default function Unauthorized() {
+  return (
+    <main>
+      <h1>401 — Authentication Required</h1>
+      <p>Please sign in to access this page.</p>
+    </main>
+  );
+}
+
+// Optional metadata
+export const metadata = { title: "Unauthorized" };
+```
+
+> Activated by `unauthorized()` from `next/navigation`. Both `forbidden.tsx` and `unauthorized.tsx` require `experimental: { authInterrupts: true }` in `next.config.ts`.
 
 ---
 
