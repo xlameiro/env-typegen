@@ -716,6 +716,76 @@ experimental: {
 
 ---
 
+### `experimental.turbopackClientSideNestedAsyncChunking` / `turbopackServerSideNestedAsyncChunking`
+
+Controls **nested async chunk computation** for Turbopack. When enabled, Turbopack pre-computes all possible paths through dynamic imports and determines the minimal set of modules needed at each dynamic import boundary — producing smaller, more optimal chunk groups at runtime.
+
+```ts
+experimental: {
+  // Client: defaults to true in build mode, false in dev mode
+  turbopackClientSideNestedAsyncChunking: true,
+  // Server: defaults to false in both dev and build
+  turbopackServerSideNestedAsyncChunking: false,
+}
+```
+
+> `turbopackClientSideNestedAsyncChunking: true` in build mode reduces JS loaded at dynamic import points by computing every possible traversal path. Leaving it `false` in dev keeps HMR fast. The server-side variant is more expensive and stays off by default.
+
+---
+
+### `experimental.turbopackImportTypeBytes`
+
+Enables support for the `with { type: 'module' }` assertion on ESM `import` statements when using Turbopack.
+
+```ts
+experimental: {
+  turbopackImportTypeBytes: true,  // default: undefined (disabled)
+}
+```
+
+> Only enable if your project uses typed ESM imports such as `import data from './data.json' with { type: 'json' }`. This is an evolving ESM standard; browser support continues to expand.
+
+---
+
+### `experimental.turbopackSourceMaps` / `turbopackInputSourceMaps`
+
+Controls source map behavior in Turbopack.
+
+| Option                     | Default | Description                                                                                |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------ |
+| `turbopackSourceMaps`      | `true`  | Generate source maps for all compiled outputs                                              |
+| `turbopackInputSourceMaps` | `true`  | Extract and remap source maps from input files, chaining them through every transform step |
+
+```ts
+experimental: {
+  turbopackSourceMaps: true,       // default: true
+  turbopackInputSourceMaps: true,  // default: true
+}
+```
+
+> Set `turbopackSourceMaps: false` to skip generating source maps (smaller output, faster CI builds). Set `turbopackInputSourceMaps: false` to disable source map chaining — transformed code will map to the post-transform result rather than the original authored source.
+
+---
+
+### `experimental.turbopackModuleIds`
+
+Controls the **module ID format** used by Turbopack when referencing JavaScript modules internally.
+
+```ts
+experimental: {
+  turbopackModuleIds: 'deterministic',  // 'named' | 'deterministic'
+}
+```
+
+| Value             | Default in  | Description                                                            |
+| ----------------- | ----------- | ---------------------------------------------------------------------- |
+| `'named'`         | Development | Human-readable IDs (e.g. `./components/button.tsx`) — easiest to debug |
+| `'deterministic'` | Production  | Short stable hash IDs — smaller bundle, consistent between builds      |
+
+> Setting `'deterministic'` in development can speed up HMR in large monorepos at the cost of debuggability. Setting `'named'` in production exposes internal file paths and increases bundle size — avoid unless actively debugging a production build.
+
+---
+
 ### `experimental.taint`
 
 Enables React's experimental [Data Tainting API](https://react.dev/reference/react/experimental_taintObjectReference) — `taintObjectReference` and `taintUniqueValue` — which prevents specific objects and values from being accidentally passed to Client Components.
