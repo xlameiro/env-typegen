@@ -7,6 +7,27 @@ description: Zustand state management guide. Use when working with store code (s
 
 Zustand is a lightweight, unopinionated state management library for React. In this project, Zustand is used for **client-side UI state only** — keep server data in Server Components and use Next.js caching primitives for fetched data.
 
+## v5 Key Changes (from v4)
+
+If you are migrating from Zustand v4 or reading v4 documentation, be aware of these breaking changes:
+
+- **Named imports only.** There is no default export in v5 — `import { create } from "zustand"`. Any `import create from "zustand"` (v4 pattern) is a compile error.
+- **`persist` no longer seeds storage on creation.** In v4, store creation wrote initial state to `localStorage`. In v5 it does not. To seed persisted state on first load, call `yourStore.setState({...})` explicitly **after** the store is defined.
+- **`createWithEqualityFn` moved to `zustand/traditional`.** If you need custom equality checks (e.g., a `shallow` updater), `import { createWithEqualityFn } from "zustand/traditional"`. Do not import it from `"zustand"`.
+- **React 18 minimum.** `use-sync-external-store` is a peer dependency; React 16/17 are no longer supported.
+- **TypeScript 4.5+ required.** Older TypeScript versions fail on the updated generic signatures.
+- **Stricter `setState` replace flag.** The third argument to `set()` is now typed `boolean | undefined` instead of `boolean` — passing `false` explicitly where `undefined` was expected produces a type error.
+
+```ts
+// v4 (broken in v5)
+import create from "zustand"; // ❌ no default export
+import { createWithEqualityFn } from "zustand"; // ❌ moved
+
+// v5 (correct)
+import { create } from "zustand"; // ✅
+import { createWithEqualityFn } from "zustand/traditional"; // ✅
+```
+
 ## Core Pattern (TypeScript)
 
 Always use the curried `create<State>()()` syntax. This ensures correct type inference with TypeScript:
@@ -205,3 +226,91 @@ export const useThemeStore = create<ThemeStore>()(
 **When to use**: any store that reads initial state from `cookies()`, `headers()`, or session data passed as Server Component props. Without `unstable_ssrSafe`, the store is a module-level singleton — two concurrent SSR requests share the same store instance and corrupt each other's state.
 
 **When NOT to use**: pure client-only stores (UI toggles, modal state) that always start from a static default — the standard `create()` is fine there.
+
+## immer middleware — nested state mutations
+
+Use the `immer` middleware when your state has deeply nested objects and spreading would be verbose or error-prone. Immer lets you write mutations directly using a draft; it produces a new immutable state automatically.
+
+```ts
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer"; // named sub-path, not "immer" package
+
+type UserStore = {
+  user: {
+    profile: {
+      name: string;
+      bio: string;
+    };
+    settings: {
+      notifications: boolean;
+      theme: "light" | "dark";
+    };
+  };
+  updateBio: (bio: string) => void;
+  toggleNotifications: () => void;
+};
+
+const useUserStore = create<UserStore>()(
+  immer((set) => ({
+    user: {
+      profile: { name: "Alice", bio: "" },
+      settings: { notifications: true, theme: "light" },
+    },
+    updateBio: (bio) =>
+      set((state) => {
+        state.user.profile.bio = bio; // direct mutation — Immer handles immutability
+      }),
+    toggleNotifications: () =>
+      set((state) => {
+        state.user.settings.notifications = !state.user.settings.notifications;
+      }),
+  })),
+);
+```
+
+> **Import from `"zustand/middleware/immer"`** — not from the `"immer"` package directly. The Zustand sub-path export wraps Immer's `produce` with Zustand's middleware interface.
+>
+> **When to reach for immer:** state depth > 2 levels, or more than 2 spread-and-override operations in the same action. For flat state, plain `set()` with spread is cleaner.
+
+## subscribeWithSelector — reactive subscriptions outside React
+
+Use `subscribeWithSelector` when you need to **react to a specific slice of state changing** from outside a React component (e.g., in a game loop, service worker, or non-React code). It enables `subscribe(selector, listener, options)` instead of just `subscribe(listener)`.
+
+```ts
+import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
+
+type GameStore = {
+  score: number;
+  level: number;
+  incrementScore: (by: number) => void;
+};
+
+const useGameStore = create<GameStore>()(
+  subscribeWithSelector((set) => ({
+    score: 0,
+    level: 1,
+    incrementScore: (by) => set((state) => ({ score: state.score + by })),
+  })),
+);
+
+// Subscribe to score only — listener fires ONLY when score changes
+const unsub = useGameStore.subscribe(
+  (state) => state.score, // selector
+  (score, prevScore) => {
+    if (score >= 100 && prevScore < 100) {
+      console.log("Level up!");
+    }
+  },
+  { equalityFn: Object.is, fireImmediately: false }, // options are optional
+);
+unsub(); // always clean up
+```
+
+**`subscribeWithSelector` vs `useShallow`:**
+
+| Situation                                                | Use                                              |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| Inside a React component — select multiple values        | `useShallow` selector                            |
+| Outside React — react to a specific state change         | `subscribeWithSelector`                          |
+| Complex derived state that needs to trigger side effects | `subscribeWithSelector` with a computed selector |

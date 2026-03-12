@@ -5,9 +5,9 @@ description: Zod schema validation best practices for type safety, parsing, and 
 
 # Zod Best Practices
 
-> **Version note:** This skill targets **Zod v4**. Rules in the `perf-` category (e.g., `perf-zod-mini`) are v4-only. If your project uses Zod v3, skip those rules.
+> **Version note:** This skill targets **Zod v4.3.6**. Rules in the `perf-` category (e.g., `perf-zod-mini`) are v4-only. If your project uses Zod v3, skip those rules.
 
-Comprehensive schema validation guide for Zod in TypeScript applications. Contains 45 rules across 9 categories, prioritized by impact to guide automated refactoring and code generation.
+Comprehensive schema validation guide for Zod in TypeScript applications. Contains 47 rules across 9 categories, prioritized by impact to guide automated refactoring and code generation.
 
 ## When to Apply
 
@@ -35,7 +35,7 @@ Reference these guidelines when:
 | 5        | Object Schemas           | MEDIUM-HIGH | `object-`     |
 | 6        | Schema Composition       | MEDIUM      | `compose-`    |
 | 7        | Refinements & Transforms | MEDIUM      | `refine-`     |
-| 8        | Performance & Bundle     | LOW-MEDIUM  | `perf-`       |
+| 8        | Performance & Bundle     | HIGH        | `perf-`       |
 | 9        | AI / LLM Integration     | HIGH        | `schema-llm-` |
 
 ## Quick Reference
@@ -102,7 +102,7 @@ Reference these guidelines when:
 ### 8. Performance & Bundle (LOW-MEDIUM)
 
 - `perf-cache-schemas` - Cache schema instances
-- `perf-zod-mini` - Use `zod/mini` for bundle-sensitive applications (import from `"zod/mini"`, not `"@zod/mini"`)
+- `perf-zod-mini` - **Prefer `zod/mini` in all `"use client"` files** — 85% smaller than full Zod; use full `"zod"` on the server (import from `"zod/mini"`, not `"@zod/mini"`)
 - `perf-avoid-dynamic-creation` - Avoid dynamic schema creation in hot paths
 - `perf-lazy-loading` - Lazy load large schemas
 - `perf-arrays` - Optimize large array validation
@@ -111,6 +111,17 @@ Reference these guidelines when:
 
 - `schema-llm-describe` - Add `.describe()` to schema fields consumed by LLMs or exposed as tool definitions
 - `schema-llm-json-schema` - Use `z.toJSONSchema()` (built-in in Zod v4) to generate tool specs for Amazon Bedrock, OpenAI, or Vercel AI SDK; never write JSON Schema manually when a Zod schema already exists
+- `schema-llm-json-schema` (reverse) - Use `z.fromJSONSchema()` (Zod v4.3.0+) to convert external JSON Schema / OpenAPI definitions into Zod schemas for runtime validation
+- `schema-llm-prettify-error` - Use `z.prettifyError(err)` to format `ZodError` as human-readable text for agent error logging and debugging
+
+## Project Conventions
+
+> **`zod/mini` in Client Components, `zod` on the server.**
+> All `"use client"` files must `import { z } from "zod/mini"`. Server files (Server Components, Route Handlers, Server Actions, `lib/`) use `import { z } from "zod"`. This reduces client-side bundle size by ~85% with a nearly identical API.
+>
+> **`.describe()` on every LLM-facing field.** Any schema whose output is consumed by an AI agent, tool spec, or Amazon Bedrock tool definition must have `.describe("...")` on every field.
+>
+> **Never write JSON Schema by hand.** Use `z.toJSONSchema(schema)` — it's built in to Zod v4. Manually written JSON Schema drifts silently from the Zod schema used for runtime validation.
 
 ## How to Use
 

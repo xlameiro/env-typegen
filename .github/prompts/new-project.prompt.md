@@ -72,13 +72,13 @@ Based on the user's description, create or replace pages as needed.
 
 ---
 
-## Step 6 — Run type check
+## Step 6 — Run quality gate
 
 ```bash
-pnpm type-check
+pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
-Fix any errors before stopping. Do not leave type errors.
+Fix all errors before stopping. Do not leave lint errors, type errors, failing tests, or build failures.
 
 ---
 

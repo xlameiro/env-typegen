@@ -10,7 +10,11 @@ type ErrorProps = Readonly<{
 
 export default function ErrorPage({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Replace with your error reporting service (e.g. Sentry.captureException(error), Axiom, Highlight)
+    // Report errors to your monitoring service here.
+    // Initialize the SDK once in instrumentation.ts, then call the capture method:
+    //   Sentry:    Sentry.captureException(error)
+    //   Highlight: H.consumeError(error)
+    //   Axiom:     log.error('Unhandled error', { error: error.message, digest: error.digest })
     console.error(error);
   }, [error]);
 

@@ -1,5 +1,6 @@
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
+import { ROUTES } from "@/lib/constants";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -52,4 +53,16 @@ export function truncate(str: string, maxLength: number): string {
  */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Sanitise a redirect path to prevent open redirect attacks (OWASP A01).
+ * Only accepts relative paths that start with "/" (not "//").
+ * Returns the dashboard route as the safe fallback.
+ */
+export function sanitizeReturnTo(url: string | undefined): string {
+  if (!url || !url.startsWith("/") || url.startsWith("//")) {
+    return ROUTES.dashboard;
+  }
+  return url;
 }

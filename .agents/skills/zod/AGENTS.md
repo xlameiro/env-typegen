@@ -13,7 +13,7 @@ January 2026
 
 ## Abstract
 
-Comprehensive schema validation guide for Zod in TypeScript applications, designed for AI agents and LLMs. Contains 43 rules across 8 categories, prioritized by impact from critical (schema definition, parsing) to incremental (performance, bundle optimization). Each rule includes detailed explanations, real-world examples comparing incorrect vs. correct implementations, and specific impact metrics to guide automated refactoring and code generation.
+Comprehensive schema validation guide for Zod in TypeScript applications, designed for AI agents and LLMs. Contains 47 rules across 9 categories, prioritized by impact from critical (schema definition, parsing) to high (performance, bundle optimization with zod/mini). Each rule includes detailed explanations, real-world examples comparing incorrect vs. correct implementations, and specific impact metrics to guide automated refactoring and code generation.
 
 ---
 
@@ -64,12 +64,15 @@ Comprehensive schema validation guide for Zod in TypeScript applications, design
    - 7.3 [Distinguish transform() from refine() and coerce()](references/refine-transform-coerce.md) — MEDIUM (Using wrong method causes validation to pass with wrong data; each method has distinct purpose)
    - 7.4 [Use catch() for Fault-Tolerant Parsing](references/refine-catch.md) — MEDIUM (parse() fails on first invalid field; catch() provides fallback values, enabling partial success with degraded data)
    - 7.5 [Use default() for Optional Fields with Defaults](references/refine-defaults.md) — MEDIUM (Manual default handling spreads logic across codebase; .default() centralizes defaults in schema)
-8. [Performance & Bundle](references/_sections.md#8-performance-&-bundle) — **LOW-MEDIUM**
+8. [Performance & Bundle](references/_sections.md#8-performance-&-bundle) — **HIGH**
    - 8.1 [Avoid Dynamic Schema Creation in Hot Paths](references/perf-avoid-dynamic-creation.md) — LOW-MEDIUM (Zod 4's JIT compilation makes schema creation slower; creating schemas in loops adds ~0.15ms per creation)
    - 8.2 [Cache Schema Instances](references/perf-cache-schemas.md) — LOW-MEDIUM (Creating schemas on every render/call wastes CPU; module-level or memoized schemas are created once)
    - 8.3 [Lazy Load Large Schemas](references/perf-lazy-loading.md) — LOW-MEDIUM (Large schemas increase initial bundle and parse time; dynamic imports defer loading until needed)
    - 8.4 [Optimize Large Array Validation](references/perf-arrays.md) — LOW-MEDIUM (Validating 10,000 items takes ~100ms; early exits, sampling, or batching reduce time for large datasets)
-   - 8.5 [Use Zod Mini for Bundle-Sensitive Applications](references/perf-zod-mini.md) — LOW-MEDIUM (Full Zod is ~17kb gzipped; Zod Mini is ~1.9kb - 85% smaller for frontend-critical bundles)
+   - 8.5 [Prefer zod/mini in Client Components](references/perf-zod-mini.md) — HIGH (Full Zod is ~17kb gzipped; Zod Mini is ~1.9kb — 85% smaller; use `zod/mini` in all `"use client"` files, full `zod` on the server)
+9. [AI / LLM Integration](references/_sections.md#9-ai-/-llm-integration) — **HIGH**
+   - 9.1 [Add .describe() to LLM-Facing Fields](references/schema-llm-describe.md) — HIGH (LLMs use field descriptions to understand intent; without them, tool calls are imprecise or fail entirely)
+   - 9.2 [Generate JSON Schema for LLM Tool Calling](references/schema-llm-json-schema.md) — HIGH (Manually written JSON Schema drifts from Zod schemas; `z.toJSONSchema()` stays in sync with Bedrock/OpenAI/Vercel AI SDK tool specs. Also covers `z.fromJSONSchema()` for reverse conversion and `z.prettifyError()` for human-readable validation errors)
 
 ---
 
@@ -89,9 +92,9 @@ Comprehensive schema validation guide for Zod in TypeScript applications, design
 
 This document was compiled from individual reference files. For detailed editing or extension:
 
-| File | Description |
-|------|-------------|
-| [references/_sections.md](references/_sections.md) | Category definitions and impact ordering |
-| [assets/templates/_template.md](assets/templates/_template.md) | Template for creating new rules |
-| [SKILL.md](SKILL.md) | Quick reference entry point |
-| [metadata.json](metadata.json) | Version and reference URLs |
+| File                                                            | Description                              |
+| --------------------------------------------------------------- | ---------------------------------------- |
+| [references/\_sections.md](references/_sections.md)             | Category definitions and impact ordering |
+| [assets/templates/\_template.md](assets/templates/_template.md) | Template for creating new rules          |
+| [SKILL.md](SKILL.md)                                            | Quick reference entry point              |
+| [metadata.json](metadata.json)                                  | Version and reference URLs               |

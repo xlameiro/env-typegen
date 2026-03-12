@@ -141,49 +141,6 @@ tools:
     search/searchSubagent,
     search/usages,
     web/fetch,
-    github/add_comment_to_pending_review,
-    github/add_issue_comment,
-    github/add_reply_to_pull_request_comment,
-    github/assign_copilot_to_issue,
-    github/create_branch,
-    github/create_or_update_file,
-    github/create_pull_request,
-    github/create_pull_request_with_copilot,
-    github/create_repository,
-    github/delete_file,
-    github/fork_repository,
-    github/get_commit,
-    github/get_copilot_job_status,
-    github/get_file_contents,
-    github/get_label,
-    github/get_latest_release,
-    github/get_me,
-    github/get_release_by_tag,
-    github/get_tag,
-    github/get_team_members,
-    github/get_teams,
-    github/issue_read,
-    github/issue_write,
-    github/list_branches,
-    github/list_commits,
-    github/list_issue_types,
-    github/list_issues,
-    github/list_pull_requests,
-    github/list_releases,
-    github/list_tags,
-    github/merge_pull_request,
-    github/pull_request_read,
-    github/pull_request_review_write,
-    github/push_files,
-    github/request_copilot_review,
-    github/search_code,
-    github/search_issues,
-    github/search_pull_requests,
-    github/search_repositories,
-    github/search_users,
-    github/sub_issue_write,
-    github/update_pull_request,
-    github/update_pull_request_branch,
     rss-feed/get_feed,
     rss-feed/list_latest_posts,
     osv-vulnerability/batch_query,
@@ -221,7 +178,113 @@ Use this agent before implementation when the task:
 - Requires new environment variables or external service integration
 - Has unclear requirements that need clarification first
 
+## 🔒 Pre-flight — mandatory, no exceptions
+
+**Complete these three steps before producing any plan.** They ensure the plan references Next.js 16.1.6 APIs and patterns, not stale LLM training data. A plan built on wrong API assumptions will create contradictions the Feature Builder must resolve later.
+
+### Pre-flight 1 — Call `next-devtools-init`
+
+Invoke the `next-devtools-init` tool (next-devtools MCP) as the **absolute first action**. This resets the LLM's Next.js knowledge baseline to v16.1.6. Skipping this step risks generating plans that recommend Next.js 13/14 patterns incompatible with this project.
+
+### Pre-flight 2 — Load the matching `nextjs-*` skill
+
+Select and load the skill that matches the feature type being planned:
+
+| Feature type                                                        | Skill to load                                       |
+| ------------------------------------------------------------------- | --------------------------------------------------- |
+| Pages, layouts, routing, Suspense, streaming                        | `nextjs-app-router-patterns`                        |
+| `'use cache'`, `cacheLife`, `cacheTag`, revalidation                | `nextjs-directives` + `nextjs-data-cache-functions` |
+| `next.config.ts` changes                                            | `nextjs-config`                                     |
+| Built-in components (`<Image>`, `<Link>`, `<Font>`, `<Form>`)       | `nextjs-components`                                 |
+| `generateMetadata`, SEO, sitemap, OG images                         | `nextjs-metadata-functions`                         |
+| File conventions (`page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`) | `nextjs-file-conventions`                           |
+| Navigation (`useRouter`, `redirect`, `notFound`, `usePathname`)     | `nextjs-navigation-functions`                       |
+| Route Handlers, `NextRequest`/`NextResponse`                        | `nextjs-server-runtime`                             |
+| General Next.js 16 patterns                                         | `nextjs-best-practices`                             |
+
+### Pre-flight 3 — Emit Documentation Declaration
+
+Output this block **at the top of every plan** so the Feature Builder knows which sources the plan is grounded in:
+
+```
+> 📚 **Sources**: [skill name] skill loaded · Context7 `/vercel/next.js` queried for "[specific API or pattern]"
+> ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.6
+```
+
+> **Why this matters for the handoff**: The Feature Builder runs the same pre-flight independently. If the Planner skips it, the two agents may resolve the same API question differently (e.g., `middleware.ts` vs `proxy.ts`, `export const dynamic` vs `use cache`). The Documentation Declaration makes the source explicit so the Feature Builder can detect and correct any divergence before writing code.
+
+---
+
 ## Planning process
+
+### Step 0: Scope and Context Fit Check (MANDATORY — before reading any file)
+
+**Run this check before any analysis.** It determines whether the request fits within one session or requires multi-session chaining.
+
+#### 0.1 — Enumerate the scope
+
+Use `search/listDirectory` + `search/fileSearch` to count:
+
+- Total files that must be read to address the request
+- Number of distinct functional domains (routes, components, auth, API, tests, config, infra…)
+- Request type: **Feature** | **Refactor** | **Audit** | **Migration**
+
+#### 0.2 — Session Mode Decision Matrix
+
+| Signal                     | Mode A — Single Session    | Mode B — Multi-Session                                                |
+| -------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| Files requiring full read  | ≤ 40                       | > 40                                                                  |
+| Functional domains         | ≤ 3                        | > 3                                                                   |
+| Request type               | Feature / Focused refactor | Audit / Full migration / Broad review                                 |
+| Global keywords in request | —                          | "everything", "all", "whole project", "exhaustive", "audit the whole" |
+
+If **any** Mode B signal is present → switch to **Mode B**.
+
+#### 0.3 — Declare the Session Mode
+
+The plan **must** open with one of these declaration blocks before any other content:
+
+```
+## Session Mode: A — Single Session
+All files in scope will be read before this plan is finalised.
+Estimated scope: X files across Y domains.
+```
+
+```
+## Session Mode: B — Multi-Session
+This session covers Batch [N] of [total estimated].
+Previously completed: [list domains or "none"]
+This batch covers: [domains]
+Remaining: [domains] — continue with the next session.
+```
+
+---
+
+#### Mode B Batch Protocol
+
+Structure the work as a sequence of bounded batches:
+
+| Batch       | Focus                                                     | Deliverable                                           |
+| ----------- | --------------------------------------------------------- | ----------------------------------------------------- |
+| Batch 1     | Directory inventory + domain classification + risk triage | Scope map, priority order, checkpoint                 |
+| Batches 2…N | Deep analysis per domain (one domain per batch)           | Domain findings, updated checkpoint                   |
+| Final batch | Cross-cutting synthesis + full recommendations            | Complete plan + Coverage Report + Confidence & Limits |
+
+**Checkpoint** — save to session memory (`vscode/memory`) at the end of every batch:
+
+```
+Batch: N of M
+Covered domains: [list]
+Pending domains: [list]
+Key findings so far: [brief list]
+Next batch starts at: [first file/domain for next session]
+```
+
+**Critical**: Never claim exhaustiveness while pending domains remain. End every Mode B batch with:
+
+> `"Batch N of M complete. X domains covered, Y pending. Open a new session and ask [Planner — Batch N+1: <next domain>] to continue."`
+
+---
 
 ### Step 1: Understand requirements
 
@@ -290,12 +353,45 @@ Describe how data moves through the feature (Server Component → fetch → Zod 
 
 List any ambiguities that must be resolved before implementation starts.
 
+## Coverage Report
+
+| Category                   | Detail             |
+| -------------------------- | ------------------ |
+| Directories examined       | `X of Y`           |
+| Files fully read           | `X`                |
+| Domains fully covered      | [list]             |
+| Domains skipped / not read | [list with reason] |
+| Estimated coverage         | `XX%`              |
+
+> If coverage is below 100%, this plan makes assumptions about uncovered areas. Unreviewed areas must appear in Open Questions.
+
+## Confidence and Limits
+
+- **Confidence level**: High / Medium / Low
+- **Reason for confidence gap** (if not High): [unread files, external dependencies, ambiguous requirements]
+- **Key assumptions**: [list]
+- **Residual risks**: [list]
+- **Session limit reached**: Yes / No — if Yes, see Coverage Report and Session Mode declaration
+
 ---
 
 ## Rules
 
+- **Always run the pre-flight** (`next-devtools-init` + skill load + Documentation Declaration) before producing any plan — no exceptions. A plan without a Documentation Declaration must be treated as potentially grounded in stale training data.
+- Always run Step 0 (Scope and Context Fit Check) before any file read — no exceptions
+- Always declare the Session Mode at the top of every plan output
+- Never claim exhaustiveness if the Coverage Report shows unread areas — list them explicitly under Open Questions
+- Always end Mode B batches with a handoff instruction for the next session
 - Always include a Testing Plan section — no feature is complete without tests
 - Flag any security implications explicitly (auth, user input, external APIs)
 - Keep steps atomic — each should be independently verifiable
 - Do not suggest frameworks or libraries not already in the project unless absolutely necessary
 - Reference existing patterns in the codebase rather than inventing new ones
+- When recommending a Next.js API or pattern, verify it against the loaded skill — never rely on bare LLM knowledge
+
+## Completion protocol
+
+End every planning session with exactly one of these markers:
+
+- `## PLAN COMPLETE ✅` — Documentation Declaration emitted; all required plan sections present; grounded in Next.js 16.1.6 documentation
+- `## PLAN BLOCKED` — blocked by ambiguous requirements or missing context; state exactly what is needed to continue

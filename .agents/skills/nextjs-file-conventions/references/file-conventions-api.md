@@ -59,6 +59,29 @@ export const preferredRegion = "auto"; // 'auto' | 'global' | 'home' | string | 
 export const maxDuration = 5; // number (seconds)
 ```
 
+### `LayoutProps<T>` — Typed Params Helper
+
+`next dev` and `next build` (via `next typegen`) auto-generate a globally available `LayoutProps` generic that types both `children` and `params` for a given route path:
+
+```tsx
+// app/dashboard/[teamId]/layout.tsx
+// LayoutProps is globally available after `next typegen` / `next build`
+export default async function DashboardLayout({
+  children,
+  params,
+}: LayoutProps<"/dashboard/[teamId]">) {
+  const { teamId } = await params; // fully typed: { teamId: string }
+  return <TeamContext teamId={teamId}>{children}</TeamContext>;
+}
+```
+
+```bash
+# regenerate after adding/renaming dynamic segments
+pnpm exec next typegen
+```
+
+> **Parallel route slots** are also typed: `LayoutProps<"/dashboard/[teamId]">` includes the slot props (`modal`, `sidebar`, etc.) alongside `children` and `params`.
+
 ---
 
 ## `page.tsx` — Full API
@@ -492,3 +515,196 @@ export default function manifest(): MetadataRoute.Manifest {
   };
 }
 ```
+
+---
+
+## `template.tsx` — Full API
+
+### Props
+
+```ts
+export default function Template({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}
+```
+
+### Key / Remount Behaviour
+
+Next.js gives every `template.tsx` instance a unique React `key` derived from the **segment path + dynamic params**. Changing only search params does **not** change the key and does **not** remount the template.
+
+```ts
+// key = hash of segment path + resolved dynamic params
+// e.g. for app/dashboard/[teamId]/template.tsx:
+//   /dashboard/eng  → key-A (mounts)
+//   /dashboard/design → key-B (unmounts key-A, mounts key-B)
+//   /dashboard/eng?tab=b → key-A again (NO remount — search params ignored)
+```
+
+### Segment Config Exports
+
+No segment config exports (`dynamic`, `revalidate`, etc.) — those belong to `layout.tsx` or `page.tsx` in the same segment.
+
+### Optional Exports
+
+`metadata`/`generateMetadata` are **not supported** in `template.tsx`. Declare metadata in the co-located `page.tsx` or a parent `layout.tsx`.
+
+### Client Component Template
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+
+// Fires on every navigation between children
+export default function Template({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Runs on every page change within this segment
+    analytics.trackPageView(window.location.pathname);
+  }, []);
+
+  return <div className="animate-in fade-in duration-300">{children}</div>;
+}
+```
+
+### Server Component Template with Per-Page Fetch
+
+```tsx
+// app/shop/template.tsx
+import { getCart } from "@/lib/cart";
+
+// Fetches fresh data on every navigation (unlike layout which caches)
+export default async function Template({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cart = await getCart(); // called fresh on every page switch
+  return <CartProvider cart={cart}>{children}</CartProvider>;
+}
+```
+
+---
+
+## Error Handling Patterns
+
+### Expected Errors — `useActionState`
+
+For predictable errors (validation failures, business rule violations), return error values from Server Actions instead of throwing:
+
+```tsx
+// lib/actions.ts
+"use server";
+
+export async function createPost(prevState: unknown, formData: FormData) {
+  const result = CreatePostSchema.safeParse(Object.fromEntries(formData));
+  if (!result.success) {
+    return { error: result.error.flatten().fieldErrors };
+  }
+  await db.post.create({ data: result.data });
+  redirect("/posts");
+}
+```
+
+```tsx
+// app/posts/new/page.tsx
+"use client";
+
+import { useActionState } from "react";
+import { createPost } from "@/lib/actions";
+
+export default function NewPostPage() {
+  const [state, action] = useActionState(createPost, null);
+
+  return (
+    <form action={action}>
+      <input name="title" />
+      {state?.error?.title && <p>{state.error.title[0]}</p>}
+      <button type="submit">Create</button>
+    </form>
+  );
+}
+```
+
+### Uncaught Exceptions — `error.tsx`
+
+For unexpected errors (network failures, database errors), throw from Server Components and let `error.tsx` catch:
+
+```tsx
+// app/posts/[id]/page.tsx
+export default async function PostPage({ params }) {
+  const { id } = await params;
+  const post = await db.post.findUniqueOrThrow({ where: { id } });
+  // ^^^ throws if not found → caught by nearest error.tsx
+  return <PostView post={post} />;
+}
+```
+
+### Event Handler Errors — `useState` + `try/catch`
+
+Error boundaries do not catch event handler errors. Use local state:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function DeleteButton({ id }: { id: string }) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    try {
+      await deletePost(id);
+    } catch {
+      setError("Failed to delete. Please try again.");
+    }
+  }
+
+  return (
+    <>
+      {error && <p className="text-destructive">{error}</p>}
+      <button onClick={handleDelete}>Delete</button>
+    </>
+  );
+}
+```
+
+### `startTransition` Errors — Bubble to Error Boundary
+
+Unlike event handlers, errors thrown **inside `startTransition`** bubble to the nearest React error boundary:
+
+```tsx
+"use client";
+
+import { useTransition } from "react";
+
+export default function MigrateButton() {
+  const [isPending, startTransition] = useTransition();
+
+  function handleMigrate() {
+    startTransition(async () => {
+      await runMigration(); // if this throws → bubbles to error.tsx
+    });
+  }
+
+  return (
+    <button onClick={handleMigrate} disabled={isPending}>
+      Migrate
+    </button>
+  );
+}
+```
+
+### `error.message` in Production
+
+Server Component errors in production expose only a generic message to the client:
+
+| Environment | `error.message`                                        | `error.digest`                |
+| ----------- | ------------------------------------------------------ | ----------------------------- |
+| Development | Original thrown message                                | Present                       |
+| Production  | `"An error occurred in the Server Components render."` | Present — matches server logs |
+
+Use `error.digest` to correlate production client errors with server-side logs (Datadog, CloudWatch, etc.).

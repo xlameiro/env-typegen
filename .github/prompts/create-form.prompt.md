@@ -29,16 +29,15 @@ For a form at `app/{feature}/page.tsx`, generate:
 
 If a schema doesn't exist yet, also generate:
 
-| File                              | Purpose                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| `lib/schemas/{feature}.schema.ts` | Zod v4 schema with `import 'server-only'` and `.describe()` on all fields |
+| File                              | Purpose                                                                                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/schemas/{feature}.schema.ts` | Zod v4 schema with `.describe()` on all fields (no `server-only` — schemas run in both client and server environments for RHF resolution) |
 
 ## Output format
 
 ### 1. Schema (`lib/schemas/{feature}.schema.ts`)
 
 ```ts
-import "server-only";
 import { z } from "zod";
 
 export const {feature}Schema = z.object({

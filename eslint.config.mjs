@@ -284,12 +284,12 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unsafe-return": "warn",
       "@typescript-eslint/no-unsafe-assignment": "warn",
 
-      // Remaining unsafe rules disabled — too noisy in real-world Next.js code that
-      // interacts with third-party libs not yet fully typed (e.g., next-auth session shape).
-      // Re-evaluate when upstream type definitions improve.
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
+      // Remaining unsafe rules — enabled as warn to surface real issues without blocking.
+      // These are more noisy with third-party libs (e.g. next-auth session shape) but still
+      // valuable to surface gradually. Upgrade to "error" once all violations are resolved.
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
       "@typescript-eslint/no-unnecessary-type-assertion": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
       "@typescript-eslint/no-floating-promises": "off",

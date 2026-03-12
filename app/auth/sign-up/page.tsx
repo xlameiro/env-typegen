@@ -2,6 +2,7 @@ import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { ROUTES } from "@/lib/constants";
+import { sanitizeReturnTo } from "@/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -9,7 +10,13 @@ export const metadata: Metadata = {
   title: "Sign Up",
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ returnTo?: string }>;
+}>) {
+  const { returnTo } = await searchParams;
+  const redirectTo = sanitizeReturnTo(returnTo);
   return (
     <main
       id="maincontent"
@@ -32,7 +39,7 @@ export default function SignUpPage() {
             action={async () => {
               /* c8 ignore next 2 -- server action body cannot run in jsdom */
               "use server";
-              await signIn("google", { redirectTo: ROUTES.dashboard });
+              await signIn("google", { redirectTo });
             }}
           >
             <Button type="submit" variant="outline" className="w-full gap-3">

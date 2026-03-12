@@ -1,10 +1,11 @@
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import { ImageResponse } from "next/og";
 
 // Edge runtime is intentional — ImageResponse initialises faster on edge.
 // The build warning about "disables static generation" is expected and harmless:
 // OG images are always dynamically generated and never statically pre-rendered.
 export const runtime = "edge";
-export const alt = "Next.js Starter Template";
+export const alt = APP_NAME;
 
 export const size = { width: 1200, height: 630 };
 
@@ -48,7 +49,7 @@ export default function Image() {
           margin: "0 0 24px 0",
         }}
       >
-        Next.js 16 + Copilot
+        {APP_NAME}
       </h1>
       <p
         style={{
@@ -60,7 +61,7 @@ export default function Image() {
           margin: "0px",
         }}
       >
-        TypeScript · Tailwind CSS v4 · Auth.js v5 · Zod · Zustand · Vitest
+        {APP_DESCRIPTION}
       </p>
     </div>,
     size,

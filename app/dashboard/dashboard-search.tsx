@@ -5,7 +5,7 @@
 import { FormInput } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useCallback, type ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
 
 const searchParsers = {
   q: parseAsString.withDefault(""),
@@ -18,19 +18,15 @@ export function DashboardSearch() {
     shallow: false,
   });
 
-  const handleSearch = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setSearch({ q: event.target.value, page: 1 });
-    },
-    [setSearch],
-  );
+  // React Compiler (enabled in next.config.ts) automatically memoizes these handlers.
+  // Manual useCallback is not needed and has been intentionally omitted.
+  function handleSearch(event: ChangeEvent<HTMLInputElement>) {
+    void setSearch({ q: event.target.value, page: 1 });
+  }
 
-  const handlePageChange = useCallback(
-    (nextPage: number) => {
-      setSearch({ page: nextPage });
-    },
-    [setSearch],
-  );
+  function handlePageChange(nextPage: number) {
+    void setSearch({ page: nextPage });
+  }
 
   return (
     <div className="space-y-4 rounded-lg border border-border bg-card p-6">

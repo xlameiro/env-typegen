@@ -1,4 +1,11 @@
-import { cn, formatCurrency, formatDate, sleep, truncate } from "@/lib/utils";
+import {
+  cn,
+  formatCurrency,
+  formatDate,
+  sanitizeReturnTo,
+  sleep,
+  truncate,
+} from "@/lib/utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("cn", () => {
@@ -96,6 +103,32 @@ describe("sleep", () => {
     await promise;
 
     expect(resolved).toBe(true);
+  });
+});
+
+describe("sanitizeReturnTo", () => {
+  it("should return the path when it is a valid relative URL", () => {
+    expect(sanitizeReturnTo("/dashboard")).toBe("/dashboard");
+  });
+
+  it("should return the dashboard route when given an absolute URL (open redirect attempt)", () => {
+    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/dashboard");
+  });
+
+  it("should return the dashboard route when given a protocol-relative URL (open redirect attempt)", () => {
+    expect(sanitizeReturnTo("//evil.com")).toBe("/dashboard");
+  });
+
+  it("should return the dashboard route when given an empty string", () => {
+    expect(sanitizeReturnTo("")).toBe("/dashboard");
+  });
+
+  it("should return the dashboard route when given undefined", () => {
+    expect(sanitizeReturnTo(undefined)).toBe("/dashboard");
+  });
+
+  it("should accept deep relative paths", () => {
+    expect(sanitizeReturnTo("/settings/profile")).toBe("/settings/profile");
   });
 });
 

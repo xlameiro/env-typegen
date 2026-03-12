@@ -30,31 +30,11 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
   },
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      // Next.js requires 'unsafe-inline' for hydration scripts unless nonces are used.
-      // 'unsafe-eval' is intentionally omitted — not required in production builds.
-      // Path to stricter CSP: generate a nonce per request in proxy.ts, pass it via
-      // a response header (e.g., x-nonce), read it in layout.tsx, and inject it into
-      // every <Script> and inline <style>. See Next.js CSP docs for the full walkthrough:
-      // https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' blob: data:",
-      "font-src 'self'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      // Prevents loading in workers (no web worker or service worker usage by default).
-      "worker-src 'none'",
-      // Restricts web app manifest loading to same origin.
-      "manifest-src 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
-  },
+  // Content-Security-Policy is set dynamically by proxy.ts using a per-request nonce,
+  // which eliminates the need for 'unsafe-inline' in script-src.
+  // See proxy.ts for the CSP definition and nonce propagation logic.
+  // API routes (/api/*) are excluded from the proxy.ts matcher and therefore do not
+  // receive a CSP header — they return JSON, not HTML, so CSP is not applicable.
   // Cross-Origin Opener Policy: prevents other origins from gaining references to this window.
   // Required for SharedArrayBuffer and high-resolution timers. Safe with redirect-based OAuth
   // (Auth.js v5 default). If popup-based OAuth is added, change to "same-origin-allow-popups".

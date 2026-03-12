@@ -18,7 +18,9 @@ pnpm install    # also runs postinstall → auto-creates .env.local with a gener
 
 1. Fill in OAuth credentials in `.env.local` **only if the project uses authentication**
 2. Update `lib/constants.ts` — change `APP_NAME`, `APP_DESCRIPTION`, `APP_VERSION`
+   - `app/opengraph-image.tsx` is already wired to `APP_NAME` and `APP_DESCRIPTION` — updating constants is enough for OG image text
 3. Replace or delete example pages (see table below)
+4. Update `app/icon.tsx` with your favicon — the template ships a hardcoded "N" placeholder; change the letter and `stopColor` values to match your brand
 
 ### Template map — example vs scaffold
 
@@ -99,6 +101,34 @@ These conventions are non-standard and **must be followed**. AI agents reading o
 - When remote has new changes, prefer `git fetch && git rebase origin/main` over merge commits
 - Do NOT use `--no-verify` when committing — fix the lint/pre-commit issues instead
 
+### Branch Protection (required for safe Dependabot auto-merge)
+
+Branch protection on `main` ensures Dependabot PRs can only auto-merge after CI passes. Without it, `dependabot-automerge.yml` merges immediately regardless of test results. Enable once with the GitHub CLI:
+
+```bash
+gh api repos/{owner}/{repo}/branches/main/protection \
+  --method PUT \
+  --input - <<'EOF'
+{
+  "required_status_checks": { "strict": true, "contexts": ["Quality Gate", "E2E Tests"] },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null
+}
+EOF
+```
+
+Or via the UI: **Settings → Branches → Branch protection rules** → add rule for `main` → **Require status checks to pass** → select `Quality Gate` and `E2E Tests`.
+
+### Rate Limiter — Single-Instance Limitation
+
+The rate limiter in `lib/rate-limit.ts` uses an **in-memory** sliding window (a `Map` scoped to the Node.js process). This works correctly for:
+
+- Local development
+- Single-container / single-Vercel-function deployments
+
+It does **not** share state across multiple replicas or horizontally scaled deployments. If you deploy with multiple instances, replace the in-memory store with a distributed store such as **Upstash Redis** or **Vercel KV**. The `createRateLimiter` API stays the same — only the backing store changes.
+
 ## PR Size Guidelines
 
 - Keep PRs small and reviewable — aim for under 500 lines of code (additions + deletions)
@@ -116,6 +146,32 @@ These conventions are non-standard and **must be followed**. AI agents reading o
 4. **Verify** by running lint + tsc + test in order
 5. **Report** with a clear summary of what was changed and why — keep PR descriptions concise; a few sentences is enough for simple changes
 6. **Disclose AI assistance** in the PR description when the agent authored or significantly contributed: add `> This PR was created with AI assistance.`
+
+---
+
+## Large-Scope Planning: Multi-Session Chaining
+
+When you ask the Planner to cover a broad scope ("audit the whole project", "review all components", "analyse everything"), a single session may not be enough to read every file. The Planner detects this via its **Scope and Context Fit Check** (Step 0) and declares one of two modes:
+
+| Mode                   | When                                                | Behaviour                                                                               |
+| ---------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **A — Single Session** | ≤ 40 files, ≤ 3 domains                             | Reads all files, produces the complete plan in one pass                                 |
+| **B — Multi-Session**  | > 40 files, > 3 domains, or any "audit all" request | Splits work into batches; each session ends with a checkpoint and a handoff instruction |
+
+### How to chain sessions (Mode B)
+
+1. **Session 1** — scope inventory + domain classification. The Planner saves a checkpoint to session memory and ends with: `"Batch 1 of M complete. Continue with [Planner — Batch 2: <next domain>]"`.
+2. **Sessions 2…N** — domain analysis. Each one reads the prior checkpoint, covers one domain, updates the checkpoint, and hands off to the next.
+3. **Final session** — consolidation. Reads all checkpoints and produces the complete plan with Coverage Report and Confidence & Limits.
+
+### What makes a plan trustworthy
+
+Every Planner output includes two mandatory sections:
+
+- **Coverage Report** — directories/files actually read, which were skipped and why, estimated coverage percentage.
+- **Confidence and Limits** — confidence level (High / Medium / Low), assumptions made for unread areas, and residual risks.
+
+A plan that omits these sections should be treated as a draft that requires further investigation before implementation starts.
 
 ---
 
@@ -214,6 +270,17 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 > **Default for this project**: use **Autopilot** for all feature work. Switch to **Default Approvals** whenever you are touching AWS resources, database schema, or environment secrets. Use **Sandbox** when the agent will execute code from untrusted sources.
 
 > Both features are available in VS Code 1.111 Stable. Check `configure chat → diagnostics` if either is not behaving as expected. Enable Autopilot via the `chat.autopilot.enabled` setting or from the Chat input → **default approvals** dropdown.
+
+**Auto-commit hook (opt-in)** — When an agent session stops, you can automatically commit all pending changes to prevent losing generated work. A ready-made script lives at `.github/hooks/scripts/session-stop-autocommit.sh`. To activate, add the following entry to `.github/hooks/hooks.json`:
+
+```json
+{
+  "event": "Stop",
+  "script": ".github/hooks/scripts/session-stop-autocommit.sh"
+}
+```
+
+The script only commits if there are pending changes, never uses `--no-verify`, and always appends `[skip ci]` to the commit message. See `copilot-instructions.md § VS Code Agent Hooks` for the full hooks reference.
 
 ### Handling Review Feedback (AI Agents Only)
 

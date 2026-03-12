@@ -1,6 +1,11 @@
 import { SkipLink } from "@/components/skip-link";
 import { ThemeProvider } from "@/components/theme-provider";
-import { APP_DESCRIPTION, APP_NAME, SITE_URL } from "@/lib/constants";
+import {
+  APP_DESCRIPTION,
+  APP_LOCALE,
+  APP_NAME,
+  SITE_URL,
+} from "@/lib/constants";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -50,14 +55,27 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Update the `lang` attribute below to match your app's locale — e.g. "es", "fr", "pt"
+// When changing the app locale, update APP_LOCALE in lib/constants.ts.
+// global-error.tsx also renders its own html tag and reads APP_LOCALE independently.
 export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={APP_LOCALE} suppressHydrationWarning>
+      {/*
+       * Apply the dark class before first paint to prevent a flash of the light
+       * theme for users who have manually selected dark mode via ThemeToggle.
+       * The script content is static — its sha256 hash is allow-listed in
+       * proxy.ts script-src, so no per-request nonce is needed here. This keeps
+       * the root layout synchronous, which is required for PPR (cacheComponents).
+       */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `try{var s=localStorage.getItem('app-store');if(s&&JSON.parse(s).state?.theme==='dark')document.documentElement.classList.add('dark')}catch(e){}`,
+        }}
+      />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

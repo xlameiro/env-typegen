@@ -21,21 +21,15 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000"
-    },
+    }
+  ],
+  "compounds": [
     {
       "name": "Next.js: debug full stack",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/next",
-      "args": ["dev", "--inspect"],
-      "skipFiles": ["<node_internals>/**"],
-      "serverReadyAction": {
-        "action": "debugWithChrome",
-        "killOnServerStop": true,
-        "pattern": "- Local:.+(https?://.+)",
-        "uriFormat": "%s",
-        "webRoot": "${workspaceFolder}"
-      }
+      "configurations": [
+        "Next.js: debug server-side",
+        "Next.js: debug client-side"
+      ]
     }
   ]
 }

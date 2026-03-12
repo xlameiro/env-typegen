@@ -2,21 +2,13 @@ import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { ROUTES } from "@/lib/constants";
+import { sanitizeReturnTo } from "@/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign In",
 };
-
-// Only allow relative paths to prevent open redirect attacks (OWASP A01).
-// Exported for unit testing — not part of the public API.
-export function sanitizeReturnTo(url: string | undefined): string {
-  if (!url || !url.startsWith("/") || url.startsWith("//")) {
-    return ROUTES.dashboard;
-  }
-  return url;
-}
 
 export default async function SignInPage({
   searchParams,

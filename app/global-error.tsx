@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { APP_LOCALE } from "@/lib/constants";
 
 type GlobalErrorProps = Readonly<{
   error: Error & { digest?: string };
@@ -13,24 +14,31 @@ type GlobalErrorProps = Readonly<{
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Replace with your error reporting service (e.g. Sentry.captureException(error), Axiom, Highlight)
+    // Report errors to your monitoring service here.
+    // Initialize the SDK once in instrumentation.ts, then call the capture method:
+    //   Sentry:    Sentry.captureException(error)
+    //   Highlight: H.consumeError(error)
+    //   Axiom:     log.error('Critical error', { error: error.message, digest: error.digest })
     console.error(error);
   }, [error]);
 
+  // Apply dark mode based on the user's stored preference.
+  // useEffect runs after paint, so a brief flash is possible on the error page.
+  // An inline <script> cannot be used here: global-error.tsx is a Client Component
+  // rendered outside the root layout and has no access to the CSP nonce from proxy.ts.
+  useEffect(() => {
+    // String-check the serialized Zustand store — avoids JSON.parse and a try/catch.
+    // Zustand persist serializes theme as `"theme":"dark"` which makes this safe.
+    const stored = localStorage.getItem("app-store");
+    if (stored?.includes('"theme":"dark"')) {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
   return (
     // global-error must include html and body tags.
-    // Keep lang in sync with app/layout.tsx if the app locale changes.
-    <html lang="en">
-      {/*
-       * Apply the dark class before first paint so users who manually set
-       * dark mode via ThemeToggle don't see a flash of the light error page.
-       * The root layout's ThemeProvider is bypassed when global-error fires.
-       */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `try{var s=localStorage.getItem('app-store');if(s&&JSON.parse(s).state?.theme==='dark')document.documentElement.classList.add('dark')}catch(e){}`,
-        }}
-      />
+    // lang is read from APP_LOCALE in lib/constants.ts — update it there when changing locale.
+    <html lang={APP_LOCALE}>
       <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-8 text-center">
         <h1 className="text-2xl font-semibold text-destructive">
           Critical error

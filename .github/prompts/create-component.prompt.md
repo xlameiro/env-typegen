@@ -43,7 +43,7 @@ Ask for these if not provided:
 
 1. **File name**: kebab-case matching the component name (e.g. `user-card.tsx`)
 2. **Default to Server Component** — only add `"use client"` if the component truly needs interactivity (event handlers, hooks, browser APIs). Justify it in a comment.
-3. **TypeScript**: define a `Props` interface or type. Never use `any`.
+3. **TypeScript**: define a `Props` type. Never use `any`. Never use `interface` — the project bans it via ESLint (`@typescript-eslint/consistent-type-definitions`).
 4. **Styling**: Tailwind CSS utility classes only — no inline styles, no CSS modules.
 5. **Accessibility**: use semantic HTML (`<article>`, `<section>`, `<button>`, etc.). Every image needs a descriptive `alt`. Interactive elements must be keyboard accessible.
 6. **Imports**: use `@/` alias for all internal imports.

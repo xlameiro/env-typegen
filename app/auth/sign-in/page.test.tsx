@@ -20,7 +20,6 @@ vi.mock("next/link", () => ({
 }));
 
 import SignInPage from "./page";
-import { sanitizeReturnTo } from "./page";
 
 describe("SignInPage", () => {
   async function renderPage(returnTo?: string) {
@@ -53,27 +52,5 @@ describe("SignInPage", () => {
     expect(
       screen.getByRole("heading", { name: /sign in to your account/i }),
     ).toBeInTheDocument();
-  });
-});
-
-describe("sanitizeReturnTo", () => {
-  it("should return the path when it is a valid relative URL", () => {
-    expect(sanitizeReturnTo("/dashboard")).toBe("/dashboard");
-  });
-
-  it("should return the dashboard route when given an absolute URL (open redirect attempt)", () => {
-    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/dashboard");
-  });
-
-  it("should return the dashboard route when given a protocol-relative URL (open redirect attempt)", () => {
-    expect(sanitizeReturnTo("//evil.com")).toBe("/dashboard");
-  });
-
-  it("should return the dashboard route when given an empty string", () => {
-    expect(sanitizeReturnTo("")).toBe("/dashboard");
-  });
-
-  it("should return the dashboard route when given undefined", () => {
-    expect(sanitizeReturnTo(undefined)).toBe("/dashboard");
   });
 });

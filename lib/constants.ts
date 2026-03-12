@@ -5,6 +5,10 @@ export const APP_DESCRIPTION =
   "A professional Next.js 16 starter template with TypeScript, Tailwind CSS v4, Auth.js v5, Zod, Zustand, Vitest, and Playwright.";
 export const APP_VERSION = "0.1.0";
 
+// BCP 47 language tag used for the `lang` attribute in layout.tsx and global-error.tsx.
+// Update this when changing the app's locale — e.g. "es", "fr", "pt".
+export const APP_LOCALE = "en";
+
 export const SITE_URL = env.NEXT_PUBLIC_APP_URL;
 
 export const ROUTES = {

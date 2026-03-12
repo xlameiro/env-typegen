@@ -218,11 +218,12 @@ Quick entry point: `.github/instructions/INDEX.md`.
 - Validate all user input at API boundaries with Zod
 - Use named exports for all modules except Next.js file conventions (`page.tsx`, `layout.tsx`, etc.)
 - Import directly from source files — not from barrel `index.ts` re-exports
-- Mark server-only modules with `import 'server-only'` at the top (e.g., `lib/auth.ts`, `lib/schemas/*.ts`)
+- Mark server-only modules with `import 'server-only'` at the top (e.g., `lib/auth.ts`) — do NOT add `server-only` to schema files in `lib/schemas/` that are also imported by Client Components (e.g., sign-in/sign-up form validation schemas); adding it there causes a runtime error at the client boundary
 - Import env vars from `@/lib/env` — never access `process.env.*` directly outside of `lib/env.ts`
 
 ### Ask first before
 
+- Starting any task scoped as "audit everything", "review the whole project", "exhaustive review", or any equivalent — first count total files and domains to declare Session Mode (A or B); never assume one session is sufficient for broad audits
 - Deleting or renaming files — check for imports and transitive usages first
 - Adding a new dependency — discuss alternatives and bundle impact
 - Making breaking changes to shared types, API routes, or exported utilities — maintain backwards compatibility by default unless explicitly instructed otherwise
