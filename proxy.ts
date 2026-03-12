@@ -58,19 +58,24 @@ export default auth((req) => {
     nextUrl.pathname.startsWith("/auth/sign-up");
 
   // Rate-limit unauthenticated requests to auth routes to mitigate brute-force attacks.
+  // Only applies when a reliable client IP is available via x-forwarded-for.
+  // Without it (e.g., direct requests in dev/test environments without a reverse proxy),
+  // rate limiting by IP is not meaningful and would block all requests from a shared key.
   if (isAuthRoute && !isLoggedIn) {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const { isAllowed, retryAfterSeconds } = authRateLimiter.check(ip);
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
 
-    if (!isAllowed) {
-      return new NextResponse("Too Many Requests", {
-        status: 429,
-        headers: {
-          "Retry-After": String(retryAfterSeconds),
-          [CSP_HEADER]: csp,
-        },
-      });
+    if (ip) {
+      const { isAllowed, retryAfterSeconds } = authRateLimiter.check(ip);
+
+      if (!isAllowed) {
+        return new NextResponse("Too Many Requests", {
+          status: 429,
+          headers: {
+            "Retry-After": String(retryAfterSeconds),
+            [CSP_HEADER]: csp,
+          },
+        });
+      }
     }
   }
 
