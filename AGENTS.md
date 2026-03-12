@@ -745,3 +745,50 @@ When the agent loop is fully closed, an AI coding agent (GitHub Copilot, Cursor 
 - Iterate with CodeRabbit/Copilot review bots autonomously
 
 A broken loop (missing mocks, real credentials required, flaky tests) forces a human back into the loop at each step, negating most of the automation benefit.
+
+---
+
+## AI Safety Controls
+
+A consolidated reference of all guardrails that prevent the AI development system from producing broken, insecure, or convention-violating code. Read this before adding, removing, or changing any agent, hook, or workflow.
+
+### Pre-generation guardrails (prevent bad output)
+
+| Control                    | Where                                              | What it does                                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `preToolUse` hook          | `.github/hooks/scripts/session-start.sh`           | Scans every file write for 21 secret patterns (tokens, keys, DSNs) before content reaches disk                                                                                 |
+| Feature Builder pre-flight | `.github/agents/feature-builder.agent.md`          | Forces `next-devtools-init` → skill load → Documentation Declaration **before any code is written** — prevents stale Next.js 13/14 patterns                                    |
+| Context-map pre-flight     | `.github/agents/feature-builder.agent.md` step 0.3 | Invokes `context-map` skill to identify blast radius; reads `.context.md` invariants for complex components — prevents Pitfall #10 (silent deletion of existing functionality) |
+| Instruction files (15)     | `.github/instructions/`                            | Per-directory coding standards auto-applied by Copilot (React, Next.js, TypeScript, a11y, security, testing, etc.)                                                             |
+| Prompt injection guard     | `.github/workflows/bug-triage.md`                  | Issue content treated as untrusted; halts and labels `invalid` if prompt-injection patterns detected                                                                           |
+
+### Post-generation guardrails (catch bad output before merge)
+
+| Control                | Where                                        | What it does                                                                                                         |
+| ---------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `sessionEnd` hook      | `.github/hooks/scripts/session-end-check.sh` | Full quality gate (`pnpm lint && pnpm type-check && pnpm test && pnpm build`) runs at the end of every agent session |
+| git pre-commit         | `.husky/pre-commit`                          | Commitlint enforces conventional commits; lint-staged runs ESLint on staged files                                    |
+| Skills integrity check | `scripts/verify-skills.mjs` + CI `ci.yml`    | SHA-256 hashes of all 43 external SKILL.md files verified in CI — detects tampering or unreviewed updates            |
+| CodeQL SAST            | `.github/workflows/codeql.yml`               | Static security analysis on every push and PR                                                                        |
+| Copilot code review    | GitHub Settings → Code review                | Automated PR review by Copilot before human reviewers                                                                |
+| CodeRabbit review      | `.coderabbit.yaml`                           | Second automated review layer (free for open-source repos)                                                           |
+
+### Agentic workflow guardrails
+
+| Control                                       | Where                                         | What it does                                                                                                                |
+| --------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `safe-outputs`                                | `.github/workflows/bug-triage.md` frontmatter | Limits agent to at most 1 PR per run; permits "nothing" — prevents runaway PR spam                                          |
+| Domain allowlist                              | `.github/workflows/bug-triage.md` frontmatter | `web-fetch` limited to `github.com` and `npmjs.com` — prevents data exfiltration                                            |
+| `safe-outputs` / `tools` compiler enforcement | Agentic workflow runtime                      | These constraints are structurally enforced outside the agent loop — the agent cannot reason its way around them via prompt |
+
+### Updating the skills baseline
+
+When skills are intentionally updated (e.g., after `pnpm skills:update`), commit the updated `skills-lock.json` as part of the same PR that updates the SKILL.md files:
+
+```bash
+node scripts/verify-skills.mjs --update   # regenerate hashes from current local SKILL.md files
+git add skills-lock.json
+git commit -m "chore: update skills-lock.json hashes"
+```
+
+The CI step (`pnpm skills:verify`) will then pass against the new baseline.

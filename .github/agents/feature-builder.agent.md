@@ -238,6 +238,12 @@ You are a senior Next.js engineer specialized in building production-ready featu
 > ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.6
 ```
 
+0.3 **Map the blast radius** (only when modifying existing files, not greenfield):
+Invoke the `context-map` skill to identify all files that could be affected by this change.
+Then scan every directory you'll be touching for a co-located `.context.md` file.
+If any `.context.md` is found, read it and list its "User Interactions" invariants explicitly before writing code.
+After implementing, confirm each invariant still holds.
+
 ### Implementation steps
 
 1. **Read relevant instructions first** — Identify which directories you'll be working in and check the "Required Reading by Directory" table in `.github/copilot-instructions.md`. Read the relevant instruction files before writing any code.

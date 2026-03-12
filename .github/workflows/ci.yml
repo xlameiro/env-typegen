@@ -86,6 +86,9 @@ jobs:
       - name: Dead code detection
         run: pnpm knip
 
+      - name: Skills integrity check
+        run: pnpm skills:verify
+
       - name: Unit tests
         run: pnpm test
 

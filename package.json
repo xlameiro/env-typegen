@@ -23,6 +23,8 @@
     "test:all": "pnpm test && pnpm test:e2e",
     "analyze": "ANALYZE=true SKIP_ENV_VALIDATION=true next build",
     "knip": "knip",
+    "skills:verify": "node scripts/verify-skills.mjs",
+    "skills:update": "node scripts/verify-skills.mjs --update",
     "prepare": "husky"
   },
   "engines": {
