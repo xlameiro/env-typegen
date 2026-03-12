@@ -242,7 +242,7 @@ Know what humans do better vs. what the agent does better:
 2. In the right sidebar, under **Assignees**, assign **Copilot**
 3. Or from the **Agents panel** (top-right on github.com) → New task → select repo + model
 4. Choose your model: fast model for tests/formatting, powerful model (Claude) for refactors
-5. Monitor progress in the session logs; the agent self-reviews with Copilot code review before opening the PR
+5. Monitor progress in the session logs; the agent self-reviews its own PR and runs built-in security scanning before opening the PR — a separate `gh pr review --request-review copilot` call is no longer needed for the initial review
 
 **Batch-assign the backlog** — Don't limit yourself to one ticket at a time. Identify a chunk of low-risk issues (UI polish, accessibility fixes, missing tests, deprecated API updates) and assign them all to Copilot at once. The agent works on each in parallel or sequentially and opens individual PRs per issue. Use `/fleet` from the CLI for the same effect without going through the GitHub UI:
 
@@ -366,6 +366,8 @@ A **Ralph Loop** runs Copilot CLI non-interactively inside a `while` loop. Each 
 - Implementing a large PRD with 10+ sequential tasks that would overflow a single chat session
 - Repetitive migrations (applying the same pattern to many files)
 - Fully automated periodic workflows (weekly summaries, changelog generation, dependency audits)
+
+> **Claude Code native alternative**: Claude Code v2.1.71+ includes a built-in `/loop <interval> <prompt>` command (e.g. `/loop 5m check the deploy`) and cron scheduling tools. For simple recurring prompts within a live session, `/loop` is lighter than the shell script. The full Ralph Loop (`scripts/ralph.sh` + `features.json`) remains the right pattern for complex PRD-driven sequences where each iteration needs a fresh context window.
 
 #### Phase 0 — Initializer agent (run once before the loop)
 
@@ -512,7 +514,7 @@ Run `pnpm test -- --run --reporter=verbose`. For every failing test:
 - Generating or improving `copilot-instructions.md` from existing code
 - Adding Zod validation schemas for new API boundaries
 - Migrating components to follow new accessibility patterns
-- Writing Playwright E2E tests for existing flows
+- Writing Playwright E2E tests for existing flows — use `.agents/skills/playwright-expert/SKILL.md` or the official [Playwright CLI skills](https://playwright.dev/docs/cli) mode (token-efficient, shipped in v1.58.0 at `playwright-cli`)
 - Running batch maintenance tasks (dependency updates + multiple issue fixes at once) — use `/fleet` from Copilot CLI
 - Running a full OWASP security audit — use `.github/prompts/security-audit.prompt.md`
 - Applying Lighthouse performance/accessibility fixes — use `.github/prompts/lighthouse-audit.prompt.md`

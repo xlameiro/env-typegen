@@ -593,7 +593,7 @@ pnpm build       # Next.js production build — successful
 
 Never mark a task as done if any of these commands fail. Fix all errors before concluding.
 
-> **Conditional security scan**: For sessions that touch `app/api/**`, `app/auth/**`, `auth.ts`, or `proxy.ts`, run a targeted security review using the [GitHub Security Lab Taskflow Agent](https://github.com/GitHubSecurityLab/gh-actions-workflows/tree/main/taskflow) to detect Auth Bypass, IDOR, and Token Leak patterns before marking the session complete.
+> **Conditional security scan**: For sessions that touch `app/api/**`, `app/auth/**`, `auth.ts`, or `proxy.ts`, run a targeted security review using the [GitHub Security Lab Taskflow Agent](https://github.com/GitHubSecurityLab/gh-actions-workflows/tree/main/taskflow) to detect Auth Bypass, IDOR, and Token Leak patterns before marking the session complete. See the [accompanying blog post](https://github.blog/security/how-to-scan-for-vulnerabilities-with-github-security-labs-open-source-ai-powered-framework/) for setup instructions.
 
 Enable **GitHub Copilot code review** on the repository as a mandatory automated PR quality gate. It complements the local lint/tsc/test/build checklist by catching issues before human reviewers are involved. To enable: go to **Settings → Code review → Copilot code review** and toggle it on for the default branch.
 
@@ -770,8 +770,8 @@ className={cn(buttonVariants({ variant, size }), className)}
 
 | Task / Agent mode                   | Recommended model                             | Why                                                                                 |
 | ----------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Plan / Planner                      | Claude Sonnet 4.x or GPT-o3                   | Low time-to-first-token; strong at structured reasoning                             |
-| Initial feature build (broadstroke) | Claude Sonnet 4.5 / o3-Codex                  | Best at one-shotting large multi-file features on the first attempt                 |
+| Plan / Planner                      | Claude Sonnet 4.6 or GPT-o3                   | Low time-to-first-token; strong at structured reasoning                             |
+| Initial feature build (broadstroke) | Claude Sonnet 4.6 / o3-Codex                  | Best at one-shotting large multi-file features on the first attempt                 |
 | Complex debugging / bug regression  | GPT o3 / Codex                                | Excels at isolating root causes in complex stateful or multi-layer bugs             |
 | UI/UX visual polish                 | Gemini 3 Pro (or inline with ui-ux-pro skill) | Strongest model for design aesthetics; pair with `ui-ux-pro` skill for Tailwind v4  |
 | Refactoring + test-fix loop         | Fast model (Haiku, GPT-4o mini)               | High iteration speed for split/reorganize tasks; see **Test-Fix Loop** in AGENTS.md |
@@ -934,6 +934,8 @@ export AWS_PROFILE=dev
 **SDK**: Use AWS SDK v3 (`@aws-sdk/client-*`) — modular, tree-shakeable. Never import from the deprecated `aws-sdk` v2 package.
 
 **IAM**: Assign IAM Roles to Lambda/ECS tasks — never use `AWS_ACCESS_KEY_ID` in production environment variables.
+
+**Claude Code `modelOverrides`**: Claude Code v2.1.73+ supports a `modelOverrides` setting that maps model picker entries to custom provider model IDs — including Bedrock inference profile ARNs. Use this to route model picker selections to Bedrock, keeping model interactions within the AWS billing and VPC boundary instead of going directly to the Anthropic API.
 
 See the `aws-ecosystem` skill (`.agents/skills/aws-ecosystem/SKILL.md`) for full CLI patterns and SDK code examples.
 
