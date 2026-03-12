@@ -541,12 +541,22 @@ reactStrictMode: true; // Enables React's development-mode double-invoking check
 > **Promoted from `experimental` to stable in Next.js 16.**
 
 ```ts
-// Enable for all components (recommended when ready)
+// Enable for all components (simplest — recommended when adopting)
 reactCompiler: true;
 
-// Opt-in mode — only applies to components with 'use memo' directive
+// Fine-grained control via ReactCompilerOptions:
 reactCompiler: {
-  compilationMode: "annotation";
+  // compilationMode (default: 'infer')
+  // 'infer'      — heuristics: auto-detects React components/hooks (default)
+  // 'annotation' — only optimizes components/hooks with 'use memo' directive
+  // 'all'        — optimizes every function, not just detected components
+  compilationMode: "infer" | "annotation" | "all",
+
+  // panicThreshold (default: 'none')
+  // 'none'            — skip uncompilable components silently (safe default)
+  // 'critical_errors' — throw on critical errors; skip others
+  // 'all_errors'      — throw on any compilation error
+  panicThreshold: "none" | "critical_errors" | "all_errors",
 }
 ```
 
@@ -2037,21 +2047,7 @@ experimental: {
 
 ### `experimental.panicThreshold`
 
-Controls how the **React Compiler** handles compilation errors. See [React Compiler docs](https://react.dev/reference/react-compiler/panicThreshold).
-
-| Value               | Behavior                                                 |
-| ------------------- | -------------------------------------------------------- |
-| `'none'`            | Skip components that cannot be compiled (default — safe) |
-| `'critical_errors'` | Throw on critical compilation errors; skip others        |
-| `'all_errors'`      | Throw on any compilation error                           |
-
-```ts
-experimental: {
-  reactCompiler: { panicThreshold: 'critical_errors' },
-}
-```
-
-> This option lives inside the `reactCompiler` config object, not at the top of `experimental`.
+> **Deprecated section name** — `panicThreshold` is a field of the top-level `reactCompiler` config object, not a standalone `experimental.*` option. Keep it inside `reactCompiler: { panicThreshold: ... }`. See the `reactCompiler` section above for all `ReactCompilerOptions` fields and values.
 
 ---
 

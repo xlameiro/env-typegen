@@ -78,7 +78,18 @@ const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    nocache: false,
+    // All RobotsInfo fields (apply to both top-level robots and googleBot):
+    noarchive: false, // prevent caching of this page
+    nosnippet: false, // omit text snippet + video preview in results
+    noimageindex: false, // don't index images on this page
+    notranslate: false, // don't offer page translation
+    nocache: false, // alias for noarchive (Google-specific)
+    indexifembedded: false, // index even if embedded in an iframe
+    nositelinkssearchbox: false, // don't show sitelinks search box
+    unavailable_after: "2025-12-31", // stop indexing after ISO 8601 date/time
+    "max-video-preview": -1, // -1 = no limit; 0 = no preview; N = max seconds
+    "max-image-preview": "large", // 'none' | 'standard' | 'large'
+    "max-snippet": -1, // -1 = no limit; 0 = no snippet; N = max chars
     googleBot: {
       index: true,
       follow: false,
@@ -163,9 +174,17 @@ const metadata: Metadata = {
   // ── Icons ───────────────────────────────────────────
   icons: {
     icon: "/favicon.ico",
-    // or array:
+    // or array of IconDescriptor objects:
     icon: [
-      { url: "/icon.png", type: "image/png" },
+      {
+        url: "/icon.png",
+        type: "image/png", // MIME type
+        sizes: "32x32", // size string
+        color: "#000000", // mask-icon colour (SVG only)
+        media: "(prefers-color-scheme: dark)", // media query for conditional serving
+        rel: "icon", // overrides default rel
+        fetchPriority: "high", // 'high' | 'low' | 'auto'
+      },
       { url: "/icon-192.png", sizes: "192x192" },
     ],
     shortcut: "/shortcut-icon.png",

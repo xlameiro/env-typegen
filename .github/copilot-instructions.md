@@ -210,6 +210,7 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 ### Always do
 
+- **Before writing any Next.js feature code, call `next-devtools-init` (next-devtools MCP) and load the relevant `nextjs-*` skill** — never rely on LLM training data for Next.js 16+ APIs; emit a Documentation Declaration before writing code
 - Read the relevant instruction file before touching any directory listed in "Component-Specific Instructions"
 - Run `pnpm lint && pnpm type-check && pnpm test` before concluding any session
 - Use `@/` path alias for all internal imports

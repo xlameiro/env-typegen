@@ -7,7 +7,7 @@ disable-model-invocation: true
 handoffs:
   - label: "→ Feature Builder (build / create / implement)"
     agent: Feature Builder
-    prompt: "Please implement the task described in the conversation above."
+    prompt: "Please implement the task described in the conversation above. IMPORTANT: This project uses Next.js 16.1.6 — call `next-devtools-init` (next-devtools MCP) as your very first action to reset the LLM's knowledge baseline, then load the matching `nextjs-*` skill and emit a Documentation Declaration before writing any code."
     send: true
   - label: "→ Debug (fix / error / bug / crash)"
     agent: Debug

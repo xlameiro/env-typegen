@@ -41,9 +41,18 @@ if [ ! -f "tsconfig.json" ]; then
   WARNINGS+=("tsconfig.json not found — TypeScript configuration is missing.")
 fi
 
+# --- Next.js version detection ---
+NEXTJS_VERSION="?"
+if [ -f "package.json" ] && command -v node &>/dev/null; then
+  NEXTJS_VERSION=$(node -e "try{const p=require('./package.json');const v=(p.dependencies?.next||p.devDependencies?.next||'?');process.stdout.write(v.replace(/[\\^~]/g,''))}catch(e){process.stdout.write('?')}" 2>/dev/null || echo "?")
+fi
+DOCS_REMINDER="[Next.js $NEXTJS_VERSION] Before any Next.js code: (1) call next-devtools-init tool to reset LLM baseline, (2) load matching nextjs-* skill, (3) emit Documentation Declaration. Do NOT rely on LLM training data for Next.js 16+ APIs."
+
 # Exit cleanly if nothing to report
 if [ ${#WARNINGS[@]} -eq 0 ]; then
-  echo '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Environment OK: Node.js, pnpm, node_modules, .env.local all verified."}}'
+  FULL_MSG="Environment OK: Node.js, pnpm, node_modules, .env.local all verified. $DOCS_REMINDER"
+  ESCAPED=$(python3 -c "import sys,json; print(json.dumps(sys.stdin.read(), ensure_ascii=False))" <<< "$FULL_MSG" 2>/dev/null || echo "\"$FULL_MSG\"")
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":$ESCAPED}}"
   exit 0
 fi
 
@@ -52,7 +61,7 @@ MSG="[session-start] Environment warnings:\n"
 for w in "${WARNINGS[@]}"; do
   MSG+="  ⚠ $w\n"
 done
-MSG+="Address these before making changes."
+MSG+="Address these before making changes.\n$DOCS_REMINDER"
 
 # Escape for JSON
 ESCAPED=$(python3 -c "import sys,json; print(json.dumps(sys.stdin.read(), ensure_ascii=False))" <<< "$MSG" 2>/dev/null || echo "\"Environment warnings detected.\"")

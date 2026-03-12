@@ -9,6 +9,28 @@ Use Context7 proactively whenever the task depends on **authoritative, current, 
 
 This instruction exists so you **do not require the user to type** "use context7" — use it automatically when appropriate.
 
+## Next.js pre-flight requirement
+
+For **any Next.js task**, call `next-devtools-init` (next-devtools MCP tool) **before querying Context7**. This resets the AI's Next.js knowledge baseline to v16.1.6 and prevents stale API patterns from LLM training data (Next.js 12/13/14).
+
+### Skill selection for Next.js tasks
+
+Load the matching skill before writing Next.js code. When in doubt, load `nextjs-best-practices` as the baseline.
+
+| Feature type                                                        | Skill to load                                       |
+| ------------------------------------------------------------------- | --------------------------------------------------- |
+| Pages, layouts, routing, Suspense, streaming                        | `nextjs-app-router-patterns`                        |
+| `'use cache'`, `cacheLife`, `cacheTag`, revalidation                | `nextjs-directives` + `nextjs-data-cache-functions` |
+| `next.config.ts`                                                    | `nextjs-config`                                     |
+| Built-in components (`<Image>`, `<Link>`, `<Font>`, `<Form>`)       | `nextjs-components`                                 |
+| `generateMetadata`, SEO, sitemap, OG images                         | `nextjs-metadata-functions`                         |
+| File conventions (`page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`) | `nextjs-file-conventions`                           |
+| Navigation (`useRouter`, `redirect`, `notFound`, `usePathname`)     | `nextjs-navigation-functions`                       |
+| Route Handlers, `NextRequest`/`NextResponse`                        | `nextjs-server-runtime`                             |
+| General Next.js 16 patterns                                         | `nextjs-best-practices`                             |
+
+---
+
 ## When to use Context7
 
 Use before making decisions or writing code when you need:

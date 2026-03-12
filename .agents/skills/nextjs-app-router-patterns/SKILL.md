@@ -929,6 +929,76 @@ export function BackButton() {
 
 > `<ViewTransition>` from `react` is currently in canary — it is re-exported by Next.js when `experimental.viewTransition: true` is set. The import `unstable_ViewTransition` will become `ViewTransition` once React stabilises the API.
 
+### Pattern 12: Auth Interrupts — `forbidden()` / `unauthorized()` ⚠️ Experimental
+
+> **Requires `experimental.authInterrupts: true`** in `next.config.ts`. Replaces the older `redirect('/sign-in')` / `redirect('/403')` pattern with typed HTTP 401 / 403 responses.
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  experimental: { authInterrupts: true },
+};
+```
+
+```tsx
+// app/dashboard/page.tsx
+import { auth } from "@/lib/auth";
+import { forbidden, unauthorized } from "next/navigation";
+
+export default async function DashboardPage() {
+  const session = await auth();
+
+  // 401 Unauthorized — not authenticated
+  if (!session) unauthorized();
+
+  // 403 Forbidden — authenticated but lacks permission
+  if (!session.user.roles.includes("admin")) forbidden();
+
+  return <main>Dashboard content</main>;
+}
+```
+
+**Response files** — create these next to `not-found.tsx` to customize the rendered UI:
+
+```tsx
+// app/unauthorized.tsx — rendered for 401 responses
+export default function Unauthorized() {
+  return (
+    <main>
+      <h1>401 — Sign in required</h1>
+      <a href="/sign-in">Sign in</a>
+    </main>
+  );
+}
+
+// app/forbidden.tsx — rendered for 403 responses
+export default function Forbidden() {
+  return (
+    <main>
+      <h1>403 — Access denied</h1>
+    </main>
+  );
+}
+```
+
+| Function         | HTTP Status | When to use                                |
+| ---------------- | ----------- | ------------------------------------------ |
+| `unauthorized()` | 401         | User is not authenticated                  |
+| `forbidden()`    | 403         | User is authenticated but lacks permission |
+
+> Auth interrupts throw a special error caught by Next.js — the response files are rendered instead of propagating to `error.tsx`. Use `unstable_rethrow()` in try/catch blocks to ensure these internal errors are not swallowed.
+
+```tsx
+// ✅ Correct: rethrow Next.js internal errors inside try/catch
+try {
+  await riskyOperation();
+} catch (error) {
+  unstable_rethrow(error); // lets forbidden/unauthorized pass through
+  // handle application errors below
+  logger.error(error);
+}
+```
+
 ## Best Practices
 
 ### Do's
