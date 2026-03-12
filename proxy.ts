@@ -57,11 +57,13 @@ export default auth((req) => {
     nextUrl.pathname.startsWith("/auth/sign-in") ||
     nextUrl.pathname.startsWith("/auth/sign-up");
 
-  // Rate-limit unauthenticated requests to auth routes to mitigate brute-force attacks.
+  // Rate-limit unauthenticated POST requests to auth routes to mitigate brute-force attacks.
+  // GET requests (page views) are exempt — brute-force attacks submit credentials (POST),
+  // not load the sign-in page. Applying rate limiting to GET requests causes false positives
+  // in CI/test environments where 2+ parallel workers make many page-view requests from the
+  // same IP (e.g. GitHub Actions runners that add x-forwarded-for for localhost traffic).
   // Only applies when a reliable client IP is available via x-forwarded-for.
-  // Without it (e.g., direct requests in dev/test environments without a reverse proxy),
-  // rate limiting by IP is not meaningful and would block all requests from a shared key.
-  if (isAuthRoute && !isLoggedIn) {
+  if (isAuthRoute && !isLoggedIn && req.method !== "GET") {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
 
     if (ip) {

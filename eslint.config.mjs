@@ -20,10 +20,10 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
-        }
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
       "react/no-unused-prop-types": "error",
       "react/jsx-no-useless-fragment": "warn",
@@ -45,10 +45,13 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-non-null-assertion": "error",
 
       // Consistent type imports (better tree-shaking)
-      "@typescript-eslint/consistent-type-imports": ["error", {
-        "prefer": "type-imports",
-        "fixStyle": "inline-type-imports"
-      }],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          fixStyle: "inline-type-imports",
+        },
+      ],
 
       // Enforce `type` over `interface` — intersection types eliminate all valid reasons for interface
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
@@ -65,17 +68,28 @@ const eslintConfig = defineConfig([
       // ============================================
 
       // Complexity limits
-      "complexity": ["error", 15],
+      complexity: ["error", 15],
       "max-depth": ["error", 4],
       "max-params": ["error", 3],
+
+      // LLM context window optimization — files > 300 meaningful lines (non-blank, non-comment)
+      // cannot be fully processed by AI tools in a single reasoning pass; they fragment context,
+      // reduce completion quality, and degrade refactor safety.
+      // When approaching the limit, split along natural seams: sub-component, *.utils.ts,
+      // actions.ts + queries.ts split, etc.
+      // Counted after stripping blank lines and comments (formatting ≠ logic density).
+      "max-lines": [
+        "error",
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
 
       // Prevent unnecessary code
       "prefer-const": "error",
       "no-var": "error",
-      "no-console": ["error", { "allow": ["warn", "error"] }],
+      "no-console": ["error", { allow: ["warn", "error"] }],
 
       // Enforce Boolean(value) over !!value — copilot-instructions.md
-      "no-implicit-coercion": ["error", { "boolean": true }],
+      "no-implicit-coercion": ["error", { boolean: true }],
 
       // Prevent dynamic code execution — security-and-owasp.instructions.md
       "no-eval": "error",
@@ -86,7 +100,7 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
 
       // Additional SonarJS quality rules
-      "sonarjs/no-duplicate-string": ["error", { "threshold": 3 }],
+      "sonarjs/no-duplicate-string": ["error", { threshold: 3 }],
       "sonarjs/no-identical-functions": "warn",
       "sonarjs/no-small-switch": "warn",
       "sonarjs/no-nested-conditional": "warn",
@@ -100,26 +114,32 @@ const eslintConfig = defineConfig([
       "react/no-deprecated": "error",
 
       // Prefer modern array methods
-      "prefer-destructuring": ["warn", {
-        "array": false,  // Allow array[0] - common pattern
-        "object": true
-      }],
+      "prefer-destructuring": [
+        "warn",
+        {
+          array: false, // Allow array[0] - common pattern
+          object: true,
+        },
+      ],
 
       // Block class declarations outside lib/errors.ts, enum declarations, and other restricted syntax
       "no-restricted-syntax": [
         "error",
         {
           selector: "TSEnumDeclaration",
-          message: "Never use TypeScript enums. Use string union types instead: type Status = 'active' | 'inactive'"
+          message:
+            "Never use TypeScript enums. Use string union types instead: type Status = 'active' | 'inactive'",
         },
         {
           selector: "ClassDeclaration",
-          message: "Never use classes for business logic. Use functions and types. Only lib/errors.ts may define Error subclasses."
+          message:
+            "Never use classes for business logic. Use functions and types. Only lib/errors.ts may define Error subclasses.",
         },
         {
           selector: "ClassExpression",
-          message: "Never use class expressions. Use functions and types instead."
-        }
+          message:
+            "Never use class expressions. Use functions and types instead.",
+        },
       ],
 
       // React Context performance - require useMemo for Context.Provider value
@@ -141,37 +161,52 @@ const eslintConfig = defineConfig([
       "no-restricted-globals": [
         "error",
         {
-          "name": "parseFloat",
-          "message": "Use Number.parseFloat() instead of global parseFloat()"
+          name: "parseFloat",
+          message: "Use Number.parseFloat() instead of global parseFloat()",
         },
         {
-          "name": "parseInt",
-          "message": "Use Number.parseInt() instead of global parseInt()"
+          name: "parseInt",
+          message: "Use Number.parseInt() instead of global parseInt()",
         },
         {
-          "name": "window",
-          "message": "Use globalThis instead of window for cross-platform compatibility"
-        }
+          name: "window",
+          message:
+            "Use globalThis instead of window for cross-platform compatibility",
+        },
       ],
 
       // Require node: prefix for Node.js built-in modules (S7772)
       "no-restricted-imports": [
         "error",
         {
-          "patterns": [
+          patterns: [
             {
-              "group": ["fs", "path", "http", "https", "crypto", "stream", "util", "os", "events", "buffer", "child_process"],
-              "message": "Import Node.js built-in modules with 'node:' prefix (e.g., 'node:fs' instead of 'fs')"
-            }
+              group: [
+                "fs",
+                "path",
+                "http",
+                "https",
+                "crypto",
+                "stream",
+                "util",
+                "os",
+                "events",
+                "buffer",
+                "child_process",
+              ],
+              message:
+                "Import Node.js built-in modules with 'node:' prefix (e.g., 'node:fs' instead of 'fs')",
+            },
           ],
-          "paths": [
+          paths: [
             {
-              "name": "react",
-              "importNames": ["FC", "FunctionComponent"],
-              "message": "Never use React.FC or React.FunctionComponent. Write function MyComponent({ prop }: { prop: string }) directly."
-            }
-          ]
-        }
+              name: "react",
+              importNames: ["FC", "FunctionComponent"],
+              message:
+                "Never use React.FC or React.FunctionComponent. Write function MyComponent({ prop }: { prop: string }) directly.",
+            },
+          ],
+        },
       ],
 
       // Accessibility: Enforce keyboard handlers on interactive elements (S1082, S6848, S6819)
@@ -184,9 +219,8 @@ const eslintConfig = defineConfig([
 
       // Prevent deprecated React APIs (S1874)
 
-
       // Prevent unnecessary type assertions (S4325)
-      "@typescript-eslint/no-unnecessary-type-assertion": "off",  // Requires type-checking setup
+      "@typescript-eslint/no-unnecessary-type-assertion": "off", // Requires type-checking setup
 
       // Prevent array index keys in React (S6479)
       "react/no-array-index-key": "warn",
@@ -194,18 +228,20 @@ const eslintConfig = defineConfig([
       // Accessibility - Heading content (S6850)
       // Note: Enforced via jsx-a11y plugin in Next.js config
 
-
       // Unknown properties (S6747)
-      "react/no-unknown-property": ["error", {
-        "ignore": ["data-*", "aria-*"]
-      }],
+      "react/no-unknown-property": [
+        "error",
+        {
+          ignore: ["data-*", "aria-*"],
+        },
+      ],
 
       // Ambiguous JSX spacing (S6772)
       // Note: This is a Sonar-specific formatting rule - use Prettier for consistent formatting
       // No direct ESLint equivalent
 
       // Empty object patterns (S3799)
-      "@typescript-eslint/no-empty-object-type": "off",  // Too strict for component props
+      "@typescript-eslint/no-empty-object-type": "off", // Too strict for component props
 
       // Deprecated Recharts Cell component (S1874)
       // Note: This is library-specific and should be handled during library updates
@@ -216,7 +252,7 @@ const eslintConfig = defineConfig([
       // Best practice: Extract or memoize components
 
       // Prefer replaceAll over replace with regex (S7781)
-      "prefer-named-capture-group": "off",  // Not directly related
+      "prefer-named-capture-group": "off", // Not directly related
       // Note: No direct ESLint rule - requires manual code review
 
       // Prefer .at() over [array.length - index] (S7755)
@@ -252,13 +288,16 @@ const eslintConfig = defineConfig([
       // Helps Copilot provide accurate completions without inferring shapes from function bodies.
       // See: typescript-5-es2022.instructions.md § Return Types
       // .tsx files are excluded via override below — React components are exempt (JSX inference).
-      "@typescript-eslint/explicit-module-boundary-types": ["error", {
-        "allowArgumentsExplicitlyTypedAsAny": false,
-        "allowDirectConstAssertionInArrowFunctions": true,
-        "allowHigherOrderFunctions": false,
-        "allowTypedFunctionExpressions": true,
-      }],
-    }
+      "@typescript-eslint/explicit-module-boundary-types": [
+        "error",
+        {
+          allowArgumentsExplicitlyTypedAsAny: false,
+          allowDirectConstAssertionInArrowFunctions: true,
+          allowHigherOrderFunctions: false,
+          allowTypedFunctionExpressions: true,
+        },
+      ],
+    },
   },
   // TypeScript files with type-checking (for @typescript-eslint/no-misused-promises)
   ...tseslint.config({
@@ -272,12 +311,15 @@ const eslintConfig = defineConfig([
     },
     rules: {
       // Promise-returning function provided to property where a void return was expected
-      "@typescript-eslint/no-misused-promises": ["error", {
-        "checksVoidReturn": {
-          "attributes": true,
-          "properties": true,
-        }
-      }],
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        {
+          checksVoidReturn: {
+            attributes: true,
+            properties: true,
+          },
+        },
+      ],
 
       // Type-safety rules — enabled as warn to surface unsafe patterns without blocking.
       // Upgrade to "error" once all existing violations are resolved.
@@ -297,8 +339,11 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/unbound-method": "off",
 
       // Enforce explicit `export type { Foo }` for type-only exports
-      "@typescript-eslint/consistent-type-exports": ["error", { "fixMixedExportsWithInlineTypeSpecifier": true }],
-    }
+      "@typescript-eslint/consistent-type-exports": [
+        "error",
+        { fixMixedExportsWithInlineTypeSpecifier: true },
+      ],
+    },
   }),
   // lib/errors.ts — the only file permitted to define class declarations (Error subclasses)
   {
@@ -338,13 +383,13 @@ const eslintConfig = defineConfig([
       "**/*.mock.ts",
       "**/*.mock.tsx",
       "**/mocks/**/*.ts",
-      "e2e/setup/**/*.ts"
+      "e2e/setup/**/*.ts",
     ],
     rules: {
       "react-hooks/rules-of-hooks": "off",
       "max-lines-per-function": "off",
       "max-lines": "off",
-      "complexity": "off",
+      complexity: "off",
       "no-console": "off",
       "@typescript-eslint/no-explicit-any": "error",
       // Allow unsafe assignments in tests: response.json() returns `any` from DOM types
@@ -354,9 +399,17 @@ const eslintConfig = defineConfig([
   },
   // Config and script files
   {
-    files: ["*.config.ts", "*.config.js", "*.config.mjs", "scripts/**/*.ts", "scripts/**/*.js"],
+    files: [
+      "*.config.ts",
+      "*.config.js",
+      "*.config.mjs",
+      "scripts/**/*.ts",
+      "scripts/**/*.js",
+    ],
     rules: {
       "no-console": "off",
+      // Config files are inherently declarative and long (no logic, only configuration)
+      "max-lines": "off",
     },
   },
 ]);

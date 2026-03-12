@@ -84,7 +84,8 @@ public/                 # Static assets
 - Use functional state updates when new state depends on previous state — `setState(prev => ({ ...prev, field: newValue }))` avoids stale closure bugs
 - Prefix event handler functions with `handle` (e.g., `handleClick` for `onClick`, `handleSubmit` for `onSubmit`)
 - Custom query hooks follow `use[Resource]` naming (e.g., `useUser`, `useOrders`); mutation hooks follow `use[Action]` naming (e.g., `useDeleteUser`, `useUpdateOrder`)
-- For complex components (>~300 lines, stateful interactions like drag/zoom/multi-step, or history of regressions), create a co-located `[component-name].features.md` file that documents all user-visible features as a bullet-point inventory. This acts as a contract for future LLM prompts — always tag it when requesting changes and instruct the LLM not to break existing features. Use `.github/prompts/generate-feature-docs.prompt.md` to generate it and `.github/prompts/modify-complex-component.prompt.md` to safely iterate on it.
+- **File size limit: 300 non-blank/non-comment lines** (enforced by ESLint `max-lines`). This limit is calibrated for LLM context windows: a file longer than ~300 meaningful lines cannot be processed in full within a single reasoning pass, reducing completion quality and refactor safety. Split at ~250 lines along natural seams (sub-component, `*.utils.ts`, `actions.ts` + `queries.ts`). Config files (`*.config.*`) and test files are exempt.
+- For complex components that legitimately approach 300 lines (stateful interactions like drag/zoom/multi-step, or history of regressions), create a co-located `[component-name].features.md` file that documents all user-visible features as a bullet-point inventory. This acts as a contract for future LLM prompts — always tag it when requesting changes and instruct the LLM not to break existing features. Use `.github/prompts/generate-feature-docs.prompt.md` to generate it and `.github/prompts/modify-complex-component.prompt.md` to safely iterate on it.
 
 ### File Naming
 
@@ -1015,6 +1016,7 @@ Before changing a convention rule in any instruction file:
 | No `React.FC` / `React.FunctionComponent`     | ✅ `no-restricted-imports`                               | 100%              |
 | `export type` for type-only exports           | ✅ `@typescript-eslint/consistent-type-exports`          | 100%              |
 | Function params ≤ 3                           | ✅ `max-params`                                          | 100%              |
+| Files ≤ 300 lines (non-blank/comment)         | ✅ `max-lines`                                           | 100%              |
 | No non-null assertions (`!`)                  | ✅ `@typescript-eslint/no-non-null-assertion`            | 100%              |
 | `Boolean(value)` not `!!value`                | ✅ `no-implicit-coercion`                                | 100%              |
 | No `eval()` / `new Function()`                | ✅ `no-eval` + `no-implied-eval`                         | 100%              |
