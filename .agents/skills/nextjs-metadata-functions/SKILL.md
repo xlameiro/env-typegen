@@ -302,6 +302,19 @@ export function generateViewport(props: {
 
 ### `Viewport` Fields
 
+| Field               | Type                                                                            | Description                                                         |
+| ------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `width`             | `string \| number`                                                              | Usually `"device-width"`                                            |
+| `height`            | `string \| number`                                                              | Rarely needed; omit in most cases                                   |
+| `initialScale`      | `number`                                                                        | Initial zoom level (`1` = 100%)                                     |
+| `minimumScale`      | `number`                                                                        | Minimum allowed zoom level                                          |
+| `maximumScale`      | `number`                                                                        | Maximum allowed zoom level                                          |
+| `userScalable`      | `boolean`                                                                       | Whether user can pinch-zoom                                         |
+| `viewportFit`       | `'auto' \| 'contain' \| 'cover'`                                                | Safe-area behavior on notched devices                               |
+| `interactiveWidget` | `'resizes-visual' \| 'resizes-content' \| 'overlays-content'`                   | How virtual keyboard affects layout                                 |
+| `themeColor`        | `string \| ThemeColorDescriptor \| ThemeColorDescriptor[]`                      | Browser chrome color; use array for `prefers-color-scheme` variants |
+| `colorScheme`       | `'normal' \| 'light' \| 'dark' \| 'light dark' \| 'dark light' \| 'only light'` | Preferred color scheme hint                                         |
+
 ```ts
 export const viewport: Viewport = {
   width: "device-width",
