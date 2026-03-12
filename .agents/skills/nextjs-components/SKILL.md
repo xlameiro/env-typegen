@@ -33,7 +33,8 @@ import Image from "next/image";
 | `fill`          | `boolean`                                             | `false`   | —        | Fills parent container; ignores `width`/`height`                      |
 | `sizes`         | `string`                                              | `100vw`   | —        | Media condition → image size, used for `srcset`                       |
 | `quality`       | `number`                                              | `75`      | —        | 1–100; higher = better quality, larger file                           |
-| `priority`      | `boolean`                                             | `false`   | —        | Disables lazy load; use for LCP images                                |
+| `preload`       | `boolean`                                             | `false`   | —        | Disables lazy loading and preloads the image; use for LCP images      |
+| `priority`      | `boolean`                                             | `false`   | —        | ⚠️ **Deprecated** in Next.js 16 — use `preload` instead               |
 | `placeholder`   | `'blur' \| 'empty' \| 'data:...'`                     | `'empty'` | —        | Shown while image loads                                               |
 | `blurDataURL`   | `string`                                              | —         | —        | Base64 data URI for `placeholder="blur"` (required for remote images) |
 | `loader`        | `ImageLoader`                                         | —         | —        | Custom function to resolve image URL                                  |
@@ -41,7 +42,7 @@ import Image from "next/image";
 | `overrideSrc`   | `string`                                              | —         | —        | Overrides the `src` in the rendered `<img>` (SEO use cases)           |
 | `onLoad`        | `(e: React.SyntheticEvent<HTMLImageElement>) => void` | —         | —        | Callback when image loaded (`'use client'` required)                  |
 | `onError`       | `(e: React.SyntheticEvent<HTMLImageElement>) => void` | —         | —        | Callback on load error (`'use client'` required)                      |
-| `loading`       | `'lazy' \| 'eager'`                                   | `'lazy'`  | —        | Browser hint; use `priority` instead of `'eager'`                     |
+| `loading`       | `'lazy' \| 'eager'`                                   | `'lazy'`  | —        | Browser hint; use `preload` instead of `'eager'`                      |
 | `decoding`      | `'async' \| 'auto' \| 'sync'`                         | `'async'` | —        | Image decoding hint                                                   |
 | `fetchPriority` | `'high' \| 'low' \| 'auto'`                           | `'auto'`  | —        | Fetch priority hint                                                   |
 | `style`         | `React.CSSProperties`                                 | —         | —        | CSS object on the `<img>` element                                     |
@@ -65,7 +66,7 @@ type ImageLoaderProps = {
 ```tsx
 // Local image (width/height auto-inferred from import)
 import profile from '@/public/profile.jpg'
-<Image src={profile} alt="Profile photo" placeholder="blur" priority />
+<Image src={profile} alt="Profile photo" placeholder="blur" preload />
 
 // Remote image (requires remotePatterns in next.config.ts)
 <Image
@@ -348,12 +349,12 @@ import Form from "next/form";
 
 ### Props — String Action (navigation)
 
-| Prop       | Type      | Default | Description                                   |
-| ---------- | --------- | ------- | --------------------------------------------- |
-| `action`   | `string`  | —       | ✅ URL/path to navigate to on submit          |
-| `replace`  | `boolean` | `false` | Replace history entry instead of push         |
-| `scroll`   | `boolean` | `true`  | Scroll to top after navigation                |
-| `prefetch` | `boolean` | `true`  | Prefetch action URL when form enters viewport |
+| Prop       | Type            | Default | Description                                                       |
+| ---------- | --------------- | ------- | ----------------------------------------------------------------- |
+| `action`   | `string`        | —       | ✅ URL/path to navigate to on submit                              |
+| `replace`  | `boolean`       | `false` | Replace history entry instead of push                             |
+| `scroll`   | `boolean`       | `true`  | Scroll to top after navigation                                    |
+| `prefetch` | `false \| null` | `null`  | `null` = smart prefetch (same as Link default), `false` = disable |
 
 ### Props — Function Action (mutation)
 
@@ -385,6 +386,44 @@ import { createPost } from "@/app/actions/post";
 ```
 
 > **Note**: `<input type="file">` with string action submits the filename (not the file object), matching browser default behavior.
+
+---
+
+## `useLinkStatus()` — `next/link`
+
+Returns the pending state for the nearest parent `<Link>` during client-side navigation.
+
+### Signature
+
+```ts
+import { useLinkStatus } from "next/link";
+
+function useLinkStatus(): { pending: boolean };
+```
+
+> ⚠️ **`"use client"` required.** `pending` is `true` from the moment the link is clicked until the new route has fully rendered.
+
+### Example
+
+```tsx
+"use client";
+import { useLinkStatus } from "next/link";
+
+function LoadingIndicator() {
+  const { pending } = useLinkStatus();
+  return pending ? (
+    <span aria-label="Loading…" className="animate-spin">
+      ⟳
+    </span>
+  ) : null;
+}
+
+// Render inside a <Link> — the hook reads from the nearest Link ancestor:
+<Link href="/dashboard">
+  Go to Dashboard
+  <LoadingIndicator />
+</Link>;
+```
 
 ---
 
