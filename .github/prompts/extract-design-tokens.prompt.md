@@ -17,7 +17,7 @@ tools:
 
 # Extract Design Tokens from Mockup
 
-Analyze a design reference (screenshot, URL, or Figma export) and map the visual properties to Tailwind CSS v4 custom properties in `app/globals.css`.
+Analyze a design reference (screenshot or URL) and map the visual properties to Tailwind CSS v4 custom properties in `app/globals.css`.
 
 **Always read `.github/instructions/nextjs-tailwind.instructions.md` before starting.**
 
@@ -29,7 +29,6 @@ Provide one of the following:
 
 - **Screenshot / image** — attach the file or drag it into chat
 - **Live URL** — the agent will use the browser tool to screenshot and inspect the page
-- **Figma export** — paste the exported JSON or CSS variables
 
 ---
 

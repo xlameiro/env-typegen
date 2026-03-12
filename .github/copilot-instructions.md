@@ -805,7 +805,7 @@ When you click **Share with agent** in the toolbar, the agent gets direct access
 **When to use it:**
 
 - Implementing UI features — the agent can verify rendering in real time and self-correct against the live page
-- Iterating on styles or layout — agent takes a screenshot, compares against a design reference (e.g., Figma), then adjusts
+- Iterating on styles or layout — agent takes a screenshot, compares against a design reference, then adjusts
 - Visual regression checks alongside Playwright tests
 
 **Best practice:** Use Playwright alongside the integrated browser. Playwright handles deterministic interactions (navigate, click, fill); the integrated browser's screenshot tool provides the visual feedback loop for the agent to compare rendered output against the intended design. The integrated browser can also **run Playwright code autonomously** — giving the agent a closed verify-and-fix loop without a separate test runner.

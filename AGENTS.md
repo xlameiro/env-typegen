@@ -378,25 +378,15 @@ Run `pnpm test -- --run --reporter=verbose`. For every failing test:
 
 ### Cross-Functional Team Workflows
 
-AI agents don't only accelerate solo developer work — they unlock new collaboration patterns where designers, PMs, and developers hand off directly through the codebase instead of through meeting notes and Figma red-lines.
+AI agents don't only accelerate solo developer work — they unlock new collaboration patterns where designers, PMs, and developers hand off directly through the codebase instead of through meeting notes and design mockups.
 
 **The core shift**: instead of the traditional waterfall (meetings → specs → designs → implementation → review), each role contributes directly to code and hands off to the next person at the code level.
 
 | Role      | What they can do with agents                                                                             |
 | --------- | -------------------------------------------------------------------------------------------------------- |
 | PM        | Assign backlog tickets directly to Copilot; provide a working prototype for engineers to build on top of |
-| Designer  | Open a branch, use a visual editor (Builder.io, V0, Lovable) or Figma import to polish UI, send a PR     |
+| Designer  | Open a branch, use a visual editor (Builder.io, V0, Lovable) to polish UI, send a PR                     |
 | Developer | Review PR from designer/PM, tag the bot in comments for cleanups, merge                                  |
-
-**Figma ↔ code bidirectional handoff**
-
-When a designer still prefers Figma, use tools like [Builder.io](https://www.builder.io) or [V0 by Vercel](https://v0.dev) to bridge back and forth:
-
-1. **Code → Figma**: export a component or section from the running app into Figma for the designer to polish
-2. **Designer edits in Figma**: adjusts layout, colors, typography using their preferred tool
-3. **Figma → code**: import the updated design back into the visual editor; the agent applies the diff to the codebase as a PR
-
-This eliminates the "screenshot → Figma redesign → re-implement" cycle. The designer works on real production code, not a separate mock that engineering then has to chase.
 
 **What this means for developers in this project**
 

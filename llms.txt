@@ -138,7 +138,7 @@ This template includes a fully layered AI developer experience:
 - `create-store.prompt.md` — Create a Zustand client state store
 - `doc-comments.prompt.md` — Add JSDoc documentation comments to a file
 - `explain.prompt.md` — Explain how a selected piece of code works
-- `extract-design-tokens.prompt.md` — Extract design tokens from a Figma/screenshot reference
+- `extract-design-tokens.prompt.md` — Extract design tokens from a screenshot or mockup reference
 - `fix-issue.prompt.md` — Fix a GitHub issue following project conventions
 - `generate-feature-docs.prompt.md` — Generate a `.context.md` invariant file for a complex component
 - `generate-tests.prompt.md` — Generate Vitest unit or Playwright E2E tests

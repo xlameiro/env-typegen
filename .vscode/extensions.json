@@ -1,7 +1,6 @@
 {
   "recommendations": [
     // GitHub Copilot
-    "GitHub.copilot",
     "GitHub.copilot-chat",
 
     // TypeScript / JavaScript
