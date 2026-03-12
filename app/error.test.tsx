@@ -1,8 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import ErrorPage from "./error";
 
 describe("ErrorPage", () => {
+  // ErrorPage calls console.error(error) in a useEffect as an intentional placeholder
+  // for error-reporting services (e.g. Sentry). Silence it for all tests so the output
+  // stays clean; the dedicated "should log" test below verifies the behaviour explicitly.
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
   it("should render the error heading and retry button", () => {
     const reset = vi.fn();
     render(<ErrorPage error={new Error("oops")} reset={reset} />);
@@ -43,11 +52,9 @@ describe("ErrorPage", () => {
   });
 
   it("should log the error to the console", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("logged error");
     render(<ErrorPage error={error} reset={vi.fn()} />);
 
     expect(consoleSpy).toHaveBeenCalledWith(error);
-    consoleSpy.mockRestore();
   });
 });
