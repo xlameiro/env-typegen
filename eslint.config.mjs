@@ -86,7 +86,7 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
 
       // Additional SonarJS quality rules
-      "sonarjs/no-duplicate-string": ["warn", { "threshold": 3 }],
+      "sonarjs/no-duplicate-string": ["error", { "threshold": 3 }],
       "sonarjs/no-identical-functions": "warn",
       "sonarjs/no-small-switch": "warn",
       "sonarjs/no-nested-conditional": "warn",
@@ -252,7 +252,7 @@ const eslintConfig = defineConfig([
       // Helps Copilot provide accurate completions without inferring shapes from function bodies.
       // See: typescript-5-es2022.instructions.md § Return Types
       // .tsx files are excluded via override below — React components are exempt (JSX inference).
-      "@typescript-eslint/explicit-module-boundary-types": ["warn", {
+      "@typescript-eslint/explicit-module-boundary-types": ["error", {
         "allowArgumentsExplicitlyTypedAsAny": false,
         "allowDirectConstAssertionInArrowFunctions": true,
         "allowHigherOrderFunctions": false,
@@ -279,11 +279,16 @@ const eslintConfig = defineConfig([
         }
       }],
 
-      // Disable all other type-checked rules to avoid noise
-      "@typescript-eslint/no-unsafe-assignment": "off",
+      // Type-safety rules — enabled as warn to surface unsafe patterns without blocking.
+      // Upgrade to "error" once all existing violations are resolved.
+      "@typescript-eslint/no-unsafe-return": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+
+      // Remaining unsafe rules disabled — too noisy in real-world Next.js code that
+      // interacts with third-party libs not yet fully typed (e.g., next-auth session shape).
+      // Re-evaluate when upstream type definitions improve.
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unnecessary-type-assertion": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
@@ -342,6 +347,8 @@ const eslintConfig = defineConfig([
       "complexity": "off",
       "no-console": "off",
       "@typescript-eslint/no-explicit-any": "error",
+      // Allow unsafe assignments in tests: response.json() returns `any` from DOM types
+      "@typescript-eslint/no-unsafe-assignment": "off",
       "sonarjs/no-duplicate-string": "off", // Allow duplicate strings in tests for clarity
     },
   },

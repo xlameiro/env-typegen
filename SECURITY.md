@@ -1,5 +1,9 @@
 # Security Policy
 
+## security.txt
+
+This project publishes a machine-readable security disclosure endpoint at `/.well-known/security.txt` (served from `public/.well-known/security.txt`) following [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116). **Update the `Contact`, `Policy`, and `Expires` fields in that file before deploying to production.**
+
 ## Supported Versions
 
 | Version         | Supported |

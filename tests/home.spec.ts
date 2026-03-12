@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 test.describe("Home Page", () => {
@@ -37,5 +38,10 @@ test.describe("Home Page", () => {
   test("renders the main heading", async ({ page }) => {
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
+  });
+
+  test("has no detectable accessibility violations", async ({ page }) => {
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
   });
 });

@@ -1,5 +1,11 @@
 import { auth } from "@/auth";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+
+// Shared rate limiter for authentication routes.
+// 5 attempts per minute per IP — enough for legitimate users, enough to stop brute force.
+// Replace with a distributed store (Upstash Redis, Vercel KV) when deploying multi-replica.
+const authRateLimiter = createRateLimiter({ max: 5, windowMs: 60_000 });
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -13,6 +19,20 @@ export default auth((req) => {
   const isAuthRoute =
     nextUrl.pathname.startsWith("/auth/sign-in") ||
     nextUrl.pathname.startsWith("/auth/sign-up");
+
+  // Rate-limit unauthenticated requests to auth routes to mitigate brute-force attacks.
+  if (isAuthRoute && !isLoggedIn) {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const { isAllowed, retryAfterSeconds } = authRateLimiter.check(ip);
+
+    if (!isAllowed) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: { "Retry-After": String(retryAfterSeconds) },
+      });
+    }
+  }
 
   // Redirect authenticated users away from auth pages
   if (isAuthRoute && isLoggedIn) {

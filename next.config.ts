@@ -35,9 +35,11 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js requires 'unsafe-inline' for hydration scripts unless nonces are used.
-      // 'unsafe-eval' is intentionally omitted — not needed in production.
-      // To achieve a stricter policy, implement nonce-based CSP via proxy.ts.
-      // See: https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
+      // 'unsafe-eval' is intentionally omitted — not required in production builds.
+      // Path to stricter CSP: generate a nonce per request in proxy.ts, pass it via
+      // a response header (e.g., x-nonce), read it in layout.tsx, and inject it into
+      // every <Script> and inline <style>. See Next.js CSP docs for the full walkthrough:
+      // https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' blob: data:",
@@ -46,8 +48,19 @@ const securityHeaders = [
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
+      // Prevents loading in workers (no web worker or service worker usage by default).
+      "worker-src 'none'",
+      // Restricts web app manifest loading to same origin.
+      "manifest-src 'self'",
       "upgrade-insecure-requests",
     ].join("; "),
+  },
+  // Cross-Origin Opener Policy: prevents other origins from gaining references to this window.
+  // Required for SharedArrayBuffer and high-resolution timers. Safe with redirect-based OAuth
+  // (Auth.js v5 default). If popup-based OAuth is added, change to "same-origin-allow-popups".
+  {
+    key: "Cross-Origin-Opener-Policy",
+    value: "same-origin",
   },
 ];
 

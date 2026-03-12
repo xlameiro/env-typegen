@@ -1,0 +1,7 @@
+# RFC 9116 security.txt
+# Update Contact, Policy, and Expires annually before deploying to production.
+
+Contact: mailto:security@example.com
+Expires: 2027-01-01T00:00:00.000Z
+Policy: https://github.com/YOUR_ORG/YOUR_REPO/blob/main/SECURITY.md
+Preferred-Languages: en

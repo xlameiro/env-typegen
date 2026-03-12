@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     # Only run for Dependabot PRs
     if: github.actor == 'dependabot[bot]'
+    # IMPORTANT: auto-merge merges only after all required status checks pass.
+    # This job relies on branch protection rules being configured on `main` to
+    # require the CI workflow (ci.yml) as a mandatory check. Without branch
+    # protection, `gh pr merge --auto` will merge immediately regardless of CI.
+    # Configure at: Settings → Branches → Branch protection rules → Require
+    # status checks to pass before merging → select the CI workflow jobs.
 
     steps:
       - name: Fetch Dependabot metadata
