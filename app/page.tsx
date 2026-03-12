@@ -31,21 +31,19 @@ export default function HomePage() {
       className="mx-auto max-w-3xl px-6 py-20"
     >
       <header className="mb-12">
-        <p className="mb-2 text-sm font-medium tracking-widest text-zinc-400 uppercase">
+        <p className="mb-2 text-sm font-medium tracking-widest text-muted-foreground uppercase">
           v{APP_VERSION}
         </p>
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
           {APP_NAME}
         </h1>
-        <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
-          {APP_DESCRIPTION}
-        </p>
+        <p className="mt-3 text-lg text-muted-foreground">{APP_DESCRIPTION}</p>
       </header>
 
       <section aria-labelledby="stack-heading" className="mb-12">
         <h2
           id="stack-heading"
-          className="mb-4 text-xs font-semibold tracking-widest text-zinc-400 uppercase"
+          className="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
         >
           Tech Stack
         </h2>
@@ -53,12 +51,14 @@ export default function HomePage() {
           {stack.map(({ label, desc }) => (
             <li
               key={label}
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-lg border border-border bg-card px-4 py-3"
             >
-              <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              <span className="block text-sm font-semibold text-foreground">
                 {label}
               </span>
-              <span className="mt-0.5 block text-xs text-zinc-500">{desc}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {desc}
+              </span>
             </li>
           ))}
         </ul>
@@ -67,17 +67,17 @@ export default function HomePage() {
       <section aria-labelledby="commands-heading" className="mb-12">
         <h2
           id="commands-heading"
-          className="mb-4 text-xs font-semibold tracking-widest text-zinc-400 uppercase"
+          className="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
         >
           Development Commands
         </h2>
-        <ul className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+        <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {commands.map(({ cmd, desc }) => (
             <li key={cmd} className="flex items-center gap-4 px-4 py-3">
-              <code className="min-w-fit rounded bg-zinc-100 px-2 py-0.5 text-xs font-mono text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+              <code className="min-w-fit rounded bg-muted px-2 py-0.5 text-xs font-mono text-foreground">
                 {cmd}
               </code>
-              <span className="text-sm text-zinc-500">{desc}</span>
+              <span className="text-sm text-muted-foreground">{desc}</span>
             </li>
           ))}
         </ul>

@@ -123,6 +123,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm test:e2e:headed` | Playwright with visible browser                    |
 | `pnpm test:all`        | Unit + E2E                                         |
 
+> **First-time E2E setup**: install browser binaries before running any Playwright test:
+>
+> ```bash
+> pnpm exec playwright install --with-deps chromium
+> ```
+
 ## Quality Gates
 
 All must pass before merging:

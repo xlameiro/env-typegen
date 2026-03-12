@@ -38,7 +38,7 @@ This repository is a ready-to-use foundation that combines Next.js 16 (App Route
 - `next.config.ts` — Next.js configuration
 - `vitest.config.ts` — Vitest unit test configuration
 - `playwright.config.ts` — Playwright E2E test configuration
-- `proxy.ts` — Next.js proxy/middleware configuration
+- `proxy.ts` — **Next.js 16 official request interception file** (replaces deprecated `middleware.ts`); runs on Node.js runtime — `auth()` is callable directly here
 
 ## Conventions
 
@@ -47,6 +47,7 @@ This repository is a ready-to-use foundation that combines Next.js 16 (App Route
 - Imports: use `@/` path alias for all internal imports
 - No `any` types; strict TypeScript throughout
 - All input validated with Zod at system boundaries
+- Styling: semantic design tokens (`text-foreground`, `bg-card`, `border-border`, `text-muted-foreground`) defined in `app/globals.css` — never use raw `zinc-*` classes in UI components
 - Branching: Trunk-Based Development — `main` is always releasable
 
 ## Development Commands
@@ -55,6 +56,8 @@ This repository is a ready-to-use foundation that combines Next.js 16 (App Route
 pnpm dev          # Start dev server (Turbopack)
 pnpm build        # Production build
 pnpm test         # Vitest unit tests
+pnpm test:e2e     # Playwright E2E tests (requires browser binaries: pnpm exec playwright install --with-deps chromium)
+pnpm test:all     # Unit + E2E
 pnpm lint         # ESLint
 pnpm type-check   # TypeScript type check
 ```

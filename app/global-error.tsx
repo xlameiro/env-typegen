@@ -14,7 +14,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error]);
 
   return (
-    // global-error must include html and body tags
+    // global-error must include html and body tags.
+    // Keep lang in sync with app/layout.tsx if the app locale changes.
     <html lang="en">
       <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-white p-8 text-center dark:bg-black">
         <h1 className="text-2xl font-semibold text-red-600 dark:text-red-400">

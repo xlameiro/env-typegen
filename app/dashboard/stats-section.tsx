@@ -19,7 +19,7 @@ export async function StatsSection() {
     <section aria-labelledby="stats-heading" className="mt-8">
       <h2
         id="stats-heading"
-        className="mb-4 text-sm font-medium tracking-widest text-zinc-400 uppercase"
+        className="mb-4 text-sm font-medium tracking-widest text-muted-foreground uppercase"
       >
         Overview
       </h2>
@@ -27,15 +27,13 @@ export async function StatsSection() {
         {stats.map((stat) => (
           <li
             key={stat.label}
-            className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-lg border border-border bg-card p-5"
           >
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {stat.label}
-            </p>
-            <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">
               {stat.value}
             </p>
-            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               {stat.description}
             </p>
           </li>
@@ -56,10 +54,7 @@ export function StatsSectionSkeleton() {
       <Skeleton className="mb-4 h-4 w-24" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {(["stat-a", "stat-b", "stat-c"] as const).map((id) => (
-          <div
-            key={id}
-            className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
-          >
+          <div key={id} className="rounded-lg border border-border bg-card p-5">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="mt-2 h-8 w-20" />
             <Skeleton className="mt-2 h-3 w-36" />

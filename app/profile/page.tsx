@@ -16,13 +16,13 @@ export default async function ProfilePage() {
       tabIndex={-1}
     >
       <header className="mb-8">
-        <p className="mb-1 text-sm font-medium tracking-widest text-zinc-400 uppercase">
+        <p className="mb-1 text-sm font-medium tracking-widest text-muted-foreground uppercase">
           Profile
         </p>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Your profile
         </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-muted-foreground">
           Manage your account information.
         </p>
       </header>

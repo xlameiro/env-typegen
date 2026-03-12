@@ -53,6 +53,7 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
           id="name"
           type="text"
           autoComplete="name"
+          required
           hasError={Boolean(errors.name)}
           errorId="name-error"
           {...register("name")}
@@ -64,6 +65,7 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
           id="email"
           type="email"
           autoComplete="email"
+          required
           hasError={Boolean(errors.email)}
           errorId="email-error"
           {...register("email")}

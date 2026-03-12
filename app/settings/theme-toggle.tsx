@@ -22,11 +22,11 @@ export function ThemeToggle() {
     <section aria-labelledby="theme-toggle-label">
       <h2
         id="theme-toggle-label"
-        className="text-base font-semibold text-zinc-900 dark:text-zinc-50"
+        className="text-base font-semibold text-foreground"
       >
         Theme
       </h2>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-1 text-sm text-muted-foreground">
         Choose how the interface looks. Changes take effect immediately.
       </p>
       <div className="mt-4 flex gap-2" role="group" aria-label="Select theme">

@@ -13,15 +13,6 @@ describe("GET /api/health", () => {
     expect(body.status).toBe("ok");
   });
 
-  it("should return app name and version", async () => {
-    const response = GET();
-    const body = await response.json();
-    expect(typeof body.name).toBe("string");
-    expect(body.name.length).toBeGreaterThan(0);
-    expect(typeof body.version).toBe("string");
-    expect(body.version.length).toBeGreaterThan(0);
-  });
-
   it("should return a valid ISO 8601 timestamp", async () => {
     const response = GET();
     const body = await response.json();

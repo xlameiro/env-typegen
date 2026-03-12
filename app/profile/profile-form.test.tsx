@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ProfileForm } from "./profile-form";
 
@@ -51,7 +57,9 @@ describe("ProfileForm", () => {
     const form = (
       screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
     ).closest("form") as HTMLFormElement;
-    fireEvent.submit(form);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
 
     await waitFor(() => {
       expect(updateProfileAction).toHaveBeenCalled();
@@ -64,7 +72,9 @@ describe("ProfileForm", () => {
     const form = (
       screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
     ).closest("form") as HTMLFormElement;
-    fireEvent.submit(form);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
 
     await waitFor(() => {
       expect(
@@ -85,7 +95,9 @@ describe("ProfileForm", () => {
     const form = (
       screen.getByRole("button", { name: /save changes/i }) as HTMLButtonElement
     ).closest("form") as HTMLFormElement;
-    fireEvent.submit(form);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/failed to update profile/i)).toBeInTheDocument();
