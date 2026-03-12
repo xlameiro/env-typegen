@@ -6,8 +6,10 @@ export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // 1 retry in CI handles genuine flakiness without tripling runtime on real failures.
+  retries: process.env.CI ? 1 : 0,
+  // 2 parallel workers keeps CI fast without overwhelming shared runners.
+  workers: process.env.CI ? 2 : undefined,
   reporter: [["html"], process.env.CI ? ["github"] : ["list"]],
   use: {
     baseURL: BASE_URL,
@@ -15,22 +17,28 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // Chromium always runs — in CI this is the only browser to keep the suite fast.
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-    {
-      name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
-    },
+    // Additional browsers run locally only — cross-browser coverage for development.
+    ...(process.env.CI
+      ? []
+      : [
+          {
+            name: "firefox",
+            use: { ...devices["Desktop Firefox"] },
+          },
+          {
+            name: "webkit",
+            use: { ...devices["Desktop Safari"] },
+          },
+          {
+            name: "Mobile Chrome",
+            use: { ...devices["Pixel 5"] },
+          },
+        ]),
   ],
   webServer: {
     command: "pnpm build && pnpm start",
