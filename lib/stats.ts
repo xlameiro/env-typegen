@@ -1,7 +1,12 @@
+/**
+ * @template-example
+ * Fake stats data used by the example dashboard page.
+ * Delete this file (and app/dashboard/) when building your real application.
+ */
 import "server-only";
 
-import { cacheLife, cacheTag } from "next/cache";
 import { sleep } from "@/lib/utils";
+import { cacheLife, cacheTag } from "next/cache";
 
 type Stat = {
   label: string;

@@ -1,3 +1,8 @@
+/**
+ * @template-example
+ * Example settings page — demonstrates theme toggling with Zustand.
+ * Replace with your own settings page or delete if not needed.
+ */
 import { requireAuth } from "@/lib/auth";
 import type { Metadata } from "next";
 import { ThemeToggle } from "./theme-toggle";

@@ -1,4 +1,9 @@
 {
+  // Este archivo contiene TODAS las propiedades configurables de VSCode de forma explícita.
+  // El objetivo NO es sobreescribir defaults, sino tener visibilidad y control total sobre
+  // qué permite VSCode: si quieres cambiar cualquier comportamiento del editor, está aquí.
+  // Las propiedades con su valor por defecto actúan como documentación viva de las opciones disponibles.
+
   // Editor
   // Controls whether the editor shows CodeLens.
   "diffEditor.codeLens": false,
@@ -243,7 +248,7 @@
   //  - vscode.terminal-suggest: Extension to add terminal completions for zsh, bash, and fish terminals.
   //  - vscode.tunnel-forwarding: Allows forwarding local ports to be accessible over the internet.
   //  - ms-vscode.vscode-js-profile-table: Text visualizer for profiles taken from the JavaScript debugger
-  "editor.defaultFormatter": "vscode.typescript-language-features",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   // Controls whether the Go to Definition mouse gesture always opens the peek widget.
   "editor.definitionLinkOpensInPeek": false,
   // Controls whether `editor.tabSize#` and `#editor.insertSpaces` will be automatically detected when a file is opened based on the file contents.

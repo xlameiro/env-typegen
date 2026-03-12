@@ -69,24 +69,25 @@ lint-staged.config.ts
 pnpm install
 ```
 
-### 2. Configure environment variables
+### 2. Environment variables (auto-generated)
+
+`.env.local` is created automatically during `pnpm install` via a `postinstall` hook — no manual copy needed. The script generates a cryptographically secure `AUTH_SECRET` for you.
+
+To regenerate or create it manually:
 
 ```bash
-cp .env.example .env.local
+pnpm setup
 ```
 
-Fill in the values inside `.env.local`:
+Fill in OAuth credentials in `.env.local` **only if your project uses authentication**:
 
 ```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Generate with: openssl rand -base64 32
-AUTH_SECRET=your-secret
-
-# OAuth providers (enable the ones you need)
+# Required only when using OAuth
 AUTH_GOOGLE_ID=...
 AUTH_GOOGLE_SECRET=...
 ```
+
+> `AUTH_SECRET` is optional — the app boots and serves pages without it. Auth.js only needs it when authentication routes are hit.
 
 ### 3. Start development
 
@@ -107,21 +108,22 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Script                 | Description                                        |
-| ---------------------- | -------------------------------------------------- |
-| `pnpm dev`             | Start development server                           |
-| `pnpm dev:local`       | Dev with stable `.localhost` URL (Portless)        |
-| `pnpm dev:local:https` | Dev with HTTPS + named `.localhost` URL (Portless) |
-| `pnpm build`           | Production build                                   |
-| `pnpm start`           | Start production server                            |
-| `pnpm lint`            | ESLint                                             |
-| `pnpm type-check`      | TypeScript type check (`tsc --noEmit`)             |
-| `pnpm test`            | Vitest unit tests                                  |
-| `pnpm test:watch`      | Vitest in watch mode                               |
-| `pnpm test:e2e`        | Playwright E2E (headless)                          |
-| `pnpm test:e2e:ui`     | Playwright UI mode                                 |
-| `pnpm test:e2e:headed` | Playwright with visible browser                    |
-| `pnpm test:all`        | Unit + E2E                                         |
+| Script                 | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `pnpm setup`           | Generate `.env.local` from `.env.example` (run once per clone) |
+| `pnpm dev`             | Start development server                                       |
+| `pnpm dev:local`       | Dev with stable `.localhost` URL (Portless)                    |
+| `pnpm dev:local:https` | Dev with HTTPS + named `.localhost` URL (Portless)             |
+| `pnpm build`           | Production build                                               |
+| `pnpm start`           | Start production server                                        |
+| `pnpm lint`            | ESLint                                                         |
+| `pnpm type-check`      | TypeScript type check (`tsc --noEmit`)                         |
+| `pnpm test`            | Vitest unit tests                                              |
+| `pnpm test:watch`      | Vitest in watch mode                                           |
+| `pnpm test:e2e`        | Playwright E2E (headless)                                      |
+| `pnpm test:e2e:ui`     | Playwright UI mode                                             |
+| `pnpm test:e2e:headed` | Playwright with visible browser                                |
+| `pnpm test:all`        | Unit + E2E                                                     |
 
 > **First-time E2E setup**: install browser binaries before running any Playwright test:
 >

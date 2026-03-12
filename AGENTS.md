@@ -6,6 +6,81 @@ This file is automatically discovered by AI agent runtimes (OpenAI, GitHub Copil
 
 > **Living document**: If you discover something about this codebase that would help future tasks (e.g., a convention, a quirk, a gotcha), update `.github/copilot-instructions.md` immediately under `## Learnings` or the relevant section.
 
+## Starting a New Project from This Template
+
+> Read this section **before writing any code** when initializing a new project from this template.
+
+### Initialization checklist
+
+```bash
+pnpm install    # also runs postinstall → auto-creates .env.local with a generated AUTH_SECRET
+```
+
+1. Fill in OAuth credentials in `.env.local` **only if the project uses authentication**
+2. Update `lib/constants.ts` — change `APP_NAME`, `APP_DESCRIPTION`, `APP_VERSION`
+3. Replace or delete example pages (see table below)
+
+### Template map — example vs scaffold
+
+Files marked **Example** ship as working demonstrations. When starting a new project, **replace or delete them** — never add new pages alongside them.
+Files marked **Scaffold** are infrastructure-level. Keep and extend them.
+
+| File / Directory    | Type                                         | Action                                         |
+| ------------------- | -------------------------------------------- | ---------------------------------------------- |
+| `app/page.tsx`      | **Example** — template home page             | Replace with your home page                    |
+| `app/dashboard/`    | **Example** — fake stats + search + Suspense | Replace or delete entirely                     |
+| `app/profile/`      | **Example** — RHF + Server Action demo       | Replace or delete                              |
+| `app/settings/`     | **Example** — Zustand theme toggle demo      | Replace or delete                              |
+| `app/auth/`         | **Example** — Google OAuth pages             | Keep if using auth; delete if not              |
+| `lib/stats.ts`      | **Example** — fake dashboard data            | Delete with `app/dashboard/`                   |
+| `lib/constants.ts`  | **Scaffold**                                 | Keep — update `APP_NAME` etc.                  |
+| `lib/env.ts`        | **Scaffold**                                 | Keep — add/remove env vars                     |
+| `lib/errors.ts`     | **Scaffold**                                 | Keep                                           |
+| `lib/utils.ts`      | **Scaffold**                                 | Keep                                           |
+| `lib/schemas/`      | **Scaffold**                                 | Keep; extend with your schemas                 |
+| `components/ui/`    | **Scaffold**                                 | Keep; build new UI on top                      |
+| `hooks/`            | **Scaffold**                                 | Keep; extend                                   |
+| `store/`            | **Scaffold**                                 | Keep if using client state                     |
+| `proxy.ts`          | **Scaffold**                                 | Keep with auth; simplify to passthrough if not |
+| `app/layout.tsx`    | **Scaffold**                                 | Keep — update metadata                         |
+| `app/globals.css`   | **Scaffold**                                 | Keep — add design tokens                       |
+| `app/error.tsx`     | **Scaffold**                                 | Keep                                           |
+| `app/not-found.tsx` | **Scaffold**                                 | Keep                                           |
+
+### Rule: Replace, never add
+
+**Never create a new page if an example page with the same route exists — replace it.**
+The template ships with `app/page.tsx`, `app/dashboard/page.tsx`, etc. already. Adding a second `page.tsx` alongside them is a routing conflict.
+
+### If the project does NOT use authentication
+
+When the user says "no auth" or "no authentication":
+
+1. Delete `app/auth/`
+2. Delete `app/dashboard/`, `app/profile/`, `app/settings/` (all use `requireAuth()`)
+3. Replace `proxy.ts` with a passthrough:
+   ```ts
+   export default function () {}
+   export const config = { matcher: [] };
+   ```
+4. `AUTH_SECRET` is already optional — no `.env.local` change required
+5. Remove `import { requireAuth }` from any page you create
+
+### Example-vs-scaffold quick identification
+
+All example files have a `@template-example` JSDoc marker at the top:
+
+```ts
+/**
+ * @template-example
+ * ...
+ */
+```
+
+Search the codebase: `grep -r "@template-example" app/ lib/` to find every file that must be replaced.
+
+---
+
 ## Critical Project-Specific Conventions
 
 These conventions are non-standard and **must be followed**. AI agents reading only this file (without access to `.github/copilot-instructions.md`) still need to know them.

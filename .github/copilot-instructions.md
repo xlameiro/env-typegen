@@ -251,6 +251,48 @@ Quick entry point: `.github/instructions/INDEX.md`.
 - Modify auto-generated files directly (e.g., `next-env.d.ts`, generated type files) — find and edit the source that generates them, then regenerate
 - Switch the package manager from pnpm to Bun or npm without explicit team discussion — pnpm is enforced via the `packageManager` field in `package.json`; Bun runtime is not supported (`.nvmrc` assumes Node.js, not Bun)
 
+## Template Onboarding
+
+> Read this section every time a prompt asks to "build", "create", "generate", or "scaffold" a new web application from this template.
+
+### Initialization
+
+`pnpm install` runs `postinstall` which auto-creates `.env.local` with a generated `AUTH_SECRET`. No manual `cp .env.example .env.local` needed. If skipped, run `pnpm setup`.
+
+### AUTH_SECRET is optional
+
+`AUTH_SECRET` is **not required to start the dev server**. The app boots without it. Auth.js only validates it when auth routes are hit. Only add `AUTH_SECRET` (and OAuth provider vars) when the project explicitly needs authentication.
+
+### Replace, never add
+
+The template ships with working **example pages** that demonstrate patterns. When building a real project:
+
+- **Replace** `app/page.tsx` with the real home page
+- **Delete** `app/dashboard/`, `app/profile/`, `app/settings/` (or replace with real content)
+- **Delete** `lib/stats.ts` alongside `app/dashboard/`
+- **Never** create `app/dashboard/new-page.tsx` alongside the existing example — replace the example directly
+
+All example files carry a `@template-example` JSDoc marker. Find them all with:
+
+```bash
+grep -r "@template-example" app/ lib/
+```
+
+### Always update lib/constants.ts
+
+Change `APP_NAME`, `APP_DESCRIPTION`, and `APP_VERSION` to match the new project before writing any other code.
+
+### No auth → simplify proxy.ts
+
+When authentication is not needed, replace the body of `proxy.ts` with a passthrough so unauthenticated users are never redirected:
+
+```ts
+export default function () {}
+export const config = { matcher: [] };
+```
+
+See `AGENTS.md § Starting a New Project` for the full scaffold-vs-example table.
+
 ## Common Pitfalls
 
 ### 1. Adding `"use client"` unnecessarily

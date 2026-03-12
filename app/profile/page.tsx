@@ -1,3 +1,8 @@
+/**
+ * @template-example
+ * Example profile page — demonstrates react-hook-form + Zod + Server Actions.
+ * Replace with your own profile page or delete if not needed.
+ */
 import { requireAuth } from "@/lib/auth";
 import type { Metadata } from "next";
 import { ProfileForm } from "./profile-form";

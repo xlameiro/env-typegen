@@ -1,3 +1,8 @@
+/**
+ * @template-example
+ * This is the starter template home page — it showcases the tech stack and dev commands.
+ * Replace its content with your own home page when starting a new project.
+ */
 import { ButtonLink } from "@/components/ui/button-link";
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from "@/lib/constants";
 

@@ -4,6 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.13.1",
   "scripts": {
+    "setup": "node scripts/setup-env.mjs",
+    "postinstall": "node scripts/setup-env.mjs",
     "dev": "next dev",
     "dev:local": "portless run next dev",
     "dev:local:https": "portless --https run next dev",
@@ -21,13 +23,17 @@
     "test:all": "pnpm test && pnpm test:e2e",
     "analyze": "ANALYZE=true SKIP_ENV_VALIDATION=true next build",
     "knip": "knip",
-    "prepare": "husky && playwright install"
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix"
+      "eslint --fix --max-warnings=0"
     ],
-    "*.{ts,tsx,css,md,json}": "prettier --write --ignore-unknown"
+    "*.{ts,tsx,css,md,json,yaml,yml}": "prettier --write --ignore-unknown"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

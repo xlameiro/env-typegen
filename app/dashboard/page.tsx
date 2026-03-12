@@ -1,3 +1,8 @@
+/**
+ * @template-example
+ * Example dashboard page — demonstrates streaming Server Components with Suspense,
+ * and nuqs URL state. Replace with your own dashboard or delete if not needed.
+ */
 import { requireAuth } from "@/lib/auth";
 import type { Metadata } from "next";
 import { Suspense } from "react";

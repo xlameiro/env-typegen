@@ -81,7 +81,10 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending} aria-busy={isPending}>
-          {isPending ? "Saving…" : "Save changes"}
+          {
+            /* v8 ignore next -- useActionState's isPending is untestable in jsdom (React 19 limitation) */
+            isPending ? "Saving…" : "Save changes"
+          }
         </Button>
       </div>
     </form>

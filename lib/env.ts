@@ -18,12 +18,16 @@ export const env = createEnv({
    * Do NOT prefix with NEXT_PUBLIC_.
    */
   server: {
-    // Auth.js v5
+    // Auth.js v5 — optional: only required when authentication is actually used.
+    // If absent, auth routes fail gracefully; the rest of the app is unaffected.
+    // Generate a value with: openssl rand -base64 32  (or run: pnpm setup)
     AUTH_SECRET: z
       .string()
       .min(32, "AUTH_SECRET must be at least 32 characters")
+      .optional()
       .describe(
-        "Auth.js signing secret — generate with: openssl rand -base64 32",
+        "Auth.js signing secret — required only when using authentication. " +
+          "Generate with: openssl rand -base64 32, or run `pnpm setup`.",
       ),
 
     // Google OAuth (optional — only required if using Google provider)

@@ -6,7 +6,7 @@
 set -e
 
 echo "🔍 Running lint-staged on staged files..."
-pnpm exec lint-staged --config package.json
+pnpm exec lint-staged
 
 echo "🔷 Running TypeScript type check..."
 pnpm type-check
