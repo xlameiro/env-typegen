@@ -165,12 +165,12 @@
     "zod": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",
-      "computedHash": "c7ba3bd4bacb74f956eb8b1e5564b2f2a950a712d3a7c6cbc47e5b60c06f2bf5"
+      "computedHash": "6ef6700907fad68be7cff93e3ec4f8981b68f1f3ffa60a69f73d03611399478f"
     },
     "zustand": {
       "source": "lobehub/lobehub",
       "sourceType": "github",
-      "computedHash": "94453f5d13aa76d4475ae0cf48fafdf18307975190c110b6de009d8e5e152503"
+      "computedHash": "f68368d612c42d0c6f2c6d8c57d98e543d024b3abc855663c7bf76e84eea9be4"
     },
     "aws-ecosystem": {
       "source": "gocallum/nextjs16-agent-skills",
@@ -205,7 +205,7 @@
     "nextjs-file-conventions": {
       "source": "gocallum/nextjs16-agent-skills",
       "sourceType": "github",
-      "computedHash": "fd7199d16125f246fa107e600451fbac353b8e9d2d6c749b32ca43c8a0a602e6"
+      "computedHash": "a84217853a5be0bc3193dcc642d0193c910a41899da85f1fa768d3809962413b"
     },
     "nextjs-metadata-functions": {
       "source": "gocallum/nextjs16-agent-skills",
