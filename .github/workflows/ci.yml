@@ -136,13 +136,21 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
+        id: playwright-cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright browsers + system deps
+        # Full install only on cache miss — downloads ~100 MB browser binary + apt packages.
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit)
+        # Browser binary is cached; only install apt system libraries (~1–2 min vs ~8 min).
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Run E2E tests
         run: pnpm test:e2e
