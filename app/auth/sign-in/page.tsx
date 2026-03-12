@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 };
 
 // Only allow relative paths to prevent open redirect attacks (OWASP A01).
-function sanitizeReturnTo(url: string | undefined): string {
+// Exported for unit testing — not part of the public API.
+export function sanitizeReturnTo(url: string | undefined): string {
   if (!url || !url.startsWith("/") || url.startsWith("//")) {
     return ROUTES.dashboard;
   }

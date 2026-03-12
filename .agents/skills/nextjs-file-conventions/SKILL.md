@@ -450,12 +450,29 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
 Fallback UI for a parallel route slot when the slot has no active match after a full-page reload.
 
+> **Next.js 16: `default.tsx` is required** in every `@slot` directory that doesn't cover every possible URL. Missing `default.tsx` causes a **build failure** (404 for unmatched slots). This changed in Next.js 16 — previously it would silently show nothing.
+
 ```tsx
+// Option A — render nothing (modal / overlay slots)
 // app/@modal/default.tsx
-export default function ModalDefault() {
-  return null; // or notFound()
+export default function Default() {
+  return null;
+}
+
+// Option B — trigger the nearest not-found boundary
+// app/@modal/default.tsx
+import { notFound } from "next/navigation";
+export default function Default() {
+  notFound();
 }
 ```
+
+**Soft vs Hard navigation:**
+
+| Navigation                            | Slot behavior                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Soft (client-side `<Link>`)           | Next.js tracks each slot's last active subpage; unmatched slots keep their previous content |
+| Hard (full page refresh / direct URL) | Falls back to `default.tsx`; if absent, 404                                                 |
 
 ---
 

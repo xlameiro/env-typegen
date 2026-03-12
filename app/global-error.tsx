@@ -1,6 +1,10 @@
 "use client";
 
+import "@/app/globals.css";
+
 import { useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
 
 type GlobalErrorProps = Readonly<{
   error: Error & { digest?: string };
@@ -17,19 +21,24 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     // global-error must include html and body tags.
     // Keep lang in sync with app/layout.tsx if the app locale changes.
     <html lang="en">
-      <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-white p-8 text-center dark:bg-black">
-        <h1 className="text-2xl font-semibold text-red-600 dark:text-red-400">
+      {/*
+       * Apply the dark class before first paint so users who manually set
+       * dark mode via ThemeToggle don't see a flash of the light error page.
+       * The root layout's ThemeProvider is bypassed when global-error fires.
+       */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `try{var s=localStorage.getItem('app-store');if(s&&JSON.parse(s).state?.theme==='dark')document.documentElement.classList.add('dark')}catch(e){}`,
+        }}
+      />
+      <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-8 text-center">
+        <h1 className="text-2xl font-semibold text-destructive">
           Critical error
         </h1>
-        <p className="max-w-md text-sm text-gray-600 dark:text-gray-400">
+        <p className="max-w-md text-sm text-muted-foreground">
           A critical error occurred. Please refresh the page or contact support.
         </p>
-        <button
-          onClick={reset}
-          className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:bg-white dark:text-black dark:hover:bg-white/80"
-        >
-          Try again
-        </button>
+        <Button onClick={reset}>Try again</Button>
       </body>
     </html>
   );

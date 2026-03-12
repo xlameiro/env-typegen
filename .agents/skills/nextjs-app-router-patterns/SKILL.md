@@ -443,19 +443,92 @@ export default async function TeamSlot() {
 }
 ```
 
+**`default.tsx` is required in Next.js 16** — every slot that doesn't have a matching page for a given URL must have a `default.tsx`. Without it, the build fails with a 404 for unmatched slots.
+
+```typescript
+// app/dashboard/@analytics/default.tsx — returned when the URL has no match for this slot
+// Option A: return null (slot renders nothing)
+export default function Default() {
+  return null;
+}
+
+// Option B: call notFound() (show the nearest not-found boundary)
+import { notFound } from "next/navigation";
+export default function Default() {
+  notFound();
+}
+```
+
+**Soft vs Hard navigation behavior:**
+
+| Navigation type                       | Slot behavior                                                                                      |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Soft (client-side `<Link>`)           | Next.js remembers the last active subpage in each slot — unmatched slots keep their previous state |
+| Hard (full page refresh / direct URL) | Falls back to `default.tsx`; if absent, renders a 404                                              |
+
+**Tab groups — independent navigation inside a slot:**
+
+```typescript
+// app/dashboard/@analytics/layout.tsx — shared nav inside a slot
+import Link from 'next/link'
+export default function AnalyticsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <nav>
+        <Link href="/dashboard/page-views">Page Views</Link>
+        <Link href="/dashboard/visitors">Visitors</Link>
+      </nav>
+      {children}
+    </>
+  )
+}
+```
+
+**Reading the active slot segment with `useSelectedLayoutSegment`:**
+
+```typescript
+'use client'
+import { useSelectedLayoutSegment } from 'next/navigation'
+
+// Pass the slot name (without @) as the parallelRoutesKey parameter
+export default function DashboardLayout({ children, analytics }: { children: React.ReactNode; analytics: React.ReactNode }) {
+  const analyticsSegment = useSelectedLayoutSegment('analytics') // e.g. 'page-views' | 'visitors' | null
+  return (
+    <div>
+      <p>Active analytics tab: {analyticsSegment}</p>
+      <main>{children}</main>
+      <aside>{analytics}</aside>
+    </div>
+  )
+}
+```
+
 ### Pattern 5: Intercepting Routes (Modal Pattern)
+
+**The four interception conventions** (verified in `node_modules/next/dist/esm/shared/lib/router/utils/interception-routes.js`):
+
+| Convention       | Meaning           | Example use                                                              |
+| ---------------- | ----------------- | ------------------------------------------------------------------------ |
+| `(.)folder`      | Same URL level    | `app/@modal/(.)photos/[id]` intercepts `app/photos/[id]`                 |
+| `(..)folder`     | One URL level up  | `app/feed/@modal/(..)photo/[id]` intercepts `app/photo/[id]`             |
+| `(..)(..)folder` | Two URL levels up | `app/a/b/@modal/(..)(..)photo/[id]` intercepts `app/photo/[id]`          |
+| `(...)folder`    | Root of the app   | `app/feed/@modal/(...)photo/[id]` intercepts `/photo/[id]` from anywhere |
+
+> **Important:** `(..)` is URL-segment based, **not filesystem-based**. Route groups `(group)` do not count as a level. `(..)` at root level throws a build error; use `(.)` instead.
 
 ```typescript
 // File structure for photo modal
 // app/
 // ├── @modal/
-// │   ├── (.)photos/[id]/page.tsx  # Intercept
-// │   └── default.tsx
+// │   ├── (.)photos/[id]/
+// │   │   └── page.tsx     // ← intercepts /photos/[id] on soft nav
+// │   └── default.tsx      // ← REQUIRED: returns null when no modal is active
 // ├── photos/
-// │   └── [id]/page.tsx            # Full page
+// │   └── [id]/
+// │       └── page.tsx     // ← full page on hard nav / direct URL
 // └── layout.tsx
 
-// app/@modal/(.)photos/[id]/page.tsx
+// app/@modal/(.)photos/[id]/page.tsx — shown on soft navigation
 import { Modal } from '@/components/Modal'
 import { PhotoDetail } from '@/components/PhotoDetail'
 
@@ -474,7 +547,12 @@ export default async function PhotoModal({
   )
 }
 
-// app/photos/[id]/page.tsx - Full page version
+// app/@modal/default.tsx — REQUIRED: renders nothing when no modal is active
+export default function Default() {
+  return null
+}
+
+// app/photos/[id]/page.tsx — full page on hard navigation / direct URL
 export default async function PhotoPage({
   params,
 }: {
@@ -491,7 +569,7 @@ export default async function PhotoPage({
   )
 }
 
-// app/layout.tsx
+// app/layout.tsx — expose the @modal slot
 export default function RootLayout({
   children,
   modal,
@@ -507,6 +585,31 @@ export default function RootLayout({
       </body>
     </html>
   )
+}
+```
+
+**Closing the modal:**
+
+```typescript
+// ✅ Option A: router.back() — dismisses modal via browser history
+'use client'
+import { useRouter } from 'next/navigation'
+
+export function Modal({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  return (
+    <>
+      <button onClick={() => router.back()}>Close</button>
+      <div>{children}</div>
+    </>
+  )
+}
+
+// ✅ Option B: <Link> navigation — requires the slot to have a matching null-returning route
+// so the slot becomes inactive (client-side navigations don't reset unmatched slots automatically)
+// app/@modal/[...catchAll]/page.tsx — catch-all that returns null, closes modal for any Link nav
+export default function CatchAll() {
+  return null
 }
 ```
 
@@ -746,6 +849,40 @@ export async function updateProduct(id: string, data: ProductData) {
   revalidatePath("/products"); // also invalidate the full route cache
 }
 ```
+
+### Parallel Data Fetching — `Promise.all`
+
+When a Server Component needs data from **multiple independent sources**, initiate all requests before awaiting them. Sequential `await` blocks each request behind the previous one — `Promise.all` runs them concurrently.
+
+```typescript
+// ❌ Sequential — albumsData waits for artistData to resolve first
+export default async function Page({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
+  const artist = await getArtist(username); // request 1 — blocks
+  const albums = await getAlbums(username); // request 2 — starts after request 1 finishes
+  return <div>{artist.name}</div>;
+}
+
+// ✅ Parallel — both requests start immediately, resolved together
+export default async function Page({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
+
+  // Initiate both without awaiting — they start in parallel
+  const artistData = getArtist(username);
+  const albumsData = getAlbums(username);
+
+  const [artist, albums] = await Promise.all([artistData, albumsData]);
+
+  return (
+    <>
+      <h1>{artist.name}</h1>
+      <Albums list={albums} />
+    </>
+  );
+}
+```
+
+> Use `Promise.all` only for **truly independent** requests. If one fetch depends on the result of another (e.g., you need `userId` to fetch `userProfile`), they must be sequential by necessity.
 
 ### Per-Request Deduplication — `React.cache()`
 
