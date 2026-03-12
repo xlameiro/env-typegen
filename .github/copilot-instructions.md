@@ -624,6 +624,7 @@ Type `/fork` in the chat to create a new session with the full conversation hist
 - **Directives**: Use `@import "tailwindcss"` (NOT the three `@tailwind base/components/utilities` directives from v3)
 - **Plugins**: Use `@plugin` directive in CSS, not `plugins: []` in config
 - **v4.1+ new utilities** (available in this project): `text-shadow-*` (e.g., `text-shadow-sm`, `text-shadow-lg`), `mask-*` (image/gradient masking), `inset-shadow-*`, `drop-shadow-*` — prefer these over custom CSS when available
+- **v4.2+ new utilities** (available in this project): `pbs-*` / `pbe-*` (padding-block-start / padding-block-end logical properties), four new default-theme color palettes: `mauve`, `olive`, `mist`, `taupe` — use these before reaching for custom tokens
 
 ### CVA (class-variance-authority)
 
@@ -681,6 +682,7 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **Current stable**: TypeScript 5.9.3 (`latest` tag). TypeScript 6.0 RC is available via `typescript@rc` (since 2026-03-06); **do not upgrade until the team explicitly evaluates the RC**.
 - **Before upgrading to 6.0**: run `pnpm info typescript dist-tags` to check whether `rc` has moved to `latest`; review TS 6.0 release notes for breaking changes in module resolution, decorator handling, or strict-mode behavior that could affect `tsconfig.json` assumptions.
 - **`^5` range is intentional**: The project's `package.json` pins `"typescript": "^5"` — this will NOT auto-upgrade to 6.0. An explicit version bump is required.
+- **TypeScript 7 (native port) is in development** — this is a separate effort from TS 6.0; the compiler is being ported to Go/native code for a 10x+ speed improvement. No release date yet. When TS7 preview packages appear on npm, evaluate separately — it may require `tsconfig.json` adjustments and is distinct from the TS6 upgrade path.
 
 ### Zod v4
 
@@ -689,6 +691,7 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **Key breaking changes from v3**: `.transform()` and `.refine()` callback signatures are unchanged; `z.discriminatedUnion()` now requires a literal discriminator key and is stricter at compile time; `ZodError` shape is the same but `.format()` output may differ for nested errors — test existing Zod error display logic after upgrading from v3. `z.string().email()` and most validation methods remain compatible.
 - **LLM metadata**: Add `.describe("...")` to every schema field that will be consumed by an LLM or exposed as a tool definition — this is the single most impactful pattern for AI-optimized schemas: `z.string().uuid().describe('User identifier')`
 - **JSON Schema for tool calling**: `z.toJSONSchema(schema)` is **built-in in Zod v4** — no extra packages needed. Use it to generate tool/function specs for Amazon Bedrock (`tool_spec.inputSchema.json`), OpenAI function calling, or the Vercel AI SDK. Never write JSON Schema manually when a Zod schema already exists.
+- **JSON Schema → Zod** (v4.3.0+): `z.fromJSONSchema(schema)` is the inverse — converts an existing JSON Schema or OpenAPI definition into a Zod schema. Pair with `z.toJSONSchema()` when round-tripping between external tool specs and internal validation.
 - **Error display**: `z.prettifyError(result.error)` formats validation errors as readable text — replaces manual `.format()` calls
 - **Input vs Output types**: Use `z.input<typeof schema>` for the pre-transform shape (what APIs send), `z.infer<typeof schema>` (= `z.output<>`) for the post-transform shape (what your code uses)
 
@@ -699,6 +702,12 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **`use()` hook**: Can unwrap Promises and Context — useful in Server Components
 - **No `React.FC`**: Just write `function MyComponent({ prop }: { prop: string })` — no type annotation needed for the component itself
 - **React Compiler v1.0** (stable since Oct 2025): enabled in this template via `experimental.reactCompiler: true` in `next.config.ts`. The compiler automatically inserts `useMemo`, `useCallback`, and `memo` at compile time — **do not add these manually** unless you have measured a specific regression. The compiler is smarter than human judgment for most cases. If you see a lint rule or pattern suggesting to add `useMemo`/`useCallback`, verify the compiler hasn't already handled it. See `react.dev/learn/react-compiler`.
+
+### Zustand v5
+
+- **Install**: `pnpm add zustand` — current version is v5.0.11.
+- **Client-only**: Use Zustand for client-side UI state only — never for server data or SSR-fetched content; see `store/**` skill.
+- **`unstable_ssrSafe` middleware** (v5.0.9+): Experimental middleware designed for Next.js server rendering. Prevents hydration mismatches caused by Zustand stores being accessed during SSR. Usage: `create(unstable_ssrSafe(storeImplementation))`. Monitor until the `unstable_` prefix is dropped before adopting in production.
 
 ### GitHub Copilot Approval Modes & Model Selection
 

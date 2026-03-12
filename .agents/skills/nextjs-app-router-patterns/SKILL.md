@@ -560,24 +560,27 @@ async function Recommendations({ productId }: { productId: string }) {
 
 PPR combines a **static shell** (pre-rendered at build time, served from CDN) with **dynamic holes** (streamed in at request time). It is enabled globally or per-route.
 
+> **Migration**: `experimental.ppr` is `@deprecated` in Next.js 16 — use the top-level `cacheComponents: true` option instead. `cacheComponents: true` enables both PPR and the `'use cache'` directive.
+
 **Enable globally** in `next.config.ts`:
 
 ```ts
-experimental: {
-  ppr: true,
-}
+// ✅ Next.js 16 canonical — replaces deprecated experimental: { ppr: true }
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+};
 ```
 
-**Enable per-route (incremental)** when `ppr: 'incremental'`:
+**Enable per-route (incremental PPR opt-in)**:
 
 ```ts
 // next.config.ts
-experimental: {
-  ppr: "incremental";
-}
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+};
 
 // app/dashboard/page.tsx
-export const experimental_ppr = true; // opts this page in
+export const experimental_ppr = true; // opts this page into PPR
 ```
 
 **Structure**: Static shell + Suspense holes for dynamic content:

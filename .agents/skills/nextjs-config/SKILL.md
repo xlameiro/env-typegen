@@ -632,16 +632,26 @@ experimental: {
 
 ### `experimental.ppr` (Partial Prerendering)
 
+> ⚠️ **Deprecated in Next.js 16** — `experimental.ppr` has been merged into the top-level `cacheComponents` option. Use `cacheComponents: true` at the top level of `next.config.ts` instead.
+>
+> | Old (deprecated)                       | New (canonical, Next.js 16)                                                           |
+> | -------------------------------------- | ------------------------------------------------------------------------------------- |
+> | `experimental: { ppr: true }`          | `cacheComponents: true` (top-level)                                                   |
+> | `experimental: { ppr: 'incremental' }` | `cacheComponents: true` (top-level) + `export const experimental_ppr = true` per page |
+
 ```ts
+// ❌ Deprecated — do not use:
 experimental: {
   ppr: true,
-  // true: enables PPR for ALL routes
-  // 'incremental': enables PPR only on pages that export:
-  //   export const experimental_ppr = true
 }
+
+// ✅ Canonical Next.js 16 replacement:
+const nextConfig: NextConfig = {
+  cacheComponents: true,  // enables both PPR and the 'use cache' directive
+};
 ```
 
-See also: `experimental_ppr` as a per-page segment export (opt-in with `'incremental'` mode) — documented in the file-conventions skill segment config table.
+See also: `experimental_ppr` as a per-page segment export (opt-in incremental mode) — documented in the file-conventions skill segment config table.
 
 ---
 
@@ -650,10 +660,13 @@ See also: `experimental_ppr` as a per-page segment export (opt-in with `'increme
 Sets the **maximum size** of the postponed state body for PPR resume requests. This includes the Resume Data Cache (RDC), which can grow large for applications with many dynamic segments using `use cache`.
 
 ```ts
-experimental: {
-  ppr: true,
-  maxPostponedStateSize: '100mb',  // default: '100mb'
-}
+// next.config.ts
+const nextConfig: NextConfig = {
+  cacheComponents: true, // PPR enabled — use instead of deprecated experimental.ppr
+  experimental: {
+    maxPostponedStateSize: "100mb", // default: '100mb'
+  },
+};
 ```
 
 > Increase this limit if you see `MaxPostponedStateSizeExceeded` errors in production for pages with large dynamic payloads. The limit applies per request. Accepted values follow the `SizeLimit` format (`'50mb'`, `104857600`, etc.).
@@ -1567,7 +1580,7 @@ experimental: {
 }
 ```
 
-> Particularly useful with PPR (`experimental.ppr`) — Next.js can abort prerendering a static shell the moment it encounters a dynamic API call, rather than waiting for the component tree to fully render.
+> Particularly useful with PPR (`cacheComponents: true`) — Next.js can abort prerendering a static shell the moment it encounters a dynamic API call, rather than waiting for the component tree to fully render.
 
 ---
 

@@ -17,6 +17,8 @@ const KNOWN_FEEDS = {
     vscode: 'https://code.visualstudio.com/feed.xml',
     github: 'https://github.blog/feed/',
     copilot: 'https://github.blog/tag/github-copilot/feed/',
+    // AI provider — Anthropic's blog has no RSS; Claude Code releases are the best available signal
+    anthropic: 'https://github.com/anthropics/claude-code/releases.atom',
     // Library release notes (GitHub Releases Atom)
     zod: 'https://github.com/colinhacks/zod/releases.atom',
     zustand: 'https://github.com/pmndrs/zustand/releases.atom',
@@ -34,14 +36,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         {
             name: 'get_feed',
             description:
-                'Parse an RSS or Atom feed and return all available items. Supports named aliases for the Next.js stack: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
+                'Parse an RSS or Atom feed and return all available items. Supports named aliases for the Next.js stack: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "anthropic", "zod", "zustand", "vitest", "playwright".',
             inputSchema: {
                 type: 'object',
                 properties: {
                     url: {
                         type: 'string',
                         description:
-                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
+                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "anthropic", "zod", "zustand", "vitest", "playwright".',
                     },
                 },
                 required: ['url'],
@@ -57,7 +59,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                     url: {
                         type: 'string',
                         description:
-                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "zod", "zustand", "vitest", "playwright".',
+                            'Feed URL or known alias: "nextjs", "typescript", "tailwindcss", "react", "vscode", "github", "copilot", "anthropic", "zod", "zustand", "vitest", "playwright".',
                     },
                     limit: {
                         type: 'number',

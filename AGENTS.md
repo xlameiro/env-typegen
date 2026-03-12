@@ -439,6 +439,14 @@ Shows what percentage of the model's context window is consumed by installed too
 
 **VS Code ↔ CLI continuity**: open the CLI inside VS Code's integrated terminal — it reads open files and shows diffs in VS Code's diff viewer. Sessions can be resumed from either surface with `gh copilot resume`.
 
+**Request Copilot code review from the terminal**:
+
+```bash
+gh pr review --request-review copilot
+```
+
+Requests a Copilot review on the open PR directly from the terminal — no need to visit GitHub.com. Combine with `gh pr create --draft` for a fully terminal-driven PR workflow: open draft → Copilot reviews → address comments → mark ready.
+
 **Message Steering — ajustar al vuelo**:
 While the agent is working, send a follow-up message in the chat with additional details or corrections — the agent incorporates it **mid-flight** without stopping or waiting. No need to cancel and restart the session to add context.
 
