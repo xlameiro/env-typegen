@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  flatted: ">=3.4.0"
+  undici: ">=7.24.0"
+
 importers:
   .:
     dependencies:
@@ -3464,10 +3468,10 @@ packages:
       }
     engines: { node: ">=16" }
 
-  flatted@3.3.4:
+  flatted@3.4.1:
     resolution:
       {
-        integrity: sha512-3+mMldrTAPdta5kjX2G2J7iX4zxtnwpdA8Tr2ZSjkyPSanvbZAcy6flmtnXbEybHrDcU9641lxrMfFuUxVz9vA==,
+        integrity: sha512-IxfVbRFVlV8V/yRaGzk0UVIcsKKHMSfYw66T/u4nTwlWteQePsxe//LjudR1AMX4tZW3WFCh3Zqa/sjlqpbURQ==,
       }
 
   for-each@0.3.5:
@@ -5682,10 +5686,10 @@ packages:
         integrity: sha512-RKZvifiL60xdsIuC80UY0dq8Z7DbJUV8/l2hOVbyZAxBzEeQU4Z58+4ZzJ6WN2Lidi9KzT5EbiGX+PI/UGYuRw==,
       }
 
-  undici@7.22.0:
+  undici@7.24.1:
     resolution:
       {
-        integrity: sha512-RqslV2Us5BrllB+JeiZnK4peryVTndy9Dnqq62S3yYRRTj0tFQCwEniUy2167skdGOy3vqRzEvl1Dm4sV2ReDg==,
+        integrity: sha512-5xoBibbmnjlcR3jdqtY2Lnx7WbrD/tHlT01TmvqZUFVc9Q1w4+j5hbnapTqbcXITMH1ovjq/W7BkqBilHiVAaA==,
       }
     engines: { node: ">=20.18.1" }
 
@@ -8045,10 +8049,10 @@ snapshots:
 
   flat-cache@4.0.1:
     dependencies:
-      flatted: 3.3.4
+      flatted: 3.4.1
       keyv: 4.5.4
 
-  flatted@3.3.4: {}
+  flatted@3.4.1: {}
 
   for-each@0.3.5:
     dependencies:
@@ -8416,7 +8420,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
-      undici: 7.22.0
+      undici: 7.24.1
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -9384,7 +9388,7 @@ snapshots:
 
   undici-types@7.22.0: {}
 
-  undici@7.22.0: {}
+  undici@7.24.1: {}
 
   unrs-resolver@1.11.1:
     dependencies:

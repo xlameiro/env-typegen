@@ -41,7 +41,11 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "husky"
-    ]
+    ],
+    "overrides": {
+      "flatted": ">=3.4.0",
+      "undici": ">=7.24.0"
+    }
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

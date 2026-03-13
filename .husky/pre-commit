@@ -8,7 +8,10 @@ set -e
 echo "🔐 Scanning staged changes for secrets..."
 sh .github/hooks/scripts/git-secret-scan.sh
 
-echo "🔍 Running lint-staged on staged files..."
+echo "�️ Checking for known vulnerabilities (pnpm audit)..."
+pnpm audit --audit-level=moderate
+
+echo "�🔍 Running lint-staged on staged files..."
 pnpm exec lint-staged
 
 echo "🔷 Running TypeScript type check..."
