@@ -1,3 +1,7 @@
+/**
+ * @template-example
+ * RHF + Zod form demo — delete with app/profile/.
+ */
 "use client";
 
 import { Button } from "@/components/ui/button";

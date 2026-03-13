@@ -27,27 +27,28 @@ pnpm install    # also runs postinstall → auto-creates .env.local with a gener
 Files marked **Example** ship as working demonstrations. When starting a new project, **replace or delete them** — never add new pages alongside them.
 Files marked **Scaffold** are infrastructure-level. Keep and extend them.
 
-| File / Directory    | Type                                         | Action                                         |
-| ------------------- | -------------------------------------------- | ---------------------------------------------- |
-| `app/page.tsx`      | **Example** — template home page             | Replace with your home page                    |
-| `app/dashboard/`    | **Example** — fake stats + search + Suspense | Replace or delete entirely                     |
-| `app/profile/`      | **Example** — RHF + Server Action demo       | Replace or delete                              |
-| `app/settings/`     | **Example** — Zustand theme toggle demo      | Replace or delete                              |
-| `app/auth/`         | **Example** — Google OAuth pages             | Keep if using auth; delete if not              |
-| `lib/stats.ts`      | **Example** — fake dashboard data            | Delete with `app/dashboard/`                   |
-| `lib/constants.ts`  | **Scaffold**                                 | Keep — update `APP_NAME` etc.                  |
-| `lib/env.ts`        | **Scaffold**                                 | Keep — add/remove env vars                     |
-| `lib/errors.ts`     | **Scaffold**                                 | Keep                                           |
-| `lib/utils.ts`      | **Scaffold**                                 | Keep                                           |
-| `lib/schemas/`      | **Scaffold**                                 | Keep; extend with your schemas                 |
-| `components/ui/`    | **Scaffold**                                 | Keep; build new UI on top                      |
-| `hooks/`            | **Scaffold**                                 | Keep; extend                                   |
-| `store/`            | **Scaffold**                                 | Keep if using client state                     |
-| `proxy.ts`          | **Scaffold**                                 | Keep with auth; simplify to passthrough if not |
-| `app/layout.tsx`    | **Scaffold**                                 | Keep — update metadata                         |
-| `app/globals.css`   | **Scaffold**                                 | Keep — add design tokens                       |
-| `app/error.tsx`     | **Scaffold**                                 | Keep                                           |
-| `app/not-found.tsx` | **Scaffold**                                 | Keep                                           |
+| File / Directory                | Type                                            | Action                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/page.tsx`                  | **Example** — template home page                | Replace with your home page                                                                                                             |
+| `app/dashboard/`                | **Example** — fake stats + search + Suspense    | Replace or delete entirely                                                                                                              |
+| `app/profile/`                  | **Example** — RHF + Server Action demo          | Replace or delete                                                                                                                       |
+| `app/settings/`                 | **Example** — Zustand theme toggle demo         | Replace or delete                                                                                                                       |
+| `app/auth/`                     | **Example** — Google OAuth pages                | Keep if using auth; delete if not                                                                                                       |
+| `components/ui/google-icon.tsx` | **Example** — Google SVG icon for OAuth buttons | Delete with `app/auth/` if removing auth                                                                                                |
+| `lib/stats.ts`                  | **Example** — fake dashboard data               | Delete with `app/dashboard/`                                                                                                            |
+| `lib/constants.ts`              | **Scaffold**                                    | Keep — update `APP_NAME` etc.                                                                                                           |
+| `lib/env.ts`                    | **Scaffold**                                    | Keep — add/remove env vars                                                                                                              |
+| `lib/errors.ts`                 | **Scaffold**                                    | Keep                                                                                                                                    |
+| `lib/utils.ts`                  | **Scaffold**                                    | Keep                                                                                                                                    |
+| `lib/schemas/`                  | **Scaffold** (partial example)                  | Keep; `userSchema`/`updateUserSchema` are only used by `app/profile/` — run `pnpm knip` after `clean:examples` to spot orphaned exports |
+| `components/ui/`                | **Scaffold**                                    | Keep; build new UI on top                                                                                                               |
+| `hooks/`                        | **Scaffold**                                    | Keep; extend                                                                                                                            |
+| `store/`                        | **Scaffold** (partial example)                  | Keep; `sidebarOpen` state is only used by `app/settings/` — `pnpm clean:examples` strips it automatically                               |
+| `proxy.ts`                      | **Scaffold**                                    | Keep with auth; simplify to passthrough if not                                                                                          |
+| `app/layout.tsx`                | **Scaffold**                                    | Keep — update metadata                                                                                                                  |
+| `app/globals.css`               | **Scaffold**                                    | Keep — add design tokens                                                                                                                |
+| `app/error.tsx`                 | **Scaffold**                                    | Keep                                                                                                                                    |
+| `app/not-found.tsx`             | **Scaffold**                                    | Keep                                                                                                                                    |
 
 ### Rule: Replace, never add
 

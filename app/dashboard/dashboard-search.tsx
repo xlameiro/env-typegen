@@ -1,3 +1,7 @@
+/**
+ * @template-example
+ * nuqs demo — URL-synced search and pagination. Delete with app/dashboard/.
+ */
 "use client";
 
 // nuqs example: URL-synced state for search and pagination.

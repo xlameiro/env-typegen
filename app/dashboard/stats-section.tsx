@@ -1,3 +1,7 @@
+/**
+ * @template-example
+ * Streaming/Suspense demo — delete with app/dashboard/ and lib/stats.ts.
+ */
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStats } from "@/lib/stats";
 

@@ -1,3 +1,7 @@
+/**
+ * @template-example
+ * Server Action demo — delete with app/profile/.
+ */
 "use server";
 
 import { requireAuth } from "@/lib/auth";

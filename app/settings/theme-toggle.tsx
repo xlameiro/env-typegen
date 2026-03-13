@@ -1,3 +1,7 @@
+/**
+ * @template-example
+ * Zustand theme toggle demo — delete with app/settings/.
+ */
 "use client";
 
 import { Button } from "@/components/ui/button";
