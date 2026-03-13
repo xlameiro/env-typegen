@@ -5,16 +5,10 @@
       "type": "promptString",
       "description": "API key for authentication",
       "password": true
-    },
-    {
-      "id": "Authorization",
-      "type": "promptString",
-      "description": "GitHub PAT — required scopes: repo (read/write), read:org, issues (read/write), pull_requests (read/write). Format: Bearer ghp_...",
-      "password": true
     }
   ],
   "servers": {
-    "io.github.upstash/context7": {
+    "context7": {
       "type": "stdio",
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"],
@@ -27,7 +21,7 @@
       "args": ["-y", "shadcn", "mcp"],
       "type": "stdio"
     },
-    "microsoft/playwright-mcp": {
+    "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"],
       "type": "stdio"
@@ -37,17 +31,10 @@
       "args": ["-y", "next-devtools-mcp"],
       "type": "stdio"
     },
-    "microsoft/markitdown-mcp": {
+    "markitdown": {
       "type": "stdio",
       "command": "uvx",
       "args": ["markitdown-mcp"]
-    },
-    "io.github.github/github-mcp-server": {
-      "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/",
-      "headers": {
-        "Authorization": "${input:Authorization}"
-      }
     },
     "youtube-transcript": {
       "command": "sh",
