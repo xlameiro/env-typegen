@@ -11,16 +11,18 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
+const DEFAULT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+};
+
 /**
  * Format a date to a locale string.
  */
 export function formatDate(
   date: Date | string | number,
-  options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  },
+  options: Intl.DateTimeFormatOptions = DEFAULT_DATE_OPTIONS,
   locale = "en-US",
 ): string {
   return new Intl.DateTimeFormat(locale, options).format(new Date(date));

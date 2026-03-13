@@ -109,13 +109,22 @@ export function FormMessage({ type = "info", message }: FormMessageProps) {
     info: "bg-accent text-accent-foreground border-border",
   };
 
+  if (type === "error") {
+    return (
+      <div
+        role="alert"
+        aria-live="assertive"
+        className={cn("rounded-md border px-4 py-3 text-sm", styles[type])}
+      >
+        {message}
+      </div>
+    );
+  }
+
+  // <output> has implicit role="status" — semantically correct for live regions
   return (
-    <div
-      role={type === "error" ? "alert" : "status"}
-      aria-live={type === "error" ? "assertive" : "polite"}
-      className={cn("rounded-md border px-4 py-3 text-sm", styles[type])}
-    >
+    <output className={cn("rounded-md border px-4 py-3 text-sm", styles[type])}>
       {message}
-    </div>
+    </output>
   );
 }

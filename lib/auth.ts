@@ -7,7 +7,7 @@ import "server-only";
  * Returns the current session server-side.
  * Use in Server Components, Server Actions, and Route Handlers.
  */
-export { auth as getSession };
+export { auth as getSession } from "@/auth";
 
 /**
  * Returns the current session or throws if the user is not authenticated.

@@ -5,7 +5,8 @@ import { ImageResponse } from "next/og";
 // The build warning about "disables static generation" is expected and harmless:
 // OG images are always dynamically generated and never statically pre-rendered.
 export const runtime = "edge";
-export const alt = APP_NAME;
+// APP_NAME is also used in JSX below; export...from avoids an intermediate const.
+export { APP_NAME as alt } from "@/lib/constants";
 
 export const size = { width: 1200, height: 630 };
 
