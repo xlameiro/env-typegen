@@ -31,9 +31,9 @@
  *   pnpm clean:examples
  */
 
-import { rm, writeFile, unlink } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { rm, unlink, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -185,18 +185,26 @@ async function main() {
   await removeFile("tests/settings.spec.ts");
 
   // Rewrite the Zustand store — strip example-only sidebarOpen state
-  await writeFile(join(ROOT, "store/use-app-store.ts"), CLEAN_APP_STORE, "utf-8");
+  await writeFile(
+    join(ROOT, "store/use-app-store.ts"),
+    CLEAN_APP_STORE,
+    "utf-8",
+  );
   info("  ✓ Rewrote store/use-app-store.ts →  sidebar state removed");
 
-  await writeFile(join(ROOT, "store/use-app-store.test.ts"), CLEAN_APP_STORE_TEST, "utf-8");
+  await writeFile(
+    join(ROOT, "store/use-app-store.test.ts"),
+    CLEAN_APP_STORE_TEST,
+    "utf-8",
+  );
   info("  ✓ Rewrote store/use-app-store.test.ts →  sidebar tests removed");
 
   info("\n✅  Done! Example pages removed.\n");
 
   info(
     "⚠️   Orphaned exports remain in lib/schemas/user.schema.ts:\n" +
-    "    userSchema, createUserSchema, updateUserSchema (only used by app/profile/).\n" +
-    "    Run `pnpm knip` to locate and remove them.\n",
+      "    userSchema, createUserSchema, updateUserSchema (only used by app/profile/).\n" +
+      "    Run `pnpm knip` to locate and remove them.\n",
   );
 
   info("Next steps:");
@@ -213,7 +221,9 @@ async function main() {
   info(
     "  5. No auth needed?           →  Delete app/auth/ + components/ui/google-icon.tsx",
   );
-  info("                                 + tests/auth.spec.ts + tests/sign-in.spec.ts");
+  info(
+    "                                 + tests/auth.spec.ts + tests/sign-in.spec.ts",
+  );
   info("     and simplify proxy.ts:");
   info("     export default function () {}");
   info("     export const config = { matcher: [] };");
@@ -222,7 +232,9 @@ async function main() {
   );
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error("\n❌  Error:", error.message);
   process.exit(1);
-});
+}

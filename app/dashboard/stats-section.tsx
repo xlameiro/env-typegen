@@ -27,7 +27,7 @@ export async function StatsSection() {
       >
         Overview
       </h2>
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3" role="list">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((stat) => (
           <li
             key={stat.label}

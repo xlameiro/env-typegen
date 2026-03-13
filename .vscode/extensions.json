@@ -26,6 +26,9 @@
 
     // DX utilities
     "aaron-bond.better-comments",
-    "christian-kohler.path-intellisense"
+    "christian-kohler.path-intellisense",
+
+    // SonarQube
+    "sonarsource.sonarlint-vscode"
   ]
 }

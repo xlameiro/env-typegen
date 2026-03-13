@@ -33,7 +33,8 @@ export function ThemeToggle() {
       <p className="mt-1 text-sm text-muted-foreground">
         Choose how the interface looks. Changes take effect immediately.
       </p>
-      <div className="mt-4 flex gap-2" role="group" aria-label="Select theme">
+      <fieldset className="mt-4 flex gap-2">
+        <legend className="sr-only">Select theme</legend>
         {themeOptions.map(({ value, label }) => (
           <Button
             key={value}
@@ -45,7 +46,7 @@ export function ThemeToggle() {
             {label}
           </Button>
         ))}
-      </div>
+      </fieldset>
     </section>
   );
 }

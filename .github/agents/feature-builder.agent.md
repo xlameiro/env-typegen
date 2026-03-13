@@ -159,6 +159,10 @@ tools:
     youtube-transcript/get_transcript,
     vscode.mermaid-chat-features/renderMermaidDiagram,
     todo,
+    sonarsource.sonarlint-vscode/sonarqube_getPotentialSecurityIssues,
+    sonarsource.sonarlint-vscode/sonarqube_excludeFiles,
+    sonarsource.sonarlint-vscode/sonarqube_setUpConnectedMode,
+    sonarsource.sonarlint-vscode/sonarqube_analyzeFile,
   ]
 ---
 
