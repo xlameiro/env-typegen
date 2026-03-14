@@ -359,6 +359,13 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/explicit-module-boundary-types": "off",
     },
   },
+  // Disable no-floating-promises for profile-form.tsx to avoid false positive with useActionState
+  {
+    files: ["app/profile/profile-form.tsx"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
