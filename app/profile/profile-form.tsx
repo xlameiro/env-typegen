@@ -44,10 +44,8 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
 
   return (
     <form
-      // eslint rule no-misused-promises fires on RHF's handleSubmit because it returns Promise<void>.
-      // Wrapping with void satisfies the attribute's void return expectation.
       onSubmit={(event) => {
-        void handleSubmit(handleFormSubmit)(event);
+        handleSubmit(handleFormSubmit)(event);
       }}
       noValidate
       className="space-y-6 rounded-lg border border-border bg-background p-6"
