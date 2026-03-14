@@ -257,4 +257,185 @@ Do not create example/demo files (like ModalExample.tsx) in the main codebase un
   - `resolve_library_id` to resolve the package/library name in the docs.
   - `get_library_docs` for up-to-date documentation.
 
+## 12. Parallel Routes & Intercepting Routes
+
+### 12.1 Decision Matrix — When to use each pattern
+
+**Use Parallel Routes when:**
+
+- A dashboard needs multiple independent sections that fetch data at different speeds — each slot gets its own `loading.tsx` and streams independently
+- Different sections of the same URL must independently handle errors (`error.tsx` per slot)
+- You need to conditionally render entirely different UI trees based on user role (admin vs user layout) at the same URL
+- You need tab groups where independent sub-navigation lives inside a slot
+
+**Use Intercepting Routes (combined with Parallel Routes) when:**
+
+- Clicking an item in a list/gallery should open a modal that has its own deep-linkable URL
+- Refreshing that URL should show a standalone full page — not the modal overlay
+- A login/auth flow should optionally appear as a modal overlay on the current page but also work as a standalone page at `/login`
+
+**Do NOT use Parallel/Intercepting Routes when:**
+
+- You need a simple toggle-open dialog — use Radix UI `<Dialog>` or shadcn/ui `<Dialog>` with `useState` instead
+- Navigation state doesn't need to be in the URL (e.g., a settings panel opened by a button)
+- The modal content has no shareable URL requirement
+- The team is unfamiliar with the pattern — incorrect `default.tsx` placement causes build failures that are hard to diagnose
+
+### 12.2 Parallel Routes — `@slot` convention
+
+Parallel routes use the `@folder` convention. Slots are passed as props to the parent layout and do **not** affect the URL structure.
+
+```
+app/
+  @analytics/
+    page.tsx           ← rendered as `analytics` prop in layout
+    loading.tsx        ← independent loading state for this slot
+    error.tsx          ← independent error boundary for this slot
+    default.tsx        ← REQUIRED: fallback on hard navigation (see §12.3)
+  @team/
+    page.tsx
+    default.tsx        ← REQUIRED
+  layout.tsx           ← receives { children, analytics, team } as props
+  page.tsx
+```
+
+The layout receives slots as props:
+
+```tsx
+export default function DashboardLayout({
+  children,
+  analytics,
+  team,
+}: {
+  children: React.ReactNode;
+  analytics: React.ReactNode;
+  team: React.ReactNode;
+}) {
+  return (
+    <div>
+      {children}
+      {analytics}
+      {team}
+    </div>
+  );
+}
+```
+
+`children` is an implicit slot — `app/page.tsx` is equivalent to `app/@children/page.tsx`. If sub-routes exist that don't have a matching `page.tsx` for a given URL, you may also need `default.tsx` for the implicit `children` slot.
+
+**Conditional routes (role-based layout):** Parallel routes can render different UI trees based on user role at the same URL — render `admin` or `user` slot based on `checkUserRole()` inside the layout. See Pattern 4 in `.agents/skills/nextjs-app-router-patterns/SKILL.md` for the full code.
+
+### 12.3 `default.tsx` is required — build error without it
+
+In Next.js 16, every `@slot` directory must have a `default.tsx` for URLs that don't match a page in that slot. Without it, hard navigation (browser refresh or direct URL) causes a **404 build failure** — not a silent empty render.
+
+```tsx
+// app/@modal/default.tsx — renders nothing when no modal is active
+export default function Default() {
+  return null;
+}
+```
+
+**Soft vs hard navigation behavior:**
+
+| Navigation type             | Slot behavior                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| Soft (`<Link>` client-side) | Next.js remembers the last active subpage — unmatched slots keep their previous state |
+| Hard (refresh / direct URL) | Falls back to `default.tsx` — 404 if absent                                           |
+
+**Rule:** When creating any `@slot` directory, add `default.tsx` returning `null` before adding `page.tsx`.
+
+### 12.4 All slots at the same level must share the same render mode
+
+With `cacheComponents: true`, if one `@slot` page uses `cookies()`, `headers()`, or other dynamic APIs, **all other slots at the same URL segment level must also be dynamic**. Mixing static and dynamic slots at the same segment level is a build error.
+
+- Put data-fetching and caching logic inside each slot's own `page.tsx` or data functions — not in the shared parent layout
+- Use `cacheLife()` + `cacheTag()` inside each slot's data functions to control caching per-slot independently where possible
+- If one slot must be dynamic, wrap it in `<Suspense>` with a skeleton fallback so the static shell still renders quickly
+
+**`useSelectedLayoutSegment` for tab groups** — reads the active route segment inside a named slot. The parent layout must be a Client Component to call this hook:
+
+```tsx
+"use client";
+import { useSelectedLayoutSegment } from "next/navigation";
+
+export default function DashboardLayout({
+  children,
+  analytics,
+}: {
+  children: React.ReactNode;
+  analytics: React.ReactNode;
+}) {
+  // Pass the slot name (without @) as the parallelRoutesKey
+  const activeTab = useSelectedLayoutSegment("analytics"); // e.g. 'page-views' | 'visitors' | null
+  return (
+    <div>
+      <main>{children}</main>
+      <aside>{analytics}</aside>
+    </div>
+  );
+}
+```
+
+> Note: using `useSelectedLayoutSegment` forces the layout to be a Client Component. If the layout also does data fetching, extract that logic into a separate async Server Component child.
+
+### 12.5 Intercepting Routes — conventions and modal pattern
+
+Intercepting routes allow you to display a route's content inside the current layout as an overlay, while the URL updates to the target route. On hard navigation (refresh/direct URL), the full standalone page renders instead — no overlay.
+
+**The four conventions (based on URL segments, not filesystem depth):**
+
+| Convention       | Matches                | Example                                                                  |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------ |
+| `(.)folder`      | Same URL segment level | `app/@modal/(.)photos/[id]` intercepts `app/photos/[id]`                 |
+| `(..)folder`     | One URL level up       | `app/feed/@modal/(..)photo/[id]` intercepts `app/photo/[id]`             |
+| `(..)(..)folder` | Two URL levels up      | Rarely needed                                                            |
+| `(...)folder`    | Root `app` directory   | `app/feed/@modal/(...)photo/[id]` intercepts `/photo/[id]` from anywhere |
+
+> **Critical:** `(..)` counts **URL segments**, not filesystem folders. `@slot` directories are invisible to `(..)`. Route groups `(auth)` are also invisible. Count only real URL-visible segments. Using `(..)` at the root `app` level is a build error — use `(.)` instead.
+
+**File structure for the photo-modal pattern:**
+
+```
+app/
+  @modal/
+    (.)photos/[id]/
+      page.tsx       ← shown as modal on soft navigation (client-side <Link>)
+    default.tsx      ← REQUIRED: returns null when no modal is active
+  photos/
+    [id]/
+      page.tsx       ← shown as full standalone page on hard navigation
+  layout.tsx         ← exposes the @modal slot alongside children
+```
+
+**Closing the modal:**
+
+```tsx
+// Option A — router.back(): uses browser history
+// ✅ Correct when the user navigated to the modal from the gallery
+"use client";
+import { useRouter } from "next/navigation";
+export function Modal({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  return (
+    <>
+      <button onClick={() => router.back()}>Close</button>
+      {children}
+    </>
+  );
+}
+
+// Option B — catch-all null route: required when using <Link> to navigate away
+// Client-side navigations don't auto-reset unmatched slots — the modal stays visible
+// unless the slot has a matching route that returns null
+// app/@modal/[...catchAll]/page.tsx
+export default function CatchAll() {
+  return null;
+}
+```
+
+> `router.back()` without prior history (user opened modal URL directly) navigates to `browser:blank`. Guard against this with `window.history.length > 1` if needed. See Pattern 5 in `.agents/skills/nextjs-app-router-patterns/SKILL.md` for the full implementation.
+
+See `.agents/skills/nextjs-app-router-patterns/SKILL.md` (Pattern 4 and Pattern 5) for complete, copy-paste-ready code examples.
+
 ## Learnings

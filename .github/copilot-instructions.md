@@ -650,6 +650,47 @@ export function useMDXComponents() {
 }
 ```
 
+### 16. Missing `default.tsx` in a parallel route slot → 404 on hard navigation
+
+In Next.js 16, every `@slot` directory must have a `default.tsx` that covers unmatched URLs. Without it, a hard navigation (browser refresh or direct URL) to any URL that doesn't exactly match a page in that slot causes a **404** — not a silent empty render.
+
+```tsx
+// ❌ Bad: @analytics/page.tsx exists but @analytics/default.tsx is missing
+// Navigate to /dashboard/settings → hard reload → 404 for the entire page
+
+// ✅ Good: every @slot directory has default.tsx
+// app/@analytics/default.tsx
+export default function Default() {
+  return null; // render nothing when this slot has no match for the current URL
+}
+```
+
+**Rule:** When creating any `@slot` directory, add `default.tsx` returning `null` as the **first** file — before `page.tsx`.
+
+### 17. `(..)` in intercepting routes counts URL segments, not filesystem folders
+
+The `(..)` interception convention counts **URL segment levels**, not directories on disk. `@slot` directories and route groups `(auth)` are both invisible to `(..)` — they don't count as levels.
+
+```tsx
+// ❌ Wrong: developer sees two filesystem levels and writes (..)(..)
+// app/feed/@modal/(..)(..)photo/[id]/page.tsx
+// Actual URL path to intercept: /photo/123 → one segment above /feed
+// Correct answer: (..) not (..)(..)
+
+// ✅ Correct: count URL segments the user sees in the browser bar only
+// To intercept /photo/[id] from within /feed:
+app/feed/@modal/(.. )photo/[id]/page.tsx  // one URL level up
+// @modal is invisible (slot) — does not count
+// (feed) route groups are also invisible — do not count
+```
+
+**Counting rules:**
+
+- `@folder` (slot) → **does not count** as a URL level
+- `(group)` (route group) → **does not count** as a URL level
+- `folder` (regular segment) → **counts** as one URL level
+- Using `(..)` at the root `app` level is a **build error** — use `(.)` instead
+
 ## Personal Preferences
 
 ### Branching Strategy — Trunk-Based Development (TBD)
