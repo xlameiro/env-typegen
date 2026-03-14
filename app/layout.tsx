@@ -1,5 +1,6 @@
 import { SkipLink } from "@/components/skip-link";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ANTI_FOUC_SCRIPT } from "@/lib/anti-fouc-script";
 import {
   APP_DESCRIPTION,
   APP_LOCALE,
@@ -69,15 +70,11 @@ export default function RootLayout({
       {/*
        * Apply the dark class before first paint to prevent a flash of the light
        * theme for users who have manually selected dark mode via ThemeToggle.
-       * The script content is static — its sha256 hash is allow-listed in
-       * proxy.ts script-src, so no per-request nonce is needed here. This keeps
-       * the root layout synchronous, which is required for PPR (cacheComponents).
+       * Script content lives in lib/anti-fouc-script.ts — its sha256 hash is
+       * allow-listed in proxy.ts script-src, so no per-request nonce is needed.
+       * This keeps the root layout synchronous, which is required for PPR.
        */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `try{var s=localStorage.getItem('app-store');if(s&&JSON.parse(s).state?.theme==='dark')document.documentElement.classList.add('dark')}catch(e){}`,
-        }}
-      />
+      <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

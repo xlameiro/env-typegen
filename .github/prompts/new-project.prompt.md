@@ -72,7 +72,48 @@ Based on the user's description, create or replace pages as needed.
 
 ---
 
-## Step 6 — Run quality gate
+## Step 6 — Update security.txt
+
+Replace the placeholder values in `public/.well-known/security.txt`:
+
+```
+Contact: mailto:<real-security-email@your-domain.com>
+Policy: https://github.com/<YOUR_ORG>/<YOUR_REPO>/blob/main/SECURITY.md
+```
+
+Set `Contact` to the actual security contact email for this project.
+Set `Policy` to the real GitHub URL for `SECURITY.md` in this repository.
+Update `Expires` to one year from today (ISO 8601 format: `YYYY-MM-DDTHH:MM:SS.000Z`).
+
+If the project does not yet have a security contact, use the repository owner's email as a temporary value and add a TODO comment above the `Contact` line.
+
+---
+
+## Step 7 — Configure branch protection
+
+Enable branch protection on `main` so Dependabot auto-merge only triggers after CI passes.
+Run this once using the GitHub CLI (requires `gh` to be authenticated):
+
+```bash
+gh api repos/{owner}/{repo}/branches/main/protection \
+  --method PUT \
+  --input - <<'EOF'
+{
+  "required_status_checks": { "strict": true, "contexts": ["Quality Gate", "E2E Tests"] },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null
+}
+EOF
+```
+
+Replace `{owner}` and `{repo}` with the actual GitHub org/user and repository name.
+
+If the CI workflow names are different in this project, update `contexts` to match the job names in `.github/workflows/ci.yml`.
+
+---
+
+## Step 8 — Run quality gate
 
 ```bash
 pnpm lint && pnpm type-check && pnpm test && pnpm build
