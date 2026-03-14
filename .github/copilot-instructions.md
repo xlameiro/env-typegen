@@ -679,7 +679,7 @@ The `(..)` interception convention counts **URL segment levels**, not directorie
 
 // ✅ Correct: count URL segments the user sees in the browser bar only
 // To intercept /photo/[id] from within /feed:
-app/feed/@modal/(.. )photo/[id]/page.tsx  // one URL level up
+app/feed/@modal/(..)photo/[id]/page.tsx   // one URL level up
 // @modal is invisible (slot) — does not count
 // (feed) route groups are also invisible — do not count
 ```
