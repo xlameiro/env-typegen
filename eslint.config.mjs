@@ -1,3 +1,4 @@
+import eslintConfigPrettier from "eslint-config-prettier";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import sonarjs from "eslint-plugin-sonarjs";
@@ -423,6 +424,9 @@ const eslintConfig = defineConfig([
       "max-lines": "off",
     },
   },
+  // eslint-config-prettier must be last — disables all ESLint rules that Prettier handles,
+  // preventing conflicts between ESLint formatting rules and Prettier output.
+  eslintConfigPrettier,
 ]);
 
 export default eslintConfig;

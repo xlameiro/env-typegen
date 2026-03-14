@@ -36,20 +36,31 @@ components/
   ui/                   # Reusable UI primitives
     badge.tsx           # Badge (variants: default, success, warning, danger…)
     button.tsx          # Button (variants + sizes + loading state)
+    button-link.tsx     # ButtonLink — semantic <a> with button styles (CVA)
     card.tsx            # Card, CardHeader, CardTitle, CardContent, CardFooter
+    form.tsx            # FormField, FormInput, FormError — accessible RHF wrappers
+    google-icon.tsx     # Google SVG icon for OAuth sign-in buttons
+    skeleton.tsx        # Skeleton loading placeholder
 hooks/                  # Client-side React hooks
   use-debounce.ts
-lib/                    # Shared utilities + configuration
+  lib/                    # Shared utilities + configuration
   auth.ts               # getSession(), requireAuth() server helpers
   constants.ts          # APP_NAME, ROUTES, API_ROUTES
+  dates.ts              # Temporal-based date utilities (formatDate, toISOString…)
+  errors.ts             # Typed AppError class and error helpers
+  env.ts                # @t3-oss/env-nextjs validated environment variables
+  rate-limit.ts         # In-memory sliding window rate limiter
   schemas/
     user.schema.ts      # Zod v4 schemas: signIn, signUp, user CRUD
   utils.ts              # cn(), formatDate(), formatCurrency(), truncate()
 store/                  # Zustand stores
   use-app-store.ts      # theme + sidebar, persisted to localStorage
 tests/                  # Playwright E2E tests
-  auth.spec.ts
-  home.spec.ts
+  auth.spec.ts          # Auth page rendering + redirect behaviour
+  dashboard.spec.ts     # Dashboard unauthenticated redirect
+  home.spec.ts          # Home page content
+  profile.spec.ts       # Profile unauthenticated redirect
+  settings.spec.ts      # Settings unauthenticated redirect
 types/
   index.ts              # ApiResponse<T>, PaginatedResponse<T>, Theme, Status…
 auth.ts                 # Auth.js v5 config (Google, session callbacks)
@@ -58,7 +69,6 @@ playwright.config.ts
 vitest.config.ts
 vitest.setup.ts
 commitlint.config.ts
-lint-staged.config.ts
 ```
 
 ## Getting Started

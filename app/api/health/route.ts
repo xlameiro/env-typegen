@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Temporal } from "temporal-polyfill";
 
 // Shape of the JSON body returned by the health endpoint.
 export type HealthResponse = {
@@ -11,6 +12,6 @@ export type HealthResponse = {
 export function GET(): NextResponse<HealthResponse> {
   return NextResponse.json({
     status: "ok",
-    timestamp: new Date().toISOString(),
+    timestamp: Temporal.Now.instant().toString(),
   });
 }

@@ -17,10 +17,21 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // ─── SETUP ─────────────────────────────────────────────────────────────
+    // Runs auth.setup.ts once to create playwright/.auth/user.json.
+    // Usage: pnpm exec playwright test --project=setup
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    // ─── UNAUTHENTICATED (default) ─────────────────────────────────────────
     // Chromium always runs — in CI this is the only browser to keep the suite fast.
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      // Exclude authenticated tests from the default run — they require setup first.
+      testIgnore: /authenticated\.spec\.ts/,
     },
     // Additional browsers run locally only — cross-browser coverage for development.
     ...(process.env.CI
@@ -29,16 +40,33 @@ export default defineConfig({
           {
             name: "firefox",
             use: { ...devices["Desktop Firefox"] },
+            testIgnore: /authenticated\.spec\.ts/,
           },
           {
             name: "webkit",
             use: { ...devices["Desktop Safari"] },
+            testIgnore: /authenticated\.spec\.ts/,
           },
           {
             name: "Mobile Chrome",
             use: { ...devices["Pixel 5"] },
+            testIgnore: /authenticated\.spec\.ts/,
           },
         ]),
+
+    // ─── AUTHENTICATED ─────────────────────────────────────────────────────
+    // Runs authenticated.spec.ts with the stored session from auth.setup.ts.
+    // Requires playwright/.auth/user.json — run setup first.
+    // Usage: pnpm exec playwright test --project=chromium-authenticated
+    {
+      name: "chromium-authenticated",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "./playwright/.auth/user.json",
+      },
+      testMatch: /authenticated\.spec\.ts/,
+      dependencies: ["setup"],
+    },
   ],
   webServer: {
     command: "pnpm build && pnpm start",

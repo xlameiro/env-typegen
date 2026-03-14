@@ -1,4 +1,4 @@
-import { ROUTES } from "@/lib/constants";
+import { APP_LOCALE, ROUTES } from "@/lib/constants";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -22,7 +22,7 @@ export { formatDate } from "@/lib/dates";
 export function formatCurrency(
   amount: number,
   currency = "USD",
-  locale = "en-US",
+  locale = APP_LOCALE,
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",

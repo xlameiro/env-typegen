@@ -22,7 +22,7 @@ export const passwordSchema = z
 
 export const userSchema = z
   .object({
-    id: z.cuid().describe("Unique user identifier (CUID)"),
+    id: z.string().min(1).describe("Unique user identifier"),
     name: z
       .string()
       .min(1, "Name is required")

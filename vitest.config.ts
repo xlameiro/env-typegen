@@ -37,7 +37,7 @@ export default defineConfig({
         "app/auth/sign-in/page.tsx",
         "app/auth/sign-up/page.tsx",
       ],
-      thresholds: { lines: 80 },
+      thresholds: { lines: 80, branches: 75, functions: 80, statements: 80 },
     },
   },
   resolve: {
