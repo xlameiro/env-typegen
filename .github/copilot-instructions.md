@@ -62,6 +62,41 @@ public/                 # Static assets
 - Always use `type`; **never** use `interface`. To extend HTML attributes or library types, use intersections: `type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { isLoading?: boolean }` — the intersection pattern eliminates all valid reasons to reach for `interface`
 - Infer types from Zod schemas using `z.infer<typeof schema>` — do not duplicate as separate interfaces
 - Don't export types or interfaces that are only used within the same file
+
+#### Type Placement Decision Matrix
+
+Use this three-tier hierarchy when deciding where a new type lives:
+
+| Tier                     | Location                         | Use when                                                            |
+| ------------------------ | -------------------------------- | ------------------------------------------------------------------- |
+| **1 — Inline**           | Same file, not exported          | Used only in this file (e.g., component props, local helper shapes) |
+| **2 — Feature-scoped**   | `[feature]/types.ts`             | Shared across ≥ 2 files within the same feature folder              |
+| **3a — Domain (schema)** | `lib/schemas/[domain].schema.ts` | Entity type derived from a Zod schema via `z.infer<>`               |
+| **3b — Global utility**  | `types/index.ts`                 | Domain-agnostic structural utility types used across the entire app |
+
+- Start at Tier 1 and promote only when a second consumer appears — premature promotion creates unnecessary coupling
+- Never add domain entity types (`User`, `Order`, etc.) to `types/index.ts` — they belong in `lib/schemas/`
+- `types/index.ts` is for framework-agnostic shapes; if a type references `next` or `react`, it probably does not belong there
+- Feature-scoped `types.ts` uses regular kebab-case naming: `dashboard/types.ts`, consistent with `utils.ts` and `constants.ts` patterns
+
+#### Next.js Page and Layout Prop Types
+
+Always name page component props `PageProps` (inline local type, never exported). The named type is hoverable in VS Code and reusable inside `generateMetadata`:
+
+```tsx
+// ✅ Named — Copilot can hover over it; generateMetadata can reuse it
+type PageProps = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ q?: string }>;
+};
+export default async function ProductPage({ params, searchParams }: Readonly<PageProps>) { ... }
+
+// ❌ Anonymous inline — not hoverable, forces duplication when generateMetadata needs the same shape
+export default async function ProductPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) { ... }
+```
+
+Never define `PageProps` in `types/index.ts` — it belongs inline in the page file that uses it.
+
 - Organize module contents top-down: place exported/public functions before internal helpers — readers see the module's public API before implementation details
 - Avoid premature abstraction — duplicating code 2–3 times is fine; extract only when a stable pattern emerges
 - Do not reformat code unrelated to your change — only modify lines that are strictly necessary
@@ -118,6 +153,28 @@ public/                 # Static assets
 | `proxy.ts`   | The same auth gate applies to a route group/prefix         | Prefer this for cross-cutting protection (`/dashboard/**`, `/settings/**`) |
 | `page.tsx`   | Authorization depends on page-specific data or role checks | Safe location for resource-level decisions in App Router                   |
 | `layout.tsx` | Never                                                      | Layout checks can be bypassed; do not put authorization here               |
+
+### Internationalization
+
+The template ships as **single-locale** (Tier 1) by default. Escalate only when needed:
+
+| Tier                     | When to use                                                           | Approach                                                                      |
+| ------------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **1 — Single locale**    | App ships in one language                                             | `APP_LOCALE` constant + `<html lang>`. Nothing else.                          |
+| **2 — DIY multi-locale** | ≤ 3 locales, no pluralization, no client switching                    | Official Next.js pattern: `app/[lang]/`, `getDictionary()`, JSON dictionaries |
+| **3 — `next-intl`**      | ≥ 3 locales, pluralization, ICU messages, locale switcher, typed keys | `pnpm add next-intl` — first-class App Router support                         |
+
+**Library recommendation**: `next-intl` is the community-consensus library for App Router i18n (5M weekly downloads, built from scratch for RSC, full TypeScript key safety). Do not use `next-i18next` — it is a Pages Router library.
+
+**Critical rules for multi-locale apps**:
+
+- All routes nest under `app/[locale]/` (or `app/[lang]/`) — there is no built-in i18n config in App Router
+- Locale detection and redirect in `proxy.ts` must run **before** auth checks — so unauthenticated redirects land on `/es/auth/sign-in`, not `/auth/sign-in`
+- `generateStaticParams` in `app/[locale]/layout.tsx` must return ≥ 1 locale — with `cacheComponents: true`, an empty array is a build error
+- Mark `getDictionary` / `getMessages` modules with `import 'server-only'` — they must not run on the client
+- `APP_LOCALE` in `lib/constants.ts` becomes the `defaultLocale` fallback — derive the active locale from `params.locale`, not `APP_LOCALE`, in Tier 2/3
+
+See `.github/instructions/i18n.instructions.md` for full file structure, code patterns, and `proxy.ts` integration for both Tier 2 and Tier 3.
 
 ### Error Handling
 
@@ -187,25 +244,30 @@ Quick entry point: `.github/instructions/INDEX.md`.
 
 ### Required Reading by Directory
 
-| Directory                                       | Instruction File                                                                             | When to Read                                                                                   |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `app/**`                                        | `.github/instructions/nextjs.instructions.md`                                                | Before modifying App Router pages, layouts, loading/error boundaries, or server components     |
-| `app/api/**`                                    | `.github/instructions/security-and-owasp.instructions.md`                                    | Before creating or modifying API route handlers — validate all inputs, never expose raw errors |
-| `app/auth/**`                                   | `.github/instructions/security-and-owasp.instructions.md`                                    | Before touching authentication pages or flows — session handling, CSRF, cookie attributes      |
-| `components/**`                                 | `.github/instructions/reactjs.instructions.md` + `.github/instructions/a11y.instructions.md` | Before creating or modifying UI components — accessibility and React patterns both apply       |
-| `hooks/**`                                      | `.github/instructions/reactjs.instructions.md`                                               | Before creating or modifying custom React hooks — rules of hooks, naming, memoization          |
-| `lib/**`                                        | `.github/instructions/typescript-5-es2022.instructions.md`                                   | Before adding utilities, constants, or shared logic                                            |
-| `lib/schemas/**`                                | Use `zod` skill                                                                              | Before adding or updating Zod schemas — load skill for schema patterns                         |
-| `store/**`                                      | Use `zustand` skill                                                                          | Before modifying Zustand stores — load skill for store patterns                                |
-| `*.test.ts(x)`                                  | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              | Before writing or modifying Vitest unit tests                                                  |
-| `tests/**`                                      | `.github/instructions/playwright-typescript.instructions.md`                                 | Before writing or modifying Playwright E2E tests                                               |
-| `**/*.css`                                      | `.github/instructions/nextjs-tailwind.instructions.md`                                       | Before modifying styles — Tailwind v4 CSS-first config, design tokens                          |
-| `**/*.md`                                       | `.github/instructions/markdown.instructions.md`                                              | Before writing or editing Markdown documentation                                               |
-| Any code file                                   | `.github/instructions/performance-optimization.instructions.md`                              | Before performance-sensitive changes — rendering, caching, bundle size                         |
-| Any code file                                   | `.github/instructions/context7.instructions.md`                                              | Loaded automatically — provides Context7 MCP lookup guidance for external docs                 |
-| Any code file                                   | `.github/instructions/clean-code.instructions.md`                                            | Before any implementation — quality principles: naming, function design, error handling, state |
-| Complex component (>3 interactions, >300 lines) | `.github/instructions/feature-context.instructions.md`                                       | Before adding a feature to a complex component — create/update `.context.md` invariant file    |
-| UI/UX polish                                    | `.agents/skills/ui-ux-pro/SKILL.md`                                                          | When asked to improve visuals — research design style first, then apply Tailwind v4 patterns   |
+| Directory                                       | Instruction File                                                                             | When to Read                                                                                                                                    |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/**`                                        | `.github/instructions/nextjs.instructions.md`                                                | Before modifying App Router pages, layouts, loading/error boundaries, or server components                                                      |
+| `app/api/**`                                    | `.github/instructions/security-and-owasp.instructions.md`                                    | Before creating or modifying API route handlers — validate all inputs, never expose raw errors                                                  |
+| `app/auth/**`                                   | `.github/instructions/security-and-owasp.instructions.md`                                    | Before touching authentication pages or flows — session handling, CSRF, cookie attributes                                                       |
+| `components/**`                                 | `.github/instructions/reactjs.instructions.md` + `.github/instructions/a11y.instructions.md` | Before creating or modifying UI components — accessibility and React patterns both apply                                                        |
+| `hooks/**`                                      | `.github/instructions/reactjs.instructions.md`                                               | Before creating or modifying custom React hooks — rules of hooks, naming, memoization                                                           |
+| `lib/**`                                        | `.github/instructions/typescript-5-es2022.instructions.md`                                   | Before adding utilities, constants, or shared logic                                                                                             |
+| `types/**`                                      | `.github/instructions/typescript-5-es2022.instructions.md`                                   | Before adding or modifying global utility types — verify the type belongs in Tier 3b, not Tier 2 or inline (see Type Placement Decision Matrix) |
+| `app/[locale]/**`, `app/[lang]/**`              | `.github/instructions/i18n.instructions.md`                                                  | Before adding multi-locale routing — covers Tier 2 (DIY) and Tier 3 (next-intl), proxy.ts ordering, cacheComponents compatibility               |
+| `i18n/**`, `messages/**`, `dictionaries/**`     | `.github/instructions/i18n.instructions.md`                                                  | Before creating locale routing, translation files, or locale navigation helpers                                                                 |
+| `lib/schemas/**`                                | Use `zod` skill                                                                              | Before adding or updating Zod schemas — load skill for schema patterns                                                                          |
+| `store/**`                                      | Use `zustand` skill                                                                          | Before modifying Zustand stores — load skill for store patterns                                                                                 |
+| `*.test.ts(x)`                                  | `.github/instructions/nodejs-javascript-vitest.instructions.md`                              | Before writing or modifying Vitest unit tests                                                                                                   |
+| `tests/**`                                      | `.github/instructions/playwright-typescript.instructions.md`                                 | Before writing or modifying Playwright E2E tests                                                                                                |
+| `**/*.css`                                      | `.github/instructions/nextjs-tailwind.instructions.md`                                       | Before modifying styles — Tailwind v4 CSS-first config, design tokens                                                                           |
+| `**/*.md`                                       | `.github/instructions/markdown.instructions.md`                                              | Before writing or editing Markdown documentation files (README, CONTRIBUTING, etc.)                                                             |
+| `content/**`, `posts/**`, `**/*.mdx`            | `.github/instructions/mdx.instructions.md`                                                   | Before adding MDX/Markdown content rendering to the app — blog, docs, changelog, landing copy                                                   |
+| `mdx-components.tsx`                            | `.github/instructions/mdx.instructions.md`                                                   | Before creating or modifying the global MDX component overrides file — required for App Router                                                  |
+| Any code file                                   | `.github/instructions/performance-optimization.instructions.md`                              | Before performance-sensitive changes — rendering, caching, bundle size                                                                          |
+| Any code file                                   | `.github/instructions/context7.instructions.md`                                              | Loaded automatically — provides Context7 MCP lookup guidance for external docs                                                                  |
+| Any code file                                   | `.github/instructions/clean-code.instructions.md`                                            | Before any implementation — quality principles: naming, function design, error handling, state                                                  |
+| Complex component (>3 interactions, >300 lines) | `.github/instructions/feature-context.instructions.md`                                       | Before adding a feature to a complex component — create/update `.context.md` invariant file                                                     |
+| UI/UX polish                                    | `.agents/skills/ui-ux-pro/SKILL.md`                                                          | When asked to improve visuals — research design style first, then apply Tailwind v4 patterns                                                    |
 
 ## Boundaries
 
@@ -555,6 +617,39 @@ export default function Page() {
 }
 ```
 
+### 14. MDX remark/rehype plugins break silently with Turbopack
+
+Turbopack (the default compiler for `pnpm dev` in Next.js 16) runs in Rust. JavaScript functions cannot be serialized to Rust, so remark/rehype plugin objects are silently ignored — the plugin appears registered but never runs.
+
+```ts
+// ❌ Bad: imported function → silently ignored by Turbopack (no error, no effect)
+import remarkGfm from "remark-gfm";
+const withMDX = createMDX({
+  options: { remarkPlugins: [remarkGfm] },
+});
+
+// ✅ Good: string package name → Turbopack-compatible
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: ["remark-gfm"],
+    rehypePlugins: ["rehype-slug"],
+  },
+});
+```
+
+### 15. `@next/mdx` in App Router requires `mdx-components.tsx` at project root
+
+```ts
+// ❌ Bad: install @next/mdx and configure next.config.ts without creating mdx-components.tsx
+// → Build error: "You don't have a mdx-components file. App Router requires mdx-components"
+
+// ✅ Good: always create mdx-components.tsx at root (same level as app/)
+// even if it just re-exports an empty object
+export function useMDXComponents() {
+  return {};
+}
+```
+
 ## Personal Preferences
 
 ### Branching Strategy — Trunk-Based Development (TBD)
@@ -727,6 +822,64 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **Before upgrading to 6.0**: run `pnpm info typescript dist-tags` to check whether `rc` has moved to `latest`; review TS 6.0 release notes for breaking changes in module resolution, decorator handling, or strict-mode behavior that could affect `tsconfig.json` assumptions.
 - **`^5` range is intentional**: The project's `package.json` pins `"typescript": "^5"` — this will NOT auto-upgrade to 6.0. An explicit version bump is required.
 - **TypeScript 7 (native port) is in development** — this is a separate effort from TS 6.0; the compiler is being ported to Go/native code for a 10x+ speed improvement. No release date yet. When TS7 preview packages appear on npm, evaluate separately — it may require `tsconfig.json` adjustments and is distinct from the TS6 upgrade path.
+
+### Dates & Times
+
+**Never use `new Date()` in business logic.** The native `Date` object has mutable state, 0-indexed months, and inconsistent string parsing — all sources of subtle bugs. This project uses the TC39 **Temporal API** via the `temporal-polyfill` package (FullCalendar edition, v0.3.2, updated March 2026).
+
+- **Import Temporal**: `import { Temporal } from 'temporal-polyfill'` — required because Node 20 does not expose native Temporal globals
+- **`DateInput` type**: use this type for _any_ parameter that accepts a date: `Date | string | number | Temporal.Instant | Temporal.PlainDate | Temporal.PlainDateTime | Temporal.ZonedDateTime`. It is exported from `@/lib/dates`.
+- **Central module**: all date/time utilities live in `lib/dates.ts` — import from there: `import { formatDate, formatRelative, isExpired, addDuration } from '@/lib/dates'`
+- **Do NOT use `new Date()` for arithmetic or comparisons** — use `differenceInDays`, `addDuration`, `isExpired`, `isFuture` from `@/lib/dates` instead
+- **Do NOT import `formatDate` from `@/lib/utils`** in new code — import from `@/lib/dates` directly. The re-export in `lib/utils.ts` exists only for backward compatibility.
+- **ISO strings**: always use `toISOString(input)` from `@/lib/dates` to serialise dates for APIs/DBs — it guarantees UTC regardless of input timezone
+- **Formatting**: use `formatDate` / `formatDateTime` / `formatRelative` — they default locale to `APP_LOCALE` from `lib/constants.ts`, never hardcoded `"en-US"`
+- **Server-safe**: all functions in `lib/dates.ts` are synchronous, have no browser-only APIs, and can be used in Server Components, Route Handlers, and Client Components
+- **Bundle cost**: `temporal-polyfill` is ~35kB gzipped. Heavy date arithmetic should stay server-side. Display formatting via `Intl.DateTimeFormat` (used internally) is zero additional bundle cost.
+
+**Migration path** — when native Temporal lands in Node LTS (~2027), the only change will be removing the import line:
+
+```ts
+// Before (current)
+import { Temporal } from "temporal-polyfill";
+// After (future — Temporal becomes a global)
+// (remove import line)
+// All call sites remain identical.
+```
+
+**Quick reference**:
+
+```ts
+import {
+  parseToInstant,
+  formatDate,
+  formatRelative,
+  isExpired,
+  addDuration,
+  differenceInDays,
+  toISOString,
+} from "@/lib/dates";
+import type { DateInput } from "@/lib/dates";
+
+// Safe parsing of any input
+const instant = parseToInstant(userInput); // throws AppError for invalid strings
+
+// Formatting
+formatDate(new Date()); // "June 15, 2024"
+formatDateTime(isoString); // "June 15, 2024 at 2:30:00 PM"
+formatRelative(expiry); // "in 3 days" / "2 hours ago"
+
+// Predicates
+isExpired(token.expiresAt); // boolean
+isFuture(scheduledAt); // boolean
+
+// Serialisation (always UTC)
+toISOString(new Date()); // "2024-06-15T12:00:00Z"
+
+// Arithmetic
+addDuration(now, { days: 7 }); // Temporal.Instant (7 days from now)
+differenceInDays(start, end); // number (positive or negative)
+```
 
 ### Zod v4
 

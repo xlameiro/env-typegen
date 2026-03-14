@@ -86,4 +86,54 @@ Instructions for high-quality Next.js applications with Tailwind CSS styling and
 7. Add loading states
 8. Write tests
 
+## MDX Prose Styling — `@tailwindcss/typography`
+
+When rendering Markdown or MDX content (blog posts, docs, changelogs), use the `@tailwindcss/typography` plugin instead of writing custom prose styles.
+
+### Installation
+
+```bash
+pnpm add @tailwindcss/typography
+```
+
+### Registration (Tailwind v4 — CSS-first, no `tailwind.config.js`)
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+```
+
+### Usage in layout
+
+Apply `prose` classes in the layout that wraps MDX routes — not inline per component:
+
+```tsx
+// app/blog/layout.tsx
+export default function BlogLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="prose prose-lg dark:prose-invert max-w-4xl mx-auto px-4 py-8">
+      {children}
+    </div>
+  );
+}
+```
+
+Common modifiers:
+
+| Class                          | Effect                                        |
+| ------------------------------ | --------------------------------------------- |
+| `prose-lg`                     | Larger base font size                         |
+| `dark:prose-invert`            | Dark mode text/code inversion                 |
+| `max-w-none`                   | Remove max-width (when parent controls width) |
+| `prose-headings:font-semibold` | Custom heading weight                         |
+| `prose-a:text-primary`         | Custom link color via design token            |
+| `prose-pre:bg-zinc-900`        | Code block background                         |
+
+> **Do not** add `prose` styles directly on `<article>` or `<div>` tags scattered throughout the component tree — centralise them in the layout so they apply uniformly to all MDX content in that route segment.
+
 ## Learnings

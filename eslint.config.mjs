@@ -300,9 +300,13 @@ const eslintConfig = defineConfig([
     },
   },
   // TypeScript files with type-checking (for @typescript-eslint/no-misused-promises)
-  ...tseslint.config({
+  // Spread recommendedTypeChecked configs directly (flat config, no deprecated `extends` inside config objects)
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
     files: ["**/*.ts", "**/*.tsx"],
-    extends: [tseslint.configs.recommendedTypeChecked],
+  })),
+  {
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -344,7 +348,7 @@ const eslintConfig = defineConfig([
         { fixMixedExportsWithInlineTypeSpecifier: true },
       ],
     },
-  }),
+  },
   // lib/errors.ts — the only file permitted to define class declarations (Error subclasses)
   {
     files: ["lib/errors.ts"],

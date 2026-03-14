@@ -33,6 +33,8 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description: APP_DESCRIPTION,
     type: "website",
+    // Hardcoded for single-locale apps. For multi-locale (Tier 2/3 i18n),
+    // move to app/[locale]/layout.tsx and derive from params.locale.
     locale: "en_US",
   },
   twitter: {

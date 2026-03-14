@@ -10,11 +10,13 @@ export const metadata: Metadata = {
   title: "Sign Up",
 };
 
+type PageProps = {
+  searchParams: Promise<{ returnTo?: string }>;
+};
+
 export default async function SignUpPage({
   searchParams,
-}: Readonly<{
-  searchParams: Promise<{ returnTo?: string }>;
-}>) {
+}: Readonly<PageProps>) {
   const { returnTo } = await searchParams;
   const redirectTo = sanitizeReturnTo(returnTo);
   return (

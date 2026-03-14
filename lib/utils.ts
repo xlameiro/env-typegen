@@ -1,6 +1,6 @@
+import { ROUTES } from "@/lib/constants";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
-import { ROUTES } from "@/lib/constants";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -11,22 +11,10 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-const DEFAULT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-};
-
-/**
- * Format a date to a locale string.
- */
-export function formatDate(
-  date: Date | string | number,
-  options: Intl.DateTimeFormatOptions = DEFAULT_DATE_OPTIONS,
-  locale = "en-US",
-): string {
-  return new Intl.DateTimeFormat(locale, options).format(new Date(date));
-}
+// Backward-compatible re-export. The implementation now lives in lib/dates.ts.
+// Existing callers of `import { formatDate } from '@/lib/utils'` continue to work
+// without any changes.
+export { formatDate } from "@/lib/dates";
 
 /**
  * Format a number as currency.

@@ -7,6 +7,8 @@ export const APP_VERSION = "0.1.0";
 
 // BCP 47 language tag used for the `lang` attribute in layout.tsx and global-error.tsx.
 // Update this when changing the app's locale — e.g. "es", "fr", "pt".
+// For multi-locale (i18n) support, see ## Internationalization in .github/copilot-instructions.md
+// and .github/instructions/i18n.instructions.md for the full Tier 2 / Tier 3 setup guide.
 export const APP_LOCALE = "en";
 
 export const SITE_URL = env.NEXT_PUBLIC_APP_URL;
