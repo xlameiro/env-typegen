@@ -61,7 +61,9 @@ export function DashboardSearch() {
           onClick={() => handlePageChange(Math.max(1, page - 1))}
           disabled={page <= 1}
         >
-          ← Previous
+          {/* aria-hidden hides the arrow glyph from AT; it would otherwise be
+              announced as "left arrow Previous" by some screen readers. */}
+          <span aria-hidden="true">← </span>Previous
         </Button>
         <span className="flex items-center px-2 text-sm text-muted-foreground">
           Page {page}
@@ -72,7 +74,7 @@ export function DashboardSearch() {
           type="button"
           onClick={() => handlePageChange(page + 1)}
         >
-          Next →
+          Next<span aria-hidden="true"> →</span>
         </Button>
       </div>
     </div>

@@ -15,8 +15,11 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   {
+    // DENY is consistent with the CSP frame-ancestors 'none' directive set in proxy.ts.
+    // SAMEORIGIN would conflict: CSP (stricter, blocking all framing) would win in modern
+    // browsers but the inconsistency is confusing. Align both to the most restrictive intent.
     key: "X-Frame-Options",
-    value: "SAMEORIGIN",
+    value: "DENY",
   },
   {
     key: "X-Content-Type-Options",

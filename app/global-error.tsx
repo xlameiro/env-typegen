@@ -39,14 +39,25 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     // global-error must include html and body tags.
     // lang is read from APP_LOCALE in lib/constants.ts — update it there when changing locale.
     <html lang={APP_LOCALE}>
-      <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-8 text-center">
-        <h1 className="text-2xl font-semibold text-destructive">
-          Critical error
-        </h1>
-        <p className="max-w-md text-sm text-muted-foreground">
-          A critical error occurred. Please refresh the page or contact support.
-        </p>
-        <Button onClick={reset}>Try again</Button>
+      <body className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
+        {/* <main> landmark ensures screen readers can navigate to the error content.
+            tabIndex={-1} enables programmatic focus (e.g. from a skip link) even on
+            non-interactive elements. id="maincontent" matches the skip-link convention
+            used across all other pages in this template. */}
+        <main
+          id="maincontent"
+          tabIndex={-1}
+          className="flex flex-col items-center gap-6 text-center"
+        >
+          <h1 className="text-2xl font-semibold text-destructive">
+            Critical error
+          </h1>
+          <p className="max-w-md text-sm text-muted-foreground">
+            A critical error occurred. Please refresh the page or contact
+            support.
+          </p>
+          <Button onClick={reset}>Try again</Button>
+        </main>
       </body>
     </html>
   );

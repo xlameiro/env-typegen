@@ -28,7 +28,7 @@ describe("updateProfileAction", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.message).toContain("Invalid input");
+    expect(result.message).toContain("name");
   });
 
   it("should return an error message when email is invalid", async () => {
@@ -38,7 +38,7 @@ describe("updateProfileAction", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.message).toContain("Invalid input");
+    expect(result.message).toContain("email");
   });
 
   it("should throw AuthenticationError when user is not authenticated", async () => {

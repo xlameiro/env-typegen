@@ -35,9 +35,11 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@fb0994ef1c058010acf1efccff928b0a83b1ed54 # v4.32.6
-        # continue-on-error: code scanning must be enabled in the repository settings
-        # (Settings → Security → Code scanning). Until then, this step may fail when
-        # the CodeQL API is unreachable; treat as non-blocking to keep CI green.
+        # ⚠️  SECURITY ACTION REQUIRED: Remove 'continue-on-error: true' once Code Scanning
+        # is enabled in this repository (Settings → Security → Code scanning → Enable).
+        # While this flag is set, CodeQL findings will NOT block PRs — a security risk.
+        # This flag is present in the template only so the workflow does not break for repos
+        # that have not yet enabled Code Scanning. Remove it in production.
         continue-on-error: true
         with:
           category: /language:javascript-typescript

@@ -37,32 +37,32 @@ describe("DashboardSearch", () => {
   it("should render Previous and Next pagination buttons", () => {
     renderWithNuqs();
     expect(
-      screen.getByRole("button", { name: /← previous/i }),
+      screen.getByRole("button", { name: /previous/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /next →/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
   });
 
   it("should disable the Previous button on page 1", () => {
     renderWithNuqs("page=1");
-    expect(screen.getByRole("button", { name: /← previous/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
   });
 
   it("should enable the Previous button on page 2", () => {
     renderWithNuqs("page=2");
     expect(
-      screen.getByRole("button", { name: /← previous/i }),
+      screen.getByRole("button", { name: /previous/i }),
     ).not.toBeDisabled();
   });
 
   it("should increment the page when the Next button is clicked", () => {
     renderWithNuqs("page=1");
-    fireEvent.click(screen.getByRole("button", { name: /next →/i }));
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
     expect(screen.getByText("Page 2")).toBeInTheDocument();
   });
 
   it("should decrement the page when the Previous button is clicked on page 2", () => {
     renderWithNuqs("page=2");
-    fireEvent.click(screen.getByRole("button", { name: /← previous/i }));
+    fireEvent.click(screen.getByRole("button", { name: /previous/i }));
     expect(screen.getByText("Page 1")).toBeInTheDocument();
   });
 

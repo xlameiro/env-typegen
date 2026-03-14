@@ -11,6 +11,7 @@ const config: KnipConfig = {
     "components/ui/**/*.{ts,tsx}",
     "lib/schemas/**/*.{ts,tsx}",
     "lib/auth.ts",
+    "lib/dates.ts",
     "lib/utils.ts",
     "types/**/*.{ts,tsx}",
   ],

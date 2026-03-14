@@ -35,12 +35,7 @@ const eslintConfig = defineConfig([
 
       // Prevent implicit any (SonarQube S4323, S4328)
       "@typescript-eslint/no-explicit-any": "error",
-      // Note: These rules require type-checking setup (parserOptions.project)
-      // Uncomment when tsconfig type checking is configured in ESLint
-      // "@typescript-eslint/no-unsafe-assignment": "warn",
-      // "@typescript-eslint/no-unsafe-member-access": "warn",
-      // "@typescript-eslint/no-unsafe-call": "warn",
-      // "@typescript-eslint/no-unsafe-return": "warn",
+
 
       // Forbid non-null assertion operator (!) — use type narrowing or guards instead
       "@typescript-eslint/no-non-null-assertion": "error",
@@ -326,21 +321,29 @@ const eslintConfig = defineConfig([
         },
       ],
 
-      // Type-safety rules — enabled as warn to surface unsafe patterns without blocking.
-      // Upgrade to "error" once all existing violations are resolved.
-      "@typescript-eslint/no-unsafe-return": "warn",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-
-      // Remaining unsafe rules — enabled as warn to surface real issues without blocking.
-      // These are more noisy with third-party libs (e.g. next-auth session shape) but still
-      // valuable to surface gradually. Upgrade to "error" once all violations are resolved.
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
+      // Type-safety rules — zero current violations; enforced at "error" to prevent regressions.
+      // Test files override no-unsafe-assignment to "off" (response.json() returns any from DOM types).
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
+      // Off: produces false positives when type assertions are used for documentation purposes
+      // or when the widened type is necessary for downstream inference (e.g. satisfies patterns).
       "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      // Off: Next.js route segments and server utilities commonly use dynamic template expressions
+      // (e.g. `${params.slug}`, `${user.id ?? 'unknown'}`) where the type may include null/undefined.
+      // The rule produces high noise against third-party types; tighten per-file when needed.
       "@typescript-eslint/restrict-template-expressions": "off",
+      // Off: false positives with router.push(), async Server Action handlers, and RHF's
+      // form.handleSubmit(). Enforced manually via code review — see copilot-instructions.md.
       "@typescript-eslint/no-floating-promises": "off",
+      // Off: Server Actions and Route Handler exports are declared async for interface consistency
+      // even when the current implementation body is synchronous. Requiring await forces
+      // unnecessary await expressions or return-wrapping that obscures intent.
       "@typescript-eslint/require-await": "off",
+      // Off: triggers on React Testing Library patterns (e.g. `expect(spy).toHaveBeenCalled()`)
+      // and on RHF's form.handleSubmit / form.register when extracted to variables.
       "@typescript-eslint/unbound-method": "off",
 
       // Enforce explicit `export type { Foo }` for type-only exports

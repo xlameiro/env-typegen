@@ -6,7 +6,7 @@
 
 import { requireAuth } from "@/lib/auth";
 import { updateUserSchema } from "@/lib/schemas/user.schema";
-import type { z } from "zod";
+import { z } from "zod";
 
 type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
@@ -27,7 +27,7 @@ export async function updateProfileAction(
   if (!parsed.success) {
     return {
       success: false,
-      message: "Invalid input. Please check your fields.",
+      message: z.prettifyError(parsed.error),
     };
   }
 
