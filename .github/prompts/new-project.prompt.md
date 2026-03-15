@@ -29,9 +29,30 @@ Edit `lib/constants.ts`:
 - Set `APP_DESCRIPTION` to a one-sentence description
 - Keep `APP_VERSION = "0.1.0"` unless the user specifies otherwise
 
+Edit `package.json`:
+
+- Set `"name"` to a kebab-case slug of the project name (e.g. `"my-awesome-app"`)
+- Add or update `"description"` with the one-sentence description
+
 ---
 
-## Step 3 — Determine authentication needs
+## Step 3 — Generate README.md
+
+Replace `README.md` with a real README for this project. Use `APP_NAME` and `APP_DESCRIPTION` from Step 2.
+
+The README must include at minimum:
+
+- `# <APP_NAME>` as the H1 title
+- A short intro paragraph (1–3 sentences) describing what the project does
+- **Getting Started** section with `pnpm install` and `pnpm dev` commands
+- **Tech stack** section listing the key technologies (Next.js 16, React 19, TypeScript, Tailwind CSS v4, etc.)
+- Links to `CONTRIBUTING.md` and `SECURITY.md`
+
+Do NOT include the original template's tech-stack comparison table, demo URLs, or "Usage as a template" sections — this is a product README, not a template README.
+
+---
+
+## Step 4 — Determine authentication needs
 
 Read the user's prompt carefully.
 
@@ -54,7 +75,7 @@ Read the user's prompt carefully.
 
 ---
 
-## Step 4 — Replace the home page
+## Step 5 — Replace the home page
 
 `app/page.tsx` is a template example showing the tech stack. **Replace its content** entirely with the real home page for this project based on the user's description.
 
@@ -62,7 +83,7 @@ Do NOT keep the stack list or dev commands section — those are purely template
 
 ---
 
-## Step 5 — Create real pages
+## Step 6 — Create real pages
 
 Based on the user's description, create or replace pages as needed.
 
@@ -72,7 +93,7 @@ Based on the user's description, create or replace pages as needed.
 
 ---
 
-## Step 6 — Update security.txt
+## Step 7 — Update security.txt
 
 Replace the placeholder values in `public/.well-known/security.txt`:
 
@@ -89,7 +110,7 @@ If the project does not yet have a security contact, use the repository owner's 
 
 ---
 
-## Step 7 — Configure branch protection
+## Step 8 — Configure branch protection
 
 Enable branch protection on `main` so Dependabot auto-merge only triggers after CI passes.
 Run this once using the GitHub CLI (requires `gh` to be authenticated):
@@ -113,7 +134,7 @@ If the CI workflow names are different in this project, update `contexts` to mat
 
 ---
 
-## Step 8 — Run quality gate
+## Step 9 — Run quality gate
 
 ```bash
 pnpm lint && pnpm type-check && pnpm test && pnpm build
@@ -123,7 +144,7 @@ Fix all errors before stopping. Do not leave lint errors, type errors, failing t
 
 ---
 
-## Step 7 — Report
+## Step 10 — Report
 
 Output a summary with exactly:
 
