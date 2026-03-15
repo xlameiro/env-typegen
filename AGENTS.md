@@ -263,12 +263,12 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 
 **Approval modes** (Chat input → **default approvals** dropdown):
 
-| Mode              | What it does                                                                | When to use                                                     |
-| ----------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Default Approvals | Prompts before each tool call (terminal, MCP, file write)                   | Infra, schema changes, AWS, irreversible operations             |
-| Bypass Approvals  | Auto-approves all tool calls (YOLO)                                         | When you want speed and trust the agent fully                   |
-| Autopilot         | Bypass Approvals + auto-retry on API errors + forceful completion prompting | Default for all feature work — runs until the job is truly done |
-| Sandbox           | Bypass Approvals + process/network isolation                                | Testing untrusted code or external-facing operations            |
+| Mode              | What it does                                                                                 | When to use                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Default Approvals | Prompts before each tool call (terminal, MCP, file write)                                    | Infra, schema changes, AWS, irreversible operations                     |
+| Bypass Approvals  | Auto-approves tool calls but **still pauses for clarifying questions and terminal input**    | When you want speed without approving each tool call; still interactive |
+| Autopilot         | Bypass + auto-retry on API errors + forceful completion; **never asks clarifying questions** | Default for all feature work — fully unattended execution               |
+| Sandbox           | Bypass Approvals + process/network isolation                                                 | Testing untrusted code or external-facing operations                    |
 
 > **Default for this project**: use **Autopilot** for all feature work. Switch to **Default Approvals** whenever you are touching AWS resources, database schema, or environment secrets. Use **Sandbox** when the agent will execute code from untrusted sources.
 
@@ -522,6 +522,7 @@ Run `pnpm test -- --run --reporter=verbose`. For every failing test:
 - Running a full OWASP security audit — use `.github/prompts/security-audit.prompt.md`
 - Applying Lighthouse performance/accessibility fixes — use `.github/prompts/lighthouse-audit.prompt.md`
 - Extracting design tokens from a mockup — use `.github/prompts/extract-design-tokens.prompt.md`
+- Creating PRs with embedded UI screenshots — ask the agent to use the integrated browser (shared with agent) to navigate the running app, take screenshots, commit the assets, and open a PR via the GitHub CLI with the screenshots embedded in the description: _"Take screenshots of the changes and open a PR with those images"_
 
 ### Cross-Functional Team Workflows
 

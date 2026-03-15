@@ -959,12 +959,12 @@ differenceInDays(start, end); // number (positive or negative)
 
 **Approval modes** (Chat input → **default approvals** dropdown):
 
-| Mode              | What it does                                         | When to use                                         |
-| ----------------- | ---------------------------------------------------- | --------------------------------------------------- |
-| Default Approvals | Prompts before every tool call                       | Infra, AWS, schema changes, irreversible operations |
-| Bypass Approvals  | Auto-approves all tool calls (YOLO)                  | Speed + full trust in the agent                     |
-| Autopilot         | Bypass + auto-retry API errors + forceful completion | **Default for all feature work**                    |
-| Sandbox           | Bypass + process/network isolation                   | Running untrusted or external-facing code           |
+| Mode              | What it does                                                                                                       | When to use                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Default Approvals | Prompts before every tool call                                                                                     | Infra, AWS, schema changes, irreversible operations                |
+| Bypass Approvals  | Auto-approves tool calls but **still pauses for clarifying questions and terminal input**                          | Speed without needing to approve each tool call; still interactive |
+| Autopilot         | Bypass + auto-retry API errors + forceful completion; **never asks clarifying questions — makes best-guess calls** | **Default for all feature work** — fully unattended execution      |
+| Sandbox           | Bypass + process/network isolation                                                                                 | Running untrusted or external-facing code                          |
 
 > Switch to **Default Approvals** whenever the task involves AWS resources, database migrations, or secret rotation — never let Autopilot touch infra unattended.
 
@@ -981,6 +981,8 @@ differenceInDays(start, end); // number (positive or negative)
 | Inline chat                         | Fast model                                    | Completions must feel instant                                                       |
 
 > These are baseline recommendations based on VS Code team evals (March 2026). Thinking effort is already set high by default for Opus — do not blindly bump reasoning level upward, as it increases latency without always improving output. Verify your defaults via `Settings → Copilot → thinking effort`.
+>
+> **Enforcing per-agent model assignments in VS Code**: Open **Settings → search `"default model"`** to see per-agent dropdowns. Each agent type (explore sub-agent, plan agent, inline chat, custom review agent) has its own model picker. The explore sub-agent automatically uses a fast/small model (e.g., Haiku) because it only reads files and reports back — the VS Code runtime selects this automatically when you configure `auto`. Set the plan agent to your preferred planning model and the implementation model separately so the model switch is automatic rather than manual.
 >
 > **Multi-model workflow**: use the powerful model (Sonnet/o3-Codex) for the initial feature → switch to GPT o3 if debugging proves intractable → use Gemini / `ui-ux-pro` skill for UI polish → use a fast model for refactoring and the test-fix loop. Each model has a distinct strength; forcing one model to do everything leads to regressions (the powerful model may silently delete existing functionality when adding new features).
 
@@ -1068,12 +1070,12 @@ Autopilot combines auto-approval of all tool calls with auto-retry on API errors
 
 **Approval mode quick reference:**
 
-| Mode              | Auto-approve tools | Auto-retry errors | Forceful completion |
-| ----------------- | ------------------ | ----------------- | ------------------- |
-| Default Approvals | ❌                 | ❌                | ❌                  |
-| Bypass Approvals  | ✅                 | ❌                | ❌                  |
-| **Autopilot**     | ✅                 | ✅                | ✅                  |
-| Sandbox           | ✅ + isolated      | ❌                | ❌                  |
+| Mode              | Auto-approve tools | Auto-retry errors | Forceful completion | Stops for questions |
+| ----------------- | ------------------ | ----------------- | ------------------- | ------------------- |
+| Default Approvals | ❌                 | ❌                | ❌                  | ✅                  |
+| Bypass Approvals  | ✅                 | ❌                | ❌                  | ✅                  |
+| **Autopilot**     | ✅                 | ✅                | ✅                  | ❌                  |
+| Sandbox           | ✅ + isolated      | ❌                | ❌                  | ✅                  |
 
 **When to use:**
 
@@ -1088,6 +1090,14 @@ Autopilot combines auto-approval of all tool calls with auto-retry on API errors
 - When running code from untrusted or external sources — use Sandbox mode instead
 
 > **Recommended workflow:** Use **Plan mode** first → agree on the plan → verify it appears in session memory → enable **Autopilot** → the agent executes to completion without interruption.
+
+**Post-plan action buttons** — After a plan finishes, VS Code displays three action buttons directly in the chat:
+
+- **Start implementation** — switches to the default implementation mode (respects your current approval setting)
+- **Start with autopilot** — immediately enters Autopilot for fully unattended execution (preferred for most features)
+- **Open in editor** — opens the plan as a markdown document for manual editing before starting
+
+Use **Start with autopilot** to go directly from plan to execution in one click, without manually switching modes.
 
 ## Agent Routing (Default Behaviour)
 
