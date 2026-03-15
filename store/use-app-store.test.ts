@@ -7,7 +7,7 @@ describe("useAppStore", () => {
     // Clear persisted state to prevent cross-test hydration
     localStorage.clear();
     act(() => {
-      useAppStore.setState({ theme: "system", sidebarOpen: false });
+      useAppStore.setState({ theme: "system" });
     });
   });
 
@@ -39,57 +39,6 @@ describe("useAppStore", () => {
       });
 
       expect(result.current.theme).toBe("light");
-    });
-  });
-
-  describe("sidebarOpen", () => {
-    it("should have sidebarOpen as false initially", () => {
-      const { result } = renderHook(() =>
-        useAppStore((state) => state.sidebarOpen),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it("should toggle sidebarOpen to true when toggleSidebar is called once", () => {
-      const { result } = renderHook(() => useAppStore());
-
-      act(() => {
-        result.current.toggleSidebar();
-      });
-
-      expect(result.current.sidebarOpen).toBe(true);
-    });
-
-    it("should toggle sidebarOpen back to false on second call", () => {
-      const { result } = renderHook(() => useAppStore());
-
-      act(() => {
-        result.current.toggleSidebar();
-        result.current.toggleSidebar();
-      });
-
-      expect(result.current.sidebarOpen).toBe(false);
-    });
-
-    it("should set sidebarOpen to true when setSidebarOpen(true) is called", () => {
-      const { result } = renderHook(() => useAppStore());
-
-      act(() => {
-        result.current.setSidebarOpen(true);
-      });
-
-      expect(result.current.sidebarOpen).toBe(true);
-    });
-
-    it("should set sidebarOpen to false when setSidebarOpen(false) is called", () => {
-      const { result } = renderHook(() => useAppStore());
-
-      act(() => {
-        result.current.setSidebarOpen(true);
-        result.current.setSidebarOpen(false);
-      });
-
-      expect(result.current.sidebarOpen).toBe(false);
     });
   });
 });

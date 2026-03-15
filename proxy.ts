@@ -48,10 +48,9 @@ export default auth((req) => {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildCsp(nonce);
 
-  const isProtectedRoute =
-    nextUrl.pathname.startsWith("/dashboard") ||
-    nextUrl.pathname.startsWith("/profile") ||
-    nextUrl.pathname.startsWith("/settings");
+  // Define your protected routes here — replace false with your conditions.
+  // Example: nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/settings")
+  const isProtectedRoute = false;
 
   const isAuthRoute =
     nextUrl.pathname.startsWith("/auth/sign-in") ||
@@ -83,9 +82,7 @@ export default auth((req) => {
 
   // Redirect authenticated users away from auth pages
   if (isAuthRoute && isLoggedIn) {
-    const redirectResponse = NextResponse.redirect(
-      new URL("/dashboard", nextUrl),
-    );
+    const redirectResponse = NextResponse.redirect(new URL("/", nextUrl));
     redirectResponse.headers.set(CSP_HEADER, csp);
     return redirectResponse;
   }

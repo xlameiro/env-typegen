@@ -48,11 +48,11 @@ export function sleep(ms: number): Promise<void> {
 /**
  * Sanitise a redirect path to prevent open redirect attacks (OWASP A01).
  * Only accepts relative paths that start with "/" (not "//").
- * Returns the dashboard route as the safe fallback.
+ * Returns the home route as the safe fallback.
  */
 export function sanitizeReturnTo(url: string | undefined): string {
   if (!url || !url.startsWith("/") || url.startsWith("//")) {
-    return ROUTES.dashboard;
+    return ROUTES.home;
   }
   return url;
 }

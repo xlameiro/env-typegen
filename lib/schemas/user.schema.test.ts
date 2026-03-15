@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  createUserSchema,
   emailSchema,
   passwordSchema,
   signInSchema,
   signUpSchema,
-  updateUserSchema,
 } from "./user.schema";
 
 // Extracted to consts to satisfy sonarjs/no-hardcoded-passwords in test context.
@@ -52,54 +50,6 @@ describe("passwordSchema", () => {
 
   it("should reject an empty string", () => {
     expect(passwordSchema.safeParse("").success).toBe(false);
-  });
-});
-
-describe("updateUserSchema", () => {
-  it("should accept valid partial data with name only", () => {
-    expect(updateUserSchema.safeParse({ name: "Alice" }).success).toBe(true);
-  });
-
-  it("should accept valid partial data with email only", () => {
-    expect(
-      updateUserSchema.safeParse({ email: "alice@example.com" }).success,
-    ).toBe(true);
-  });
-
-  it("should accept an empty object (all fields are optional)", () => {
-    expect(updateUserSchema.safeParse({}).success).toBe(true);
-  });
-
-  it("should reject an invalid email in update", () => {
-    expect(updateUserSchema.safeParse({ email: "bad-email" }).success).toBe(
-      false,
-    );
-  });
-
-  it("should reject a name that is an empty string", () => {
-    expect(updateUserSchema.safeParse({ name: "" }).success).toBe(false);
-  });
-});
-
-describe("createUserSchema", () => {
-  it("should accept valid create data", () => {
-    expect(
-      createUserSchema.safeParse({
-        name: "Alice",
-        email: "alice@example.com",
-        image: null,
-      }).success,
-    ).toBe(true);
-  });
-
-  it("should reject missing required name", () => {
-    expect(
-      createUserSchema.safeParse({ email: "alice@example.com" }).success,
-    ).toBe(false);
-  });
-
-  it("should reject missing required email", () => {
-    expect(createUserSchema.safeParse({ name: "Alice" }).success).toBe(false);
   });
 });
 

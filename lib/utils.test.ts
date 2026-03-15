@@ -111,20 +111,20 @@ describe("sanitizeReturnTo", () => {
     expect(sanitizeReturnTo("/dashboard")).toBe("/dashboard");
   });
 
-  it("should return the dashboard route when given an absolute URL (open redirect attempt)", () => {
-    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/dashboard");
+  it("should return the home route when given an absolute URL (open redirect attempt)", () => {
+    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/");
   });
 
-  it("should return the dashboard route when given a protocol-relative URL (open redirect attempt)", () => {
-    expect(sanitizeReturnTo("//evil.com")).toBe("/dashboard");
+  it("should return the home route when given a protocol-relative URL (open redirect attempt)", () => {
+    expect(sanitizeReturnTo("//evil.com")).toBe("/");
   });
 
-  it("should return the dashboard route when given an empty string", () => {
-    expect(sanitizeReturnTo("")).toBe("/dashboard");
+  it("should return the home route when given an empty string", () => {
+    expect(sanitizeReturnTo("")).toBe("/");
   });
 
-  it("should return the dashboard route when given undefined", () => {
-    expect(sanitizeReturnTo(undefined)).toBe("/dashboard");
+  it("should return the home route when given undefined", () => {
+    expect(sanitizeReturnTo(undefined)).toBe("/");
   });
 
   it("should accept deep relative paths", () => {

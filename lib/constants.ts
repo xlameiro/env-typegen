@@ -17,9 +17,6 @@ export const ROUTES = {
   home: "/",
   signIn: "/auth/sign-in",
   signUp: "/auth/sign-up",
-  dashboard: "/dashboard",
-  settings: "/settings",
-  profile: "/profile",
 } as const;
 
 export const API_ROUTES = {

@@ -29,6 +29,9 @@
     "christian-kohler.path-intellisense",
 
     // SonarQube
-    "sonarsource.sonarlint-vscode"
+    "sonarsource.sonarlint-vscode",
+
+    // Read PDF
+    "tomoki1207.pdf"
   ]
 }

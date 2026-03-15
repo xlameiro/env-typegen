@@ -10,7 +10,6 @@ describe("app setup", () => {
   it("should have ROUTES pointing to expected paths", () => {
     expect(ROUTES.home).toBe("/");
     expect(ROUTES.signIn).toMatch(/^\/auth/);
-    expect(ROUTES.dashboard).toMatch(/^\//);
   });
 
   it("should have API_ROUTES defined", () => {

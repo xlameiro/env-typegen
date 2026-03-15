@@ -17,45 +17,6 @@ export const passwordSchema = z
   );
 
 // ──────────────────────────────────────────
-// User schemas
-// ──────────────────────────────────────────
-
-export const userSchema = z
-  .object({
-    id: z.string().min(1).describe("Unique user identifier"),
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .max(100)
-      .describe("User's full display name"),
-    email: emailSchema,
-    image: z
-      .url()
-      .nullable()
-      .optional()
-      .describe("URL of the user's avatar image; null when not set"),
-    createdAt: z.coerce
-      .date()
-      .describe("Timestamp when the account was created"),
-    updatedAt: z.coerce.date().describe("Timestamp of the last account update"),
-  })
-  .describe("A full user record as stored in the database");
-
-export const createUserSchema = userSchema
-  .omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-  })
-  .describe("Fields required to create a new user account");
-
-export const updateUserSchema = createUserSchema
-  .partial()
-  .describe(
-    "Fields that can be updated on an existing user account; all are optional",
-  );
-
-// ──────────────────────────────────────────
 // Auth schemas
 // ──────────────────────────────────────────
 
@@ -89,8 +50,5 @@ export const signUpSchema = z
 // Inferred types
 // ──────────────────────────────────────────
 
-export type User = z.infer<typeof userSchema>;
-export type CreateUser = z.infer<typeof createUserSchema>;
-export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type SignIn = z.infer<typeof signInSchema>;
 export type SignUp = z.infer<typeof signUpSchema>;
