@@ -176,6 +176,23 @@ Every Planner output includes two mandatory sections:
 
 A plan that omits these sections should be treated as a draft that requires further investigation before implementation starts.
 
+### Execution Phases — brownfield and large-migration plans
+
+Mode B handles **analysis** in batches (how the Planner reads the codebase). Execution Phases handle **implementation** in sessions — preventing the Feature Builder from losing focus mid-migration.
+
+When a plan contains an `## Execution Phases` section, the Feature Builder implements **one phase per session** and then stops. After passing the quality gate, it emits a **Continuation Block** — a self-contained block of text you paste into a fresh session to start the next phase with exactly the context needed and none of the noise.
+
+**Why not `/fork`?** `/fork` copies the full conversation history. After a long planning session, that history is already large — pasting it into the next session recreates the same "Hoarders-effect" context overload that caused the original problem. The Continuation Block gives the new session only the essential delta: files changed, key decisions, quality gate status, and the next phase's scope.
+
+| Pattern          | Handles                 | Use when                                             |
+| ---------------- | ----------------------- | ---------------------------------------------------- |
+| Mode B sessions  | Analysis batching       | Codebase too large to analyse in one pass            |
+| Execution Phases | Implementation batching | Plan > 8 steps, > 1 domain, or brownfield migration  |
+| Ralph Loop       | Automated repetition    | Same pattern applied to many files, fully unattended |
+| Test-Fix Loop    | Quality gate repair     | All implementation done, tests still failing         |
+
+**Phase boundary rule:** Every phase boundary must be a point where `pnpm build` succeeds and all existing tests pass. Good split points: after data layer (schemas + DB functions), after API routes, after Server Components, after Client Components + tests.
+
 ---
 
 ## GitHub Copilot Coding Agent — WRAP Methodology

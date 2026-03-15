@@ -4,8 +4,8 @@ import { ButtonLink } from "./button-link";
 
 describe("ButtonLink", () => {
   it("should render an anchor element", () => {
-    render(<ButtonLink href="/dashboard">Go to Dashboard</ButtonLink>);
-    const link = screen.getByRole("link", { name: "Go to Dashboard" });
+    render(<ButtonLink href="/">Go Home</ButtonLink>);
+    const link = screen.getByRole("link", { name: "Go Home" });
     expect(link).toBeDefined();
     expect(link.tagName.toLowerCase()).toBe("a");
   });
@@ -20,7 +20,7 @@ describe("ButtonLink", () => {
 
   it("should apply secondary variant classes when specified", () => {
     render(
-      <ButtonLink href="/settings" variant="secondary">
+      <ButtonLink href="/auth/sign-in" variant="secondary">
         Settings
       </ButtonLink>,
     );
@@ -41,7 +41,7 @@ describe("ButtonLink", () => {
 
   it("should apply sm size classes when specified", () => {
     render(
-      <ButtonLink href="/profile" size="sm">
+      <ButtonLink href="/auth/sign-up" size="sm">
         Profile Small
       </ButtonLink>,
     );
@@ -63,7 +63,7 @@ describe("ButtonLink", () => {
 
   it("should merge custom className with variant classes", () => {
     render(
-      <ButtonLink href="/profile" className="mt-4">
+      <ButtonLink href="/" className="mt-4">
         Profile Custom
       </ButtonLink>,
     );
@@ -73,14 +73,14 @@ describe("ButtonLink", () => {
   });
 
   it("should set the href attribute correctly", () => {
-    render(<ButtonLink href="/settings">Settings Link</ButtonLink>);
-    const link = screen.getByRole("link", { name: "Settings Link" });
-    expect(link.getAttribute("href")).toBe("/settings");
+    render(<ButtonLink href="/auth/sign-in">Sign In Link</ButtonLink>);
+    const link = screen.getByRole("link", { name: "Sign In Link" });
+    expect(link.getAttribute("href")).toBe("/auth/sign-in");
   });
 
   it("should render children content", () => {
-    render(<ButtonLink href="/dashboard">Dashboard</ButtonLink>);
-    expect(screen.getByText("Dashboard")).toBeDefined();
+    render(<ButtonLink href="/">Home</ButtonLink>);
+    expect(screen.getByText("Home")).toBeDefined();
   });
 
   it("should accept external URLs via WithProtocol", () => {

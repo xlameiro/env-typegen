@@ -4,7 +4,24 @@ description: "Generate a detailed implementation plan for new features or refact
 argument-hint: "Describe the feature or refactoring task to plan"
 model: ["Claude Sonnet 4.6 (copilot)", "GPT-4.1 (copilot)"]
 handoffs:
-  - label: Implement Feature
+  - label: Implement (Phase 1)
+    agent: Feature Builder
+    prompt: |
+      A phased implementation plan has been produced above.
+
+      Implement ONLY Phase 1.
+
+      Before starting:
+      1. Call next-devtools-init.
+      2. Load the matching nextjs-* skill listed in the plan.
+      3. Read the Phase 1 scope and pre-conditions carefully.
+
+      When Phase 1 is complete and the quality gate (lint + type-check + test + build) passes:
+      - Save a checkpoint to vscode/memory with key "phase-1-complete" that records: files changed, key decisions made, current quality gate status.
+      - Emit the ## Phase Complete block as specified in the plan — this is the continuation prompt for Phase 2.
+      - Do NOT start Phase 2.
+    send: false
+  - label: Implement (single-phase)
     agent: Feature Builder
     prompt: Please implement the plan outlined above following the project conventions.
     send: false
@@ -319,6 +336,97 @@ Ordered list of steps with enough detail that a developer can execute them indep
 - Authentication and `proxy.ts` considerations
 - Error boundary placement
 
+## Execution Phases
+
+> **Omit this section for simple plans (≤ 8 implementation steps, ≤ 3 domains).** Include it whenever the plan is large, involves a brownfield migration, or has more than one functional domain with distinct testable milestones.
+
+Each phase is a self-contained unit of work that must pass the full quality gate before the next phase begins. The Feature Builder implements one phase per session.
+
+---
+
+### Phase 1 — [Name, e.g., "Foundation: data layer + schemas"]
+
+**Scope** (files to create/modify in this phase only):
+
+| File            | Action |
+| --------------- | ------ |
+| `lib/schemas/…` | Create |
+| `app/api/…`     | Create |
+
+**Pre-conditions** (what must already exist before this phase starts):
+
+- [ ] [e.g., `pnpm install` passes, existing tests green]
+
+**Implementation steps** (subset of the full Implementation Steps above):
+
+1. …
+2. …
+
+**Post-conditions** (how to verify Phase 1 is complete):
+
+- [ ] `pnpm lint` — zero errors
+- [ ] `pnpm type-check` — zero errors
+- [ ] `pnpm test` — all tests passing (list specific new tests)
+- [ ] `pnpm build` — succeeds
+- [ ] [Feature-specific check, e.g., "Route `/api/users` returns 200"]
+
+**Continuation Prompt** (paste this into a fresh session after Phase 1 is done):
+
+```
+Phase 1 of [migration/feature name] is complete.
+
+What was done in Phase 1:
+- [bullet list of files changed]
+- [key decisions made]
+- Checkpoint saved to vscode/memory key: "phase-1-complete"
+
+Quality gate: lint ✓ | type-check ✓ | test ✓ | build ✓
+
+Continue with Phase 2: [Phase 2 name and one-line scope].
+The full plan is at [describe where: session memory key / pasted below / etc.].
+
+[Paste the Phase 2 section of this plan here so the fresh session is fully self-contained]
+```
+
+---
+
+### Phase 2 — [Name, e.g., "UI: pages and components"]
+
+**Scope**:
+
+| File             | Action |
+| ---------------- | ------ |
+| `app/…/page.tsx` | Create |
+| `components/…`   | Create |
+
+**Pre-conditions**:
+
+- [ ] Phase 1 complete (checkpoint in vscode/memory key `phase-1-complete`)
+
+**Implementation steps**:
+
+1. …
+2. …
+
+**Post-conditions**:
+
+- [ ] `pnpm lint` — zero errors
+- [ ] `pnpm type-check` — zero errors
+- [ ] `pnpm test` — all tests passing
+- [ ] `pnpm build` — succeeds
+- [ ] [Feature-specific check]
+
+**Continuation Prompt** (for Phase 3, or "No further phases"):
+
+```
+Phase 2 of [name] is complete.
+[Same pattern as Phase 1 Continuation Prompt]
+```
+
+---
+
+> **Rule for splitting phases**: each phase boundary must be a point where the codebase can compile and all existing tests still pass — never split mid-file or mid-schema. Good split points: after data layer, after API routes, after Server Components, after Client Components + tests.
+
 ## Data Flow
 
 Describe how data moves through the feature (Server Component → fetch → Zod parse → render).
@@ -367,6 +475,9 @@ List any ambiguities that must be resolved before implementation starts.
 - Do not suggest frameworks or libraries not already in the project unless absolutely necessary
 - Reference existing patterns in the codebase rather than inventing new ones
 - When recommending a Next.js API or pattern, verify it against the loaded skill — never rely on bare LLM knowledge
+- **Include `## Execution Phases` whenever**: Mode B is active, OR the plan has > 8 implementation steps, OR the plan spans > 1 domain (brownfield migration, multi-layer refactor)
+- **Each phase must be independently compilable** — the codebase must pass `pnpm type-check + pnpm test` after each phase completes, before Phase N+1 begins
+- **Each phase must contain its Continuation Prompt** — the block must be self-contained enough that pasting it into a blank chat session with no prior history is sufficient to begin the next phase
 
 ## Completion protocol
 

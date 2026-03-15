@@ -205,6 +205,102 @@ Then scan every directory you'll be touching for a co-located `.context.md` file
 If any `.context.md` is found, read it and list its "User Interactions" invariants explicitly before writing code.
 After implementing, confirm each invariant still holds.
 
+### Phase-Aware Execution Protocol
+
+**When the plan contains an `## Execution Phases` section, follow this protocol without exception:**
+
+#### Step 1 — Detect phases and identify the active phase
+
+Check whether the plan contains `## Phase N —` headings. If it does, the plan is phased.
+
+Determine the active phase from one of these sources (in order of priority):
+
+1. The explicit instruction in the user's message (e.g. "Implement Phase 2")
+2. The Continuation Prompt pasted in this session (look for `Continue with Phase N:`)
+3. If starting fresh with no instruction: Phase 1
+
+#### Step 2 — Implement ONLY the active phase
+
+Read the active phase's **Scope** table and **Implementation steps**. Work exclusively on the files listed there. Do not touch any file scoped to a future phase, even if it would be convenient.
+
+If you notice a dependency conflict (a Phase 2 file is needed by Phase 1), **pause and ask** — do not silently expand scope.
+
+#### Step 3 — Verify the active phase's post-conditions
+
+When the implementation steps are done, verify every item in the phase's **Post-conditions** checklist:
+
+```bash
+pnpm lint        # zero errors
+pnpm type-check  # zero type errors
+pnpm test        # all tests passing
+pnpm build       # production build succeeds
+```
+
+Plus any feature-specific checks listed under Post-conditions. Fix all failures before continuing.
+
+#### Step 4 — Save a checkpoint to vscode/memory
+
+Before emitting the Continuation Block, save a checkpoint so it survives session compaction:
+
+```
+Key: "phase-<N>-complete"
+Value (save all four fields):
+  - phase: N
+  - feature: [feature name from the plan]
+  - files_changed: [comma-separated list of files created/modified]
+  - decisions: [key implementation decisions made — types chosen, trade-offs, anything a fresh session needs to know]
+  - quality_gate: "lint ✓ | type-check ✓ | test ✓ | build ✓"
+```
+
+#### Step 5 — Emit the Continuation Block and stop
+
+Do not start Phase N+1. Output the following block exactly — it is the self-contained prompt for the next session:
+
+```markdown
+## Phase <N> Complete ✅
+
+**What was done:**
+
+- [file 1]: [one-line description of change]
+- [file 2]: [one-line description of change]
+- [key decision made]
+
+**Quality gate:** lint ✓ · type-check ✓ · test ✓ · build ✓
+
+**Checkpoint saved:** `phase-<N>-complete` in vscode/memory
+
+---
+
+### ▶ Continue with Phase <N+1>
+
+Paste this entire block into a new chat session to continue:
+
+---
+
+Phase <N> of [feature name] is complete (checkpoint: `phase-<N>-complete`).
+
+Files changed in Phase <N>:
+
+- [file 1] — [what it does]
+- [file 2] — [what it does]
+
+Key decisions:
+
+- [decision 1]
+- [decision 2]
+
+Quality gate passed: lint ✓ | type-check ✓ | test ✓ | build ✓
+
+Continue with **Phase <N+1> — [phase name]**.
+
+Phase <N+1> scope:
+[paste the Phase N+1 section from the original plan here — Scope table, Pre-conditions, Implementation steps, Post-conditions]
+
+Read `.github/copilot-instructions.md` first. Implement Phase <N+1> only. When Phase <N+1> post-conditions pass, emit the Phase <N+2> Continuation Block (or the ## FEATURE COMPLETE ✅ marker if this is the last phase).
+```
+
+> **Why this matters**: without the Continuation Block, the next session has no reliable context — conversation history is lossy, memory keys may have expired, and the new session may re-implement or undo Phase N work. The Continuation Block is the only artifact that is guaranteed to survive.
+
 ### Implementation steps
 
 1. **Read relevant instructions first** — Identify which directories you'll be working in and check the "Required Reading by Directory" table in `.github/copilot-instructions.md`. Read the relevant instruction files before writing any code.
@@ -280,5 +376,6 @@ pnpm build       # Next.js production build — successful
 
 End every session with exactly one of these markers:
 
-- `## FEATURE COMPLETE ✅` — all 4 quality gates pass; feature is production-ready
+- `## FEATURE COMPLETE ✅` — all 4 quality gates pass; feature is production-ready (no phases, or last phase complete)
+- `## PHASE N COMPLETE ✅` — phase N quality gates pass; Continuation Block emitted above; **do not start Phase N+1**
 - `## FEATURE BLOCKED` — blocked by ambiguous requirements or a dependency issue; state exactly what is needed to continue
