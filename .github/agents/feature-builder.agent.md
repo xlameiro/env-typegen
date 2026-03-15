@@ -4,6 +4,18 @@ description: "Build new features following project conventions: Server Component
 argument-hint: "Describe the feature or user story to implement"
 model: ["Claude Sonnet 4.6 (copilot)", "GPT-4.1 (copilot)"]
 handoffs:
+  - label: ▶ Continue Next Phase
+    agent: Feature Builder
+    prompt: |
+      Read the latest phase checkpoint from vscode/memory (look for keys like "phase-N-complete").
+      The checkpoint has four fields: phase number, feature name, files_changed, decisions, and quality_gate.
+
+      Once you find it, continue with Phase <N+1> of that feature.
+      If the checkpoint is missing or expired, ask the user to paste the Continuation Prompt that was
+      emitted at the end of the previous session — it is self-contained and does not require memory.
+
+      Follow the Phase-Aware Execution Protocol exactly. Implement Phase <N+1> only.
+    send: false
   - label: Review My Changes
     agent: Code Reviewer
     prompt: Please review the feature I just implemented.
@@ -300,6 +312,23 @@ Read `.github/copilot-instructions.md` first. Implement Phase <N+1> only. When P
 ```
 
 > **Why this matters**: without the Continuation Block, the next session has no reliable context — conversation history is lossy, memory keys may have expired, and the new session may re-implement or undo Phase N work. The Continuation Block is the only artifact that is guaranteed to survive.
+
+#### Step 6 — Generate the "Continue with Phase N+1" button
+
+After emitting the Continuation Block, call `vscode/switchAgent` to create a one-click button for the next phase. This replaces the need for the user to manually copy/paste the Continuation Block:
+
+```
+vscode/switchAgent({
+  agent: "Feature Builder",
+  message: "<exact text of the Continuation Prompt from Step 5 — the block between the --- separators>"
+})
+```
+
+- The button label shown to the user will be **▶ Continue with Phase \<N+1\>**
+- Clicking it starts a fresh Feature Builder session with the full Phase \<N+1\> context already loaded — no copy/paste needed
+- The `message` must be the **full continuation prompt** (same content as inside the `---` block above), not just the summary
+
+> **Both mechanisms serve a purpose**: the text Continuation Block is the fallback for other surfaces (CLI, different VS Code window, archived chat). The `vscode/switchAgent` call creates the button for the current session. Keep both in sync — they carry the same content.
 
 ### Implementation steps
 
