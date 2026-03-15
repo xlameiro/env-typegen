@@ -268,6 +268,8 @@ Quick entry point: `.github/instructions/INDEX.md`.
 | Any code file                                   | `.github/instructions/clean-code.instructions.md`                                            | Before any implementation — quality principles: naming, function design, error handling, state                                                  |
 | Complex component (>3 interactions, >300 lines) | `.github/instructions/feature-context.instructions.md`                                       | Before adding a feature to a complex component — create/update `.context.md` invariant file                                                     |
 | UI/UX polish                                    | `.agents/skills/ui-ux-pro/SKILL.md`                                                          | When asked to improve visuals — research design style first, then apply Tailwind v4 patterns                                                    |
+| Any code file                                   | `.github/instructions/code-review-generic.instructions.md`                                   | During code review sessions — review rubric, issue prioritization, and fix suggestions                                                          |
+| Any code file                                   | `.github/instructions/sonarqube_mcp.instructions.md`                                         | When running SonarQube quality scans or triaging SonarQube issues via MCP                                                                       |
 
 ## Boundaries
 

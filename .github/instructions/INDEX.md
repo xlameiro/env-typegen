@@ -31,6 +31,7 @@ Use this file as the entry point to quickly find the right instruction file for 
 | UI/UX visual polish, design aesthetics                                     | `.agents/skills/ui-ux-pro/SKILL.md`                                                                                         |
 | Protecting existing functionality in complex files                         | `.github/instructions/feature-context.instructions.md`                                                                      |
 | Multi-locale routing, i18n, translation libraries                          | `.github/instructions/i18n.instructions.md`                                                                                 |
+| SonarQube quality scan, code smell analysis, issue triage                  | `.github/instructions/sonarqube_mcp.instructions.md`                                                                        |
 
 ## Routing by Directory
 

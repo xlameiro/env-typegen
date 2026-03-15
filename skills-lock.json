@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-03-12",
+  "lastUpdated": "2026-03-15",
   "skills": {
     "ui-ux-pro": {
       "source": "local",
@@ -226,6 +226,16 @@
       "source": "local",
       "sourceType": "local",
       "computedHash": ""
+    },
+    "nuqs": {
+      "source": "local",
+      "sourceType": "local",
+      "description": "URL-synced state management with nuqs for Next.js App Router. Use for search queries, filters, pagination, tabs, or any URL-persistent state. Never use useState for URL-syncable values."
+    },
+    "react-hook-form": {
+      "source": "local",
+      "sourceType": "local",
+      "description": "Form validation and state management with react-hook-form + Zod resolvers. Project-specific patterns including form primitives in components/ui/form.tsx and Server Action integration."
     }
   }
 }

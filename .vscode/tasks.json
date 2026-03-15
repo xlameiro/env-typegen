@@ -53,6 +53,28 @@
       }
     },
     {
+      "label": "Dead code: knip",
+      "type": "shell",
+      "command": "pnpm knip",
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": {
+        "clear": true,
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Bundle: analyze",
+      "type": "shell",
+      "command": "pnpm analyze",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "clear": true,
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Health check: lint + typecheck + test + build",
       "dependsOn": [
         "TypeScript: type check",
