@@ -254,6 +254,76 @@ This batch covers: [domains]
 Remaining: [domains] — continue with the next session.
 ```
 
+#### 0.4 — Migration Analysis (Migration requests only — skip for Feature / Refactor / Audit)
+
+When **Request type = Migration**, complete this step before writing any plan content.
+A "Migration" request is any request to port an existing application to this template, upgrade major versions, or move between frameworks.
+
+**Sub-step A — Fetch source repository structure**
+
+Use `github/get_file_contents` (or `gh-cli/gh`) to read the source repo at its default branch:
+
+- Root `package.json` — extract framework, major deps, scripts
+- Root config files (`next.config.*`, `vite.config.*`, `webpack.config.*`, `nuxt.config.*`, etc.)
+- Top-level folder inventory (identify `pages/`, `src/`, `components/`, `lib/`, `store/`, `api/`, etc.)
+- `tsconfig.json` — strict mode, paths, target
+- Auth config (`auth.ts`, `middleware.ts`, `_middleware.ts`, etc.)
+- One representative page and one representative component (for style patterns)
+
+**Sub-step B — Produce a Migration Stack Diff**
+
+Emit this table before the plan body:
+
+```markdown
+## Migration Analysis
+
+**Source repo:** [owner/repo] at [branch/sha]
+**Target:** This template — Next.js 16.1.6, App Router, TypeScript strict, Tailwind v4
+
+### Stack Diff
+
+| Dimension       | Source                           | Target (this template)                | Action          |
+| --------------- | -------------------------------- | ------------------------------------- | --------------- |
+| Framework       | [e.g. Next.js 13 Pages Router]   | Next.js 16.1.6 App Router             | Rewrite routing |
+| Auth            | [e.g. NextAuth v4 middleware.ts] | Auth.js v5, proxy.ts                  | Migrate         |
+| Styling         | [e.g. CSS Modules]               | Tailwind CSS v4                       | Rewrite styles  |
+| State           | [e.g. Redux]                     | Zustand + nuqs                        | Replace         |
+| Data fetching   | [e.g. getServerSideProps]        | Server Components + use cache         | Rewrite         |
+| Forms           | [e.g. raw useState]              | react-hook-form + Zod v4              | Migrate         |
+| Testing         | [e.g. Jest + RTL]                | Vitest v4 + Playwright                | Migrate         |
+| TypeScript      | [e.g. loose / no strict]         | strict mode, no `any`, no `interface` | Audit + fix     |
+| Package manager | [e.g. npm]                       | pnpm                                  | Switch          |
+
+### Migration Domain Map
+
+| Domain     | Source pattern                     | Complexity | Action           | Risk   |
+| ---------- | ---------------------------------- | ---------- | ---------------- | ------ |
+| Routing    | [e.g. pages/ + getServerSideProps] | High       | Full rewrite     | High   |
+| Auth       | [e.g. NextAuth v4 middleware]      | Medium     | Port + update    | High   |
+| Components | [e.g. class components / FC + CSS] | Medium     | Port + restyle   | Medium |
+| API routes | [e.g. pages/api/]                  | Low–Medium | Move to app/api/ | Low    |
+| State      | [e.g. Redux store]                 | Medium     | Replace          | Medium |
+| Tests      | [e.g. Jest]                        | Low        | Migrate runner   | Low    |
+| Config/Env | [e.g. .env with no validation]     | Low        | Add lib/env.ts   | Low    |
+
+### Critical Breaking Changes
+
+1. [Breaking change 1 — e.g. `getServerSideProps` does not exist in App Router]
+2. [Breaking change 2 — e.g. `middleware.ts` → `proxy.ts`, API differs]
+3. [Breaking change 3 — e.g. `next/router` → `next/navigation`]
+
+### Decision Log
+
+- **Keep:** [list of source patterns that are already compatible]
+- **Port:** [list of patterns that need adaptation, not full rewrite]
+- **Replace:** [list of patterns that must be replaced with template equivalents]
+- **Delete:** [list of patterns/files that have no equivalent and are removed]
+```
+
+**Sub-step C — Set Session Mode and Batch Boundaries around Domains**
+
+Use the Migration Domain Map to define one batch per high-complexity domain, plus one shared "scaffolding and config" batch at the start.
+
 ---
 
 #### Mode B Batch Protocol
@@ -276,9 +346,54 @@ Key findings so far: [brief list]
 Next batch starts at: [first file/domain for next session]
 ```
 
-**Critical**: Never claim exhaustiveness while pending domains remain. End every Mode B batch with:
+**Critical**: Never claim exhaustiveness while pending domains remain. End every Mode B batch with the structured Planning Continuation Block below — it must be self-contained enough to paste into a blank chat session with zero prior history.
 
-> `"Batch N of M complete. X domains covered, Y pending. Open a new session and ask [Planner — Batch N+1: <next domain>] to continue."`
+#### Planning Continuation Block (emit at the end of every Mode B batch except the final synthesis)
+
+```markdown
+## Planning Batch <N> Complete
+
+**Checkpoint saved:** `planning-batch-<N>` in vscode/memory
+
+---
+
+### ▶ Continue with Planning Batch <N+1>
+
+Paste this entire block into a new Planner session to continue:
+
+---
+
+I am continuing a multi-session planning task.
+
+**Migration / feature name:** [name]
+**Total estimated batches:** [M]
+**Batches completed so far:** 1…<N>
+
+**Checkpoint key to read first:** `planning-batch-<N>` in vscode/memory
+
+**Domains already analysed:**
+
+- [domain 1] — key findings: [1–2 bullets]
+- [domain 2] — key findings: [1–2 bullets]
+
+**Decisions already made:**
+
+- [decision 1 with rationale]
+- [decision 2 with rationale]
+
+**Risk items found so far:**
+
+- [risk 1]: [severity — High/Medium/Low]
+
+**Domain for this batch:** [next domain name]
+**Files to read in this batch:** [list the specific files]
+
+**Pending domains after this batch:** [list remaining]
+
+Read `.github/copilot-instructions.md` and `.github/agents/planner.agent.md` first.
+Then analyse [next domain], update the checkpoint in vscode/memory key `planning-batch-<N+1>`,
+and emit the Planning Batch <N+1> Continuation Block (or the ## PLAN COMPLETE ✅ marker if this is the final synthesis batch).
+```
 
 ---
 

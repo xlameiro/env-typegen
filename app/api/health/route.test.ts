@@ -18,7 +18,11 @@ describe("GET /api/health", () => {
     const response = GET();
     const body = (await response.json()) as HealthResponse;
     expect(typeof body.timestamp).toBe("string");
-    const parsed = new Date(body.timestamp);
-    expect(parsed.toISOString()).toBe(body.timestamp);
+    // Temporal.Now.instant().toString() has nanosecond precision — new Date().toISOString()
+    // only preserves milliseconds so a round-trip comparison would always fail.
+    // Validate with ISO 8601 regex instead.
+    expect(body.timestamp).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/,
+    );
   });
 });

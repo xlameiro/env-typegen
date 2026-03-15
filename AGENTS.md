@@ -163,9 +163,23 @@ When you ask the Planner to cover a broad scope ("audit the whole project", "rev
 
 ### How to chain sessions (Mode B)
 
-1. **Session 1** — scope inventory + domain classification. The Planner saves a checkpoint to session memory and ends with: `"Batch 1 of M complete. Continue with [Planner — Batch 2: <next domain>]"`.
-2. **Sessions 2…N** — domain analysis. Each one reads the prior checkpoint, covers one domain, updates the checkpoint, and hands off to the next.
+1. **Session 1** — scope inventory + domain classification. The Planner saves a checkpoint to session memory and emits a **Planning Continuation Block** (self-contained text you paste into the next session — no prior history needed).
+2. **Sessions 2…N** — domain analysis. Each session reads the Planning Continuation Block, reads the `vscode/memory` checkpoint, covers one domain, updates the checkpoint, and emits the next Continuation Block.
 3. **Final session** — consolidation. Reads all checkpoints and produces the complete plan with Coverage Report and Confidence & Limits.
+
+**Planning Continuation Blocks** are the planning equivalent of execution Continuation Blocks — they carry the exact fields (covered domains, key findings, decisions made, risks found, next domain scope) so a new planning session starts from the right place with zero context leakage from the prior session.
+
+### Migration-aware planning (Migration requests)
+
+When the request is to migrate an existing application to this template, the Planner runs a **Migration Analysis** before writing any plan (Step 0.4):
+
+1. Fetches the source repo structure via `github/get_file_contents` (or `gh-cli/gh`)
+2. Produces a **Stack Diff table** (source tech vs template tech, with "Action" per dimension)
+3. Builds a **Migration Domain Map** with complexity and risk per domain
+4. Lists **Critical Breaking Changes** that require targeted attention
+5. Emits a **Decision Log** (keep / port / replace / delete per pattern)
+
+This migration context is emitted at the top of the plan and is included in every Continuation Block so downstream planning sessions and the Feature Builder have the full picture.
 
 ### What makes a plan trustworthy
 
