@@ -75,7 +75,8 @@ test.describe("Movie Search Feature", () => {
 2. **Debug Failures**: Analyze test failures and identify root causes
 3. **Iterate**: Refine locators, assertions, or test logic as needed
 4. **Validate**: Ensure tests pass consistently and cover the intended functionality
-5. **Report**: Provide feedback on test results and any issues discovered
+5. **Speedboard** (Playwright v1.57+): After a test run, open `playwright-report/index.html` and switch to the **Speedboard** tab — it lists every executed test sorted by duration, making it easy to spot slow E2E tests before optimising. Access with `pnpm exec playwright show-report`.
+6. **Report**: Provide feedback on test results and any issues discovered
 
 ## Quality Checklist
 

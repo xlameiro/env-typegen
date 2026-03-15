@@ -19,8 +19,8 @@ applyTo: "**/*.js, **/*.mjs, **/*.cjs, **/*.ts, **/*.tsx"
 
 ## Testing
 
-- This project uses **Vitest v4.x** (currently v4.0.18 stable; v4.1 is in beta). Vitest v4 is a major version bump from v3 — if upgrading an existing project review the [Vitest v4 migration guide](https://vitest.dev/guide/migration) before updating. The experimental `onModuleRunner` hook in `worker.init` is available in v4 but should not be used in test configs without evaluation.
-  - **Upcoming in Vitest v4.1** (beta as of 2026-03): `vi.mockThrow()` / `vi.mockThrowOnce()` for concisely testing error-throwing code; `aroundEach()` / `aroundAll()` lifecycle hooks for cleaner async setup/teardown; `test.extend()` with proper type inference for fixture-based tests. These APIs stabilize when v4.1 ships.
+- This project uses **Vitest v4.x** (currently v4.1.0 stable, released 2026-03-12). Vitest v4 is a major version bump from v3 — if upgrading an existing project review the [Vitest v4 migration guide](https://vitest.dev/guide/migration) before updating. The experimental `onModuleRunner` hook in `worker.init` is available in v4 but should not be used in test configs without evaluation.
+  - **Vitest v4.1 new APIs** (available in this project): `vi.mockThrow(error)` / `vi.mockThrowOnce(error)` — test error-throwing code without wrapping in `try/catch`; `aroundEach(fn)` / `aroundAll(fn)` — lifecycle hooks that receive a `next` function for symmetric setup and teardown in a single callback (cleaner than separate `beforeEach`+`afterEach` pairs); `test.extend()` — now supports proper TypeScript type inference for fixture-based tests; chai-style spy assertions (`.toHaveBeenCalledOnce()`) directly on spy objects.
 - Use Vitest for testing
 - Write tests for all new features and bug fixes
 - Ensure tests cover edge cases and error handling

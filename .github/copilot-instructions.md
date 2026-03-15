@@ -860,7 +860,12 @@ className={cn(buttonVariants({ variant, size }), className)}
 ### TypeScript 5.x
 
 - **Current stable**: TypeScript 5.9.3 (`latest` tag). TypeScript 6.0 RC is available via `typescript@rc` (since 2026-03-06); **do not upgrade until the team explicitly evaluates the RC**.
-- **Before upgrading to 6.0**: run `pnpm info typescript dist-tags` to check whether `rc` has moved to `latest`; review TS 6.0 release notes for breaking changes in module resolution, decorator handling, or strict-mode behavior that could affect `tsconfig.json` assumptions.
+- **Before upgrading to 6.0** (RC available since 2026-03-06 — see the [TS 6.0 RC announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0-rc/)): work through this checklist in a branch before bumping `"typescript": "^6"`:
+  1. Run `pnpm info typescript dist-tags` — if `rc` has moved to `latest`, the stable upgrade window is open
+  2. Read the RC release notes — pay close attention to changes in module resolution, decorator emit, and any new strict-mode checks
+  3. Run `pnpm add -D typescript@rc` in a branch, then `pnpm type-check` — fix all new errors before merging
+  4. Verify `zod`, `typescript-eslint`, `@t3-oss/env-nextjs`, and `next` all publish TS 6-compatible type declarations (`pnpm why typescript` to see which packages depend on TS internals)
+  5. Confirm `"moduleResolution": "bundler"` in `tsconfig.json` is still valid under 6.0's unified module system
 - **`^5` range is intentional**: The project's `package.json` pins `"typescript": "^5"` — this will NOT auto-upgrade to 6.0. An explicit version bump is required.
 - **TypeScript 7 (native port) is in development** — this is a separate effort from TS 6.0; the compiler is being ported to Go/native code for a 10x+ speed improvement. No release date yet. When TS7 preview packages appear on npm, evaluate separately — it may require `tsconfig.json` adjustments and is distinct from the TS6 upgrade path.
 
@@ -938,6 +943,9 @@ differenceInDays(start, end); // number (positive or negative)
 - **New hooks**: `useActionState`, `useFormStatus`, `useOptimistic` are available directly from `react`
   - **`useOptimistic` is the App Router answer to React Query mutations**: when a Server Action is pending, show the expected result immediately to keep the UI responsive. Use it for list toggles, like/unlike, archive/unarchive, and any small inline mutation where the round-trip latency would feel sluggish. Pattern: call `addOptimistic(newItem)` before `await serverAction()`, then the real server state snaps in when the action completes. Works in Client Components only — wrap the mutation caller in `"use client"` and keep the Server Action in a separate `"use server"` file or `actions.ts`.
 - **`use()` hook**: Can unwrap Promises and Context — useful in Server Components
+- **`Activity`** (React 19.2+): A built-in component that defers rendering of its children when the app is in a low-priority state (e.g., a hidden tab or off-screen panel). Children pause without losing state and resume when `Activity` becomes visible — replaces `display: none` hacks that unmount components.
+- **`useEffectEvent`** (React 19.2+): Stable replacement for the long-requested `useEvent` RFC. Declares an "event function" that always reads the latest props/state without triggering effect re-runs. Use instead of adding fast-changing values to an effect's dependency array when you only need them at call time: `const onSubmit = useEffectEvent(() => { track(analyticsId); });`
+- **React Performance Tracks** (React 19.2+): DevTools integration for performance profiling — React component render timing appears as named spans inside Chrome DevTools → Performance → record a trace. No extra setup required.
 - **No `React.FC`**: Just write `function MyComponent({ prop }: { prop: string })` — no type annotation needed for the component itself
 - **React Compiler v1.0** (stable since Oct 2025): enabled in this template via `experimental.reactCompiler: true` in `next.config.ts`. The compiler automatically inserts `useMemo`, `useCallback`, and `memo` at compile time — **do not add these manually** unless you have measured a specific regression. The compiler is smarter than human judgment for most cases. If you see a lint rule or pattern suggesting to add `useMemo`/`useCallback`, verify the compiler hasn't already handled it. See `react.dev/learn/react-compiler`.
 
@@ -1170,6 +1178,8 @@ pnpm add @modelcontextprotocol/sdk
 **Prefer generic batch tools over specialised tools**: Vercel's text-to-SQL agent collapsed months of specialised bespoke tooling into a single batch shell command tool (run `grep`, `npm run`, `eslint`, etc. natively). Result: **3.5× faster**, **37% fewer tokens**, success rate from **80% → 100%**. Anthropic's Claude Code team independently reached the same conclusion. When designing MCP servers, start with a single `run_command` tool that accepts a shell string — add specialised tools only when a generic approach demonstrably fails.
 
 **Skills vs MCP servers — token cost**: MCP servers register all their tools into the model's context window on every request, even when not used. Skills add far fewer tokens. If you notice the agent compacting earlier than expected, run `/context` in the CLI to see tool token usage — then consider whether any MCP server could be replaced by a skill that documents how to call an equivalent CLI command instead.
+
+**MCP elicitation** (Claude Code v2.1.76+): MCP servers can now request structured input from the user mid-task via an interactive dialog (`Elicitation` / `ElicitationResult` types in the MCP SDK). The server halts its current tool call, presents a typed form to the user (form fields or a browser URL), and resumes with the collected input. Use it for OAuth confirmation steps, destructive-action confirmation dialogs, or collecting optional parameters the server cannot infer automatically.
 
 ## Convention Health Audit
 
