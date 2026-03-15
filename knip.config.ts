@@ -11,6 +11,7 @@ const config: KnipConfig = {
     "components/ui/**/*.{ts,tsx}",
     "lib/schemas/**/*.{ts,tsx}",
     "lib/auth.ts",
+    "lib/constants.ts",
     "lib/dates.ts",
     "lib/utils.ts",
     "types/**/*.{ts,tsx}",
@@ -28,6 +29,10 @@ const config: KnipConfig = {
     "tailwindcss",
     // Peer dep via @tailwindcss/postcss — referenced in postcss.config.mjs at runtime
     "postcss",
+    // Template scaffold dependency — used with react-hook-form for Zod schema resolution
+    // in forms (e.g. useForm({ resolver: zodResolver(schema) })). Not imported by the
+    // starter kit itself but required by consumers building forms.
+    "@hookform/resolvers",
   ],
 };
 
