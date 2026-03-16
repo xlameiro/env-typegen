@@ -282,7 +282,7 @@ Know what humans do better vs. what the agent does better:
 2. In the right sidebar, under **Assignees**, assign **Copilot**
 3. Or from the **Agents panel** (top-right on github.com) → New task → select repo + model
 4. Choose your model: fast model for tests/formatting, powerful model (Claude) for refactors
-5. Monitor progress in the session logs; the agent self-reviews its own PR and runs built-in security scanning before opening the PR — a separate `gh pr review --request-review copilot` call is no longer needed for the initial review
+5. Monitor progress in the session logs; use the model picker to tune quality vs speed per task. The coding agent self-reviews its own PR and runs built-in security scanning before opening the PR, and supports CLI handoff for local follow-up work — a separate `gh pr review --request-review copilot` call is no longer needed for the initial review
 
 **Batch-assign the backlog** — Don't limit yourself to one ticket at a time. Identify a chunk of low-risk issues (UI polish, accessibility fixes, missing tests, deprecated API updates) and assign them all to Copilot at once. The agent works on each in parallel or sequentially and opens individual PRs per issue. Use `/fleet` from the CLI for the same effect without going through the GitHub UI:
 
@@ -300,12 +300,12 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 
 **Approval modes** (Chat input → **default approvals** dropdown):
 
-| Mode              | What it does                                                                                 | When to use                                                             |
-| ----------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Default Approvals | Prompts before each tool call (terminal, MCP, file write)                                    | Infra, schema changes, AWS, irreversible operations                     |
-| Bypass Approvals  | Auto-approves tool calls but **still pauses for clarifying questions and terminal input**    | When you want speed without approving each tool call; still interactive |
-| Autopilot         | Bypass + auto-retry on API errors + forceful completion; **never asks clarifying questions** | Default for all feature work — fully unattended execution               |
-| Sandbox           | Bypass Approvals + process/network isolation                                                 | Testing untrusted code or external-facing operations                    |
+| Mode              | What it does                                                                                                      | When to use                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Default Approvals | Prompts before each tool call (terminal, MCP, file write)                                                         | Infra, schema changes, AWS, irreversible operations                     |
+| Bypass Approvals  | Auto-approves tool calls and **auto-retries on errors**; still pauses for clarifying questions and terminal input | When you want speed without approving each tool call; still interactive |
+| Autopilot         | Bypass + auto-retry on API errors + forceful completion; **never asks clarifying questions**                      | Default for all feature work — fully unattended execution               |
+| Sandbox           | Bypass Approvals + process/network isolation                                                                      | Testing untrusted code or external-facing operations                    |
 
 > **Default for this project**: use **Autopilot** for all feature work. Switch to **Default Approvals** whenever you are touching AWS resources, database schema, or environment secrets. Use **Sandbox** when the agent will execute code from untrusted sources.
 
@@ -610,7 +610,7 @@ Press `Ctrl+G` in the CLI to open the current prompt in `$EDITOR` (VS Code, Vim,
 /context
 ```
 
-Shows what percentage of the model's context window is consumed by installed tools and MCP servers. If you're hitting compaction earlier than expected, this is the first thing to check.
+Shows what percentage of the model's context window is consumed by installed tools and MCP servers. Recent versions also provide actionable suggestions (context-heavy tools, memory bloat, capacity warnings) with optimization tips. If you're hitting compaction earlier than expected, this is the first thing to check.
 
 **VS Code ↔ CLI continuity**: open the CLI inside VS Code's integrated terminal — it reads open files and shows diffs in VS Code's diff viewer. Sessions can be resumed from either surface with `gh copilot resume`.
 

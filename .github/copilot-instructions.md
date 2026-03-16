@@ -953,7 +953,7 @@ differenceInDays(start, end); // number (positive or negative)
 
 ### Zustand v5
 
-- **Install**: `pnpm add zustand` — current version is v5.0.11.
+- **Install**: `pnpm add zustand` — current version is v5.0.12.
 - **Client-only**: Use Zustand for client-side UI state only — never for server data or SSR-fetched content; see `store/**` skill.
 - **`unstable_ssrSafe` middleware** (v5.0.9+): Experimental middleware designed for Next.js server rendering. Prevents hydration mismatches caused by Zustand stores being accessed during SSR. Usage: `create(unstable_ssrSafe(storeImplementation))`. Monitor until the `unstable_` prefix is dropped before adopting in production.
 
@@ -964,7 +964,7 @@ differenceInDays(start, end); // number (positive or negative)
 | Mode              | What it does                                                                                                       | When to use                                                        |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | Default Approvals | Prompts before every tool call                                                                                     | Infra, AWS, schema changes, irreversible operations                |
-| Bypass Approvals  | Auto-approves tool calls but **still pauses for clarifying questions and terminal input**                          | Speed without needing to approve each tool call; still interactive |
+| Bypass Approvals  | Auto-approves tool calls and **auto-retries on errors**; still pauses for clarifying questions and terminal input  | Speed without needing to approve each tool call; still interactive |
 | Autopilot         | Bypass + auto-retry API errors + forceful completion; **never asks clarifying questions — makes best-guess calls** | **Default for all feature work** — fully unattended execution      |
 | Sandbox           | Bypass + process/network isolation                                                                                 | Running untrusted or external-facing code                          |
 
@@ -1066,18 +1066,22 @@ When you click **Share with agent** in the toolbar, the agent gets direct access
 
 Setting: `chat.autopilot.enabled`
 
-> **Enable in Stable:** Set `chat.autopilot.enabled: true` in your VS Code settings, or select **Autopilot** from the Chat input → **default approvals** dropdown.
+> **Enable in Stable:** Set `chat.autopilot.enabled: true` in your VS Code settings, or select **Autopilot** from the Chat input → **permissions picker** dropdown.
 
-Autopilot combines auto-approval of all tool calls with auto-retry on API errors and forceful completion prompting — the agent keeps working until it has genuinely finished the task, not just until it returns a stop token. It does not pause between phases to ask "should I continue?" — matching the autonomous behavior of cloud agents (Copilot coding agent assigned via GitHub Issues).
+**Permissions picker (VS Code 1.110+)** — The chat input box is split into two toolbars: a **session toolbar** (agent harness: local / CLI / cloud; model picker) and a **request toolbar** containing the **permissions picker**. The permissions picker is the new visual surface for selecting approval modes — previously only accessible by searching for `YOLO mode` in settings. Modes set here are session-scoped and override any fine-grained `autoApprove` rules you have configured in `settings.json` for the duration of that session.
+
+Autopilot combines auto-approval of all tool calls with auto-retry on API errors and forceful completion prompting — the agent keeps working until it has genuinely finished the task, not just until it returns a stop token. Internally, iteration continues until a `taskComplete` tool call is made (currently max ~5 continuations); the agent verifies its work and clears all todos before calling it, which is why Autopilot sometimes makes an extra verification pass after completing code changes. It does not pause between phases to ask "should I continue?" — matching the autonomous behavior of cloud agents (Copilot coding agent assigned via GitHub Issues).
 
 **Approval mode quick reference:**
 
 | Mode              | Auto-approve tools | Auto-retry errors | Forceful completion | Stops for questions |
 | ----------------- | ------------------ | ----------------- | ------------------- | ------------------- |
 | Default Approvals | ❌                 | ❌                | ❌                  | ✅                  |
-| Bypass Approvals  | ✅                 | ❌                | ❌                  | ✅                  |
+| Bypass Approvals  | ✅                 | ✅                | ❌                  | ✅                  |
 | **Autopilot**     | ✅                 | ✅                | ✅                  | ❌                  |
 | Sandbox           | ✅ + isolated      | ❌                | ❌                  | ✅                  |
+
+> **Session scope**: Selecting any mode via the permissions picker overrides **all** workspace/user `autoApprove` settings for the session duration — including fine-grained per-command or per-file rules configured in `settings.json`. Switch back to Default Approvals to restore those rules.
 
 **When to use:**
 
@@ -1100,6 +1104,8 @@ Autopilot combines auto-approval of all tool calls with auto-retry on API errors
 - **Open in editor** — opens the plan as a markdown document for manual editing before starting
 
 Use **Start with autopilot** to go directly from plan to execution in one click, without manually switching modes.
+
+**Fully automatic plan → implement flow**: If Autopilot is already active in the permissions picker **before** entering Plan mode, the handoff is fully automatic — the agent auto-answers its own questions during planning and immediately begins implementation when done, with no button click required. This is the fastest end-to-end flow for unattended feature work.
 
 ## Agent Routing (Default Behaviour)
 
