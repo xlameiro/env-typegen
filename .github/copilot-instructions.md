@@ -996,40 +996,56 @@ Hooks execute shell commands at specific agent lifecycle points. Store hook conf
 
 | Event          | Use for                                                     |
 | -------------- | ----------------------------------------------------------- |
-| `PreToolUse`   | Block destructive operations (`rm -rf`, `DROP TABLE`)       |
-| `SessionStart` | Inject branch/Node version context into every session       |
-| `SessionEnd`   | Require full quality gate to pass before the agent finishes |
+| `preToolUse`   | Block destructive operations (`rm -rf`, `DROP TABLE`)       |
+| `sessionStart` | Inject branch/Node version context into every session       |
+| `sessionEnd`   | Require full quality gate to pass before the agent finishes |
 
-> **`PostToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `SessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
+> **`postToolUse` is intentionally disabled** in this project. Running lint + type-check after every individual file edit creates one Chat Terminal per edit (VS Code opens a new terminal per hook invocation), flooding the Chat Terminals panel. The `sessionEnd` hook already runs the full quality gate (`lint + type-check + test + build`) at the end of every session — that is sufficient.
 >
-> **Opt-in**: If you want `PostToolUse` enabled for your local workflow, add a `PostToolUse` entry to `.github/hooks/hooks.json`. A ready-made script is already available at `.github/hooks/scripts/post-tool-check.sh` — add the entry below to activate it:
+> **Opt-in**: If you want `postToolUse` enabled for your local workflow, add a `postToolUse` entry to `.github/hooks/hooks.json`. A ready-made script is already available at `.github/hooks/scripts/post-tool-check.sh` — add the entry below to activate it:
 >
 > ```json
 > {
->   "event": "PostToolUse",
->   "script": ".github/hooks/scripts/post-tool-check.sh"
+>   "hooks": {
+>     "postToolUse": [
+>       {
+>         "type": "command",
+>         "bash": "./.github/hooks/scripts/post-tool-check.sh",
+>         "cwd": ".",
+>         "timeoutSec": 30
+>       }
+>     ]
+>   }
 > }
 > ```
 >
-> VS Code 1.111.0 (stable, released 2026-03-09) is the current stable release. Terminal proliferation with PostToolUse hooks persists in 1.111 — each hook invocation still creates a new Chat Terminal. The project default (PostToolUse disabled) remains correct.
+> VS Code 1.111.0 (stable, released 2026-03-09) is the current stable release. Terminal proliferation with `postToolUse` hooks persists in 1.111 — each hook invocation still creates a new Chat Terminal. The project default (`postToolUse` disabled) remains correct.
 >
-> A second opt-in hook is the **`Stop` auto-commit** — makes a commit of all pending changes when the agent session stops, preventing loss of generated work. A ready-made script is available at `.github/hooks/scripts/session-stop-autocommit.sh` — add the entry below to `.github/hooks/hooks.json` to activate:
+> A second opt-in hook is the **`stop` auto-commit** — makes a commit of all pending changes when the agent session stops, preventing loss of generated work. A ready-made script is available at `.github/hooks/scripts/session-stop-autocommit.sh` — add the entry below to `.github/hooks/hooks.json` to activate:
 >
 > ```json
 > {
->   "event": "Stop",
->   "script": ".github/hooks/scripts/session-stop-autocommit.sh"
+>   "hooks": {
+>     "stop": [
+>       {
+>         "type": "command",
+>         "bash": "./.github/hooks/scripts/session-stop-autocommit.sh",
+>         "cwd": ".",
+>         "timeoutSec": 30
+>       }
+>     ]
+>   }
 > }
 > ```
 >
 > The script only commits if there are pending changes, never uses `--no-verify`, and always appends `[skip ci]` to the commit message.
 
-Example — auto-lint after any file edit (`.github/hooks/quality.json`):
+Example — auto-lint after any file edit (`.github/hooks/hooks.json`):
 
 ```json
 {
   "hooks": {
-    "PostToolUse": [
+    "postToolUse": [
       {
         "type": "command",
         "command": "pnpm lint",

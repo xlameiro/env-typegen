@@ -26,7 +26,7 @@ pnpm install    # also runs postinstall → auto-creates .env.local with a gener
 
 Use one of these before starting real feature work:
 
-- `pnpm clean:examples`: removes non-auth template examples and asks whether to keep auth when run interactively.
+- `pnpm clean:examples`: removes non-auth template examples and asks whether to keep auth when run interactively (non-TTY defaults to `keep-auth`).
 - `pnpm clean:examples:full`: removes all template examples, including every auth-related file and config.
 
 ### Template map — example vs scaffold
@@ -101,7 +101,7 @@ Important:
 
 - `@template-example` markers are a discovery aid, not the only cleanup source of truth.
 - Some template artifacts (especially tests and route wiring) may not have this marker.
-- The cleanup script uses an explicit file inventory plus mode (`keep-auth` / `no-auth`) to remove template residue reliably.
+- The cleanup script uses an explicit file inventory plus mode (`keep-auth` / `no-auth`; accepts `full-clean` as a legacy alias for `no-auth`) to remove template residue reliably.
 
 ---
 
@@ -117,7 +117,7 @@ These conventions are non-standard and **must be followed**. AI agents reading o
 
 > **Allowed/prohibited operations, quality gates, branching strategy, and git best practices**: See `.github/copilot-instructions.md` §Boundaries, §Personal Preferences, and §Session Completion Checklist. The rules below are AGENTS.md-specific additions.
 
-- Read hook configurations in `.github/hooks/*.json` — these run automatically at agent lifecycle events (PostToolUse, SessionStart, SessionEnd, etc.)
+- Read hook configurations in `.github/hooks/*.json` — these run automatically at agent lifecycle events (`postToolUse`, `sessionStart`, `sessionEnd`, etc.)
 - Use `git add <filename>` instead of `git add .` — avoids accidentally staging unintended files
 - Create PRs as drafts first: `gh pr create --draft` — lets the requester verify correctness before involving reviewers
 - When remote has new changes, prefer `git fetch && git rebase origin/main` over merge commits
@@ -328,8 +328,16 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 
 ```json
 {
-  "event": "Stop",
-  "script": ".github/hooks/scripts/session-stop-autocommit.sh"
+  "hooks": {
+    "stop": [
+      {
+        "type": "command",
+        "bash": "./.github/hooks/scripts/session-stop-autocommit.sh",
+        "cwd": ".",
+        "timeoutSec": 30
+      }
+    ]
+  }
 }
 ```
 
@@ -879,10 +887,10 @@ A consolidated reference of all guardrails that prevent the AI development syste
 
 | Control                    | Where                                              | What it does                                                                                                                                                                   |
 | -------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `preToolUse` hook          | `.github/hooks/scripts/session-start.sh`           | Scans every file write for 21 secret patterns (tokens, keys, DSNs) before content reaches disk                                                                                 |
+| `preToolUse` hook          | `.github/hooks/scripts/pre-tool-secret-scan.sh`    | Scans every file write for 21 secret patterns (tokens, keys, DSNs) before content reaches disk                                                                                 |
 | Feature Builder pre-flight | `.github/agents/feature-builder.agent.md`          | Forces `next-devtools-init` → skill load → Documentation Declaration **before any code is written** — prevents stale Next.js 13/14 patterns                                    |
 | Context-map pre-flight     | `.github/agents/feature-builder.agent.md` step 0.3 | Invokes `context-map` skill to identify blast radius; reads `.context.md` invariants for complex components — prevents Pitfall #10 (silent deletion of existing functionality) |
-| Instruction files (15)     | `.github/instructions/`                            | Per-directory coding standards auto-applied by Copilot (React, Next.js, TypeScript, a11y, security, testing, etc.)                                                             |
+| Instruction files (18)     | `.github/instructions/`                            | Per-directory coding standards auto-applied by Copilot (React, Next.js, TypeScript, a11y, security, testing, i18n, MDX, SonarQube MCP, etc.)                                   |
 | Prompt injection guard     | `.github/workflows/bug-triage.md`                  | Issue content treated as untrusted; halts and labels `invalid` if prompt-injection patterns detected                                                                           |
 
 ### Post-generation guardrails (catch bad output before merge)
@@ -891,7 +899,7 @@ A consolidated reference of all guardrails that prevent the AI development syste
 | ---------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `sessionEnd` hook      | `.github/hooks/scripts/session-end-check.sh` | Full quality gate (`pnpm lint && pnpm type-check && pnpm test && pnpm build`) runs at the end of every agent session |
 | git pre-commit         | `.husky/pre-commit`                          | Commitlint enforces conventional commits; lint-staged runs ESLint on staged files                                    |
-| Skills integrity check | `scripts/verify-skills.mjs` + CI `ci.yml`    | SHA-256 hashes of all 43 external SKILL.md files verified in CI — detects tampering or unreviewed updates            |
+| Skills integrity check | `scripts/verify-skills.mjs` + CI `ci.yml`    | SHA-256 hashes of all 47 external SKILL.md files verified in CI — detects tampering or unreviewed updates            |
 | CodeQL SAST            | `.github/workflows/codeql.yml`               | Static security analysis on every push and PR                                                                        |
 | Copilot code review    | GitHub Settings → Code review                | Automated PR review by Copilot before human reviewers                                                                |
 | CodeRabbit review      | `.coderabbit.yaml`                           | Second automated review layer (free for open-source repos)                                                           |

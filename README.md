@@ -118,24 +118,24 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Script                     | Description                                                    |
-| -------------------------- | -------------------------------------------------------------- |
-| `pnpm setup`               | Generate `.env.local` from `.env.example` (run once per clone) |
-| `pnpm clean:examples`      | Remove template examples (interactive auth keep/remove choice) |
-| `pnpm clean:examples:full` | Remove all template artifacts, including auth-related files    |
-| `pnpm dev`                 | Start development server                                       |
-| `pnpm dev:local`           | Dev with stable `.localhost` URL (Portless)                    |
-| `pnpm dev:local:https`     | Dev with HTTPS + named `.localhost` URL (Portless)             |
-| `pnpm build`               | Production build                                               |
-| `pnpm start`               | Start production server                                        |
-| `pnpm lint`                | ESLint                                                         |
-| `pnpm type-check`          | TypeScript type check (`tsc --noEmit`)                         |
-| `pnpm test`                | Vitest unit tests                                              |
-| `pnpm test:watch`          | Vitest in watch mode                                           |
-| `pnpm test:e2e`            | Playwright E2E (headless)                                      |
-| `pnpm test:e2e:ui`         | Playwright UI mode                                             |
-| `pnpm test:e2e:headed`     | Playwright with visible browser                                |
-| `pnpm test:all`            | Unit + E2E                                                     |
+| Script                     | Description                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `pnpm setup`               | Generate `.env.local` from `.env.example` (run once per clone)                         |
+| `pnpm clean:examples`      | Remove template examples (interactive auth keep/remove; non-TTY defaults to keep-auth) |
+| `pnpm clean:examples:full` | Remove all template artifacts, including auth-related files                            |
+| `pnpm dev`                 | Start development server                                                               |
+| `pnpm dev:local`           | Dev with stable `.localhost` URL (Portless)                                            |
+| `pnpm dev:local:https`     | Dev with HTTPS + named `.localhost` URL (Portless)                                     |
+| `pnpm build`               | Production build                                                                       |
+| `pnpm start`               | Start production server                                                                |
+| `pnpm lint`                | ESLint                                                                                 |
+| `pnpm type-check`          | TypeScript type check (`tsc --noEmit`)                                                 |
+| `pnpm test`                | Vitest unit tests                                                                      |
+| `pnpm test:watch`          | Vitest in watch mode                                                                   |
+| `pnpm test:e2e`            | Playwright E2E (headless)                                                              |
+| `pnpm test:e2e:ui`         | Playwright UI mode                                                                     |
+| `pnpm test:e2e:headed`     | Playwright with visible browser                                                        |
+| `pnpm test:all`            | Unit + E2E                                                                             |
 
 > **First-time E2E setup**: install browser binaries before running any Playwright test:
 >
@@ -183,15 +183,15 @@ This template ships with a full Copilot configuration out of the box.
 
 ### What's included
 
-| Feature                                                                                                   | Location                                 |
-| --------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Project-wide instructions                                                                                 | `.github/copilot-instructions.md`        |
-| Per-technology instruction files                                                                          | `.github/instructions/*.instructions.md` |
-| Custom VS Code agents                                                                                     | `.github/agents/*.agent.md`              |
-| Reusable prompt files                                                                                     | `.github/prompts/*.prompt.md`            |
-| MCP servers (Context7, Playwright, Shadcn, Next Devtools, GitHub, Markitdown, and 5 custom local servers) | `.vscode/mcp.json`                       |
-| Skills library                                                                                            | `.agents/skills/`                        |
-| Lifecycle hooks                                                                                           | `.github/hooks/`                         |
+| Feature                                                                                           | Location                                 |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Project-wide instructions                                                                         | `.github/copilot-instructions.md`        |
+| Per-technology instruction files                                                                  | `.github/instructions/*.instructions.md` |
+| Custom VS Code agents                                                                             | `.github/agents/*.agent.md`              |
+| Reusable prompt files                                                                             | `.github/prompts/*.prompt.md`            |
+| MCP servers (Context7, Playwright, Shadcn, Next Devtools, Markitdown, and 5 custom local servers) | `.vscode/mcp.json`                       |
+| Skills library                                                                                    | `.agents/skills/`                        |
+| Lifecycle hooks                                                                                   | `.github/hooks/`                         |
 
 ### MCP Servers
 
@@ -201,9 +201,8 @@ Configured in `.vscode/mcp.json`. Active servers:
 | ---------------------- | ------------------------------------------------------------------------ |
 | **Context7**           | Up-to-date docs for any npm library, injected into context automatically |
 | **Playwright MCP**     | Browser automation and UI debugging directly from chat                   |
-| **Shadcn MCP**         | Add and configure shadcn/ui components                                   |
+| **Shadcn MCP**         | Browse shadcn/ui registry items and generate add commands                |
 | **Next Devtools MCP**  | Next.js-specific diagnostics and upgrades                                |
-| **GitHub MCP**         | Create issues, PRs, branches, and read repo data from chat               |
 | **Markitdown MCP**     | Convert any document (PDF, Word, Excel, HTML, images) to Markdown        |
 | **youtube-transcript** | Transcribe and analyze YouTube videos from chat                          |
 | **npm-registry**       | Query npm package metadata and latest versions from chat                 |
@@ -321,6 +320,7 @@ This template ships a fully-configured AI development environment for VS Code Co
 | `adr-generator`   | Architecture Decision Records                                            |
 | `github-actions`  | CI/CD workflows, GitHub Actions                                          |
 | `prd-creator`     | Product requirements documents                                           |
+| `ui-components`   | UI component scaffolding and design system patterns                      |
 
 ### Skills (`.agents/skills/` — 47 installed)
 
@@ -339,27 +339,33 @@ Run `skills list` or check `.agents/skills/` for the full catalog.
 
 ### MCP Servers (`.vscode/mcp.json`)
 
-| Server       | Purpose                                                                           |
-| ------------ | --------------------------------------------------------------------------------- |
-| `context7`   | Authoritative, version-specific library documentation (Next.js, React, Zod, etc.) |
-| `github`     | GitHub API — issues, PRs, Actions, repositories                                   |
-| `playwright` | Browser automation and E2E test generation                                        |
-| `shadcn`     | Component registry access                                                         |
-| `memory`     | Cross-session persistent memory for agents                                        |
-| `markitdown` | Convert documents (PDF, Word, Excel, HTML, images) to Markdown — requires `uv`    |
+| Server               | Purpose                                                                           |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `context7`           | Authoritative, version-specific library documentation (Next.js, React, Zod, etc.) |
+| `playwright`         | Browser automation and E2E test generation                                        |
+| `shadcn`             | Component registry access                                                         |
+| `markitdown`         | Convert documents (PDF, Word, Excel, HTML, images) to Markdown — requires `uv`    |
+| `next-devtools`      | Next.js runtime diagnostics and documentation tooling                             |
+| `youtube-transcript` | Extract transcript text from YouTube videos                                       |
+| `npm-registry`       | Query npm metadata, versions, and package details                                 |
+| `hacker-news`        | Search stories and discussions for release/risk intelligence                      |
+| `osv-vulnerability`  | Query OSV/GHSA/CVE vulnerability data for dependencies                            |
+| `rss-feed`           | Aggregate release/news feeds for stack monitoring                                 |
+
+> Note: GitHub and memory capabilities can still be available through the Copilot runtime harness even when they are not declared in `.vscode/mcp.json`.
 
 ### Prompts (`.github/prompts/`)
 
-22 reusable prompt files covering: component creation, API routes, Zod schemas, Zustand stores, forms, Playwright tests, security audits, Lighthouse audits, feature docs, skills, and more. Use via `@workspace` or the Copilot Chat prompt selector.
+30 reusable prompt files covering: component creation, API routes, Zod schemas, Zustand stores, forms, Playwright tests, security audits, Lighthouse audits, feature docs, skills, and more. Use via `@workspace` or the Copilot Chat prompt selector.
 
 ### Hooks (`.github/hooks/`)
 
-- **`session-start`** — Injects Node.js version and git branch context at session start
-- **`session-end`** — Runs the full quality gate (`lint + type-check + test + build`) before the agent finishes
+- **`sessionStart`** — Injects Node.js version and git branch context at session start
+- **`sessionEnd`** — Runs the full quality gate (`lint + type-check + test + build`) before the agent finishes
 
 ### Instruction Files (`.github/instructions/`)
 
-15 domain-specific instruction files covering: Next.js, React, TypeScript, Tailwind, Auth, Security (OWASP), Accessibility (WCAG 2.2), Vitest, Playwright, Performance, Markdown, Context7, Clean Code, Feature Context, and Code Review. All are auto-discovered by VS Code Copilot via `applyTo` glob patterns.
+18 domain-specific instruction files covering: Next.js, React, TypeScript, Tailwind, Auth, Security (OWASP), Accessibility (WCAG 2.2), Vitest, Playwright, Performance, Markdown, Context7, Clean Code, Feature Context, Code Review, i18n, MDX, and SonarQube MCP guidance. All are auto-discovered by VS Code Copilot via `applyTo` glob patterns.
 
 ---
 

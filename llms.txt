@@ -47,7 +47,7 @@ This repository is a ready-to-use foundation that combines Next.js 16 (App Route
 - Imports: use `@/` path alias for all internal imports
 - No `any` types; strict TypeScript throughout
 - All input validated with Zod at system boundaries
-- Styling: semantic design tokens (`text-foreground`, `bg-card`, `border-border`, `text-muted-foreground`) defined in `app/globals.css` — never use raw `zinc-*` classes in UI components
+- Styling: semantic design tokens (`text-foreground`, `bg-card`, `border-border`, `text-muted-foreground`) defined in `app/globals.css`; prefer token classes in app UI components (docs/examples may still show `zinc-*` utilities as generic Tailwind fallbacks)
 - Branching: Trunk-Based Development — `main` is always releasable
 
 ## Development Commands
@@ -96,7 +96,7 @@ This template includes a fully layered AI developer experience:
 
 ### Instruction Files (`.github/instructions/`)
 
-15 per-file instruction files scoped with `applyTo` glob patterns:
+18 per-file instruction files scoped with `applyTo` glob patterns:
 
 - `nextjs.instructions.md` — App Router, Server Components, caching
 - `nextjs-tailwind.instructions.md` — Tailwind CSS v4, design tokens
@@ -109,23 +109,26 @@ This template includes a fully layered AI developer experience:
 - `playwright-typescript.instructions.md` — Playwright E2E testing
 - `context7.instructions.md` — Context7 MCP for up-to-date library docs
 - `code-review-generic.instructions.md` — Structured PR review protocol
+- `i18n.instructions.md` — Multi-locale routing strategies (Tier 1/2/3) and `proxy.ts` locale ordering
+- `mdx.instructions.md` — MDX/Markdown rendering patterns for App Router
 - `learnings.instructions.md` — `learn!` command for persisting session insights
 - `markdown.instructions.md` — Markdown formatting standards
 - `clean-code.instructions.md` — Naming, function design, error handling, state principles
 - `feature-context.instructions.md` — Co-located invariant files for complex components
+- `sonarqube_mcp.instructions.md` — SonarQube MCP usage and troubleshooting guidance
 
 ### Lifecycle Hooks (`.github/hooks/`)
 
-4-phase agent lifecycle automation:
+3 active lifecycle hooks plus an optional `postToolUse` helper:
 
 - `sessionStart` — Validates dev environment (Node.js ≥ 20, pnpm, node_modules, .env.local)
-- `preToolUse` — Blocks destructive commands (`rm -rf`, `DROP TABLE`) and scans for secrets
-- `postToolUse` — Disabled by default (opt-in via `hooks.json`); prevents Chat Terminal proliferation in VS Code — see `copilot-instructions.md`
+- `preToolUse` — Scans file-write tool payloads for hardcoded secrets before writes
 - `sessionEnd` — Enforces quality gate (`pnpm lint && pnpm type-check && pnpm test && pnpm build`) before the agent finishes
+- `postToolUse` helper script exists but is disabled by default (opt-in via `hooks.json`) to avoid Chat Terminal proliferation in VS Code — see `copilot-instructions.md`
 
 ### Prompt Commands (`.github/prompts/`)
 
-22 reusable Copilot prompt files for common workflows:
+30 reusable Copilot prompt files for common workflows (selected examples):
 
 - `analyze.prompt.md` — Deep analysis of a selected file or component
 - `analyze-and-generate-skills.prompt.md` — Analyze code and generate a reusable skill from it
@@ -152,13 +155,12 @@ This template includes a fully layered AI developer experience:
 
 ### MCP Servers (`.vscode/mcp.json`)
 
-11 MCP servers pre-configured for VS Code:
+10 MCP servers pre-configured in `.vscode/mcp.json` for VS Code, plus built-in GitHub MCP support via VS Code settings:
 
 - `@upstash/context7-mcp` — Authoritative, version-specific library documentation
 - `shadcn` — shadcn/ui component registry
 - `@playwright/mcp@latest` — Browser automation for testing
 - `next-devtools-mcp` — Next.js DevTools integration
-- GitHub MCP (`api.githubcopilot.com/mcp/`) — Issues, PRs, and repository operations
 - `markitdown-mcp` — Convert documents (PDF, Word, Excel, HTML, images) to Markdown
 - `youtube-transcript` (local) — Transcribe YouTube videos from chat
 - `npm-registry` (local) — Query npm package metadata and versions

@@ -44,7 +44,7 @@ Key practices enforced:
 This project uses AI agents (GitHub Copilot, Claude) and MCP servers. Additional security measures:
 
 - **Secret scanning hook**: A `preToolUse` hook (`.github/hooks/scripts/pre-tool-secret-scan.sh`) automatically scans file content for hardcoded API keys, tokens, and credentials before any file write. It blocks the operation if secrets are detected.
-- **MCP server vetting**: 5 MCP servers are configured in `.vscode/mcp.json` (Context7, shadcn, Playwright, Next DevTools, GitHub). Only use MCP servers from trusted sources. Review server configurations before enabling.
-- **MCP secret management**: MCP inputs that require authentication (e.g., `CONTEXT7_API_KEY`, GitHub PAT) are marked as `password: true` and must be provided at runtime. Never commit these values to the repository.
-- **Agent boundaries**: Agent operations are constrained by hooks that enforce the quality gate (`pnpm lint`, `pnpm type-check`, `pnpm test`, `pnpm build`) at session end. Destructive operations (`rm -rf`, `git push --force`) require explicit user confirmation.
+- **MCP server vetting**: 10 MCP servers are configured in `.vscode/mcp.json` (`context7`, `shadcn`, `playwright`, `next-devtools`, `markitdown`, `youtube-transcript`, `npm-registry`, `hacker-news`, `osv-vulnerability`, `rss-feed`). GitHub MCP support is enabled separately via VS Code setting (`github.copilot.chat.githubMcpServer.enabled`). Only use trusted servers and review configs before enabling additional ones.
+- **MCP secret management**: MCP inputs that require authentication (e.g., `CONTEXT7_API_KEY`) are marked as `password: true` and must be provided at runtime. Never commit these values to the repository.
+- **Agent boundaries**: Hooks enforce pre-write secret scanning and run the quality gate (`pnpm lint`, `pnpm type-check`, `pnpm test`, `pnpm build`) at session end. Terminal approval behavior is configured in `.vscode/settings.json` under `chat.tools.terminal.*` and should be reviewed before enabling broad auto-approval rules.
 - **Audit trail**: Agent sessions produce output logs. Review agent-generated PRs with the same rigor as human-authored code.

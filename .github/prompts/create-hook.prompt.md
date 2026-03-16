@@ -19,8 +19,8 @@ Match their description to the correct lifecycle event:
 | `sessionStart` | Once when the agent session begins          | Inject environment context, validate Node/pnpm versions, print branch info              |
 | `preToolUse`   | Before every tool call                      | Block destructive operations, scan for secrets, enforce policies                        |
 | `sessionEnd`   | When the agent session ends (natural close) | Run quality gate (lint + tsc + test + build)                                            |
-| `PostToolUse`  | After every tool call                       | Lint after file edits — **disabled by default** (causes VS Code terminal proliferation) |
-| `Stop`         | When the agent is stopped                   | Auto-commit pending changes, write session summary                                      |
+| `postToolUse`  | After every tool call                       | Lint after file edits — **disabled by default** (causes VS Code terminal proliferation) |
+| `stop`         | When the agent is stopped                   | Auto-commit pending changes, write session summary                                      |
 
 > **Warning on `preToolUse`**: hooks that return `{"permissionDecision":"deny"}` block the tool call.
 > Only use this for genuine safety gates (secret detection, destructive command prevention).
@@ -67,7 +67,7 @@ exit 0   # Always exit 0 — a non-zero exit is a hook error, not a denial
 - `set -uo pipefail` at the top
 - Always exit 0 — the agent runtime treats non-zero as a hook infrastructure error
 - Use `python3` (not `jq`) for JSON parsing — it is always available
-- Keep scripts fast: `sessionStart`/`preToolUse`/`PostToolUse` should complete in < 5 s
+- Keep scripts fast: `sessionStart`/`preToolUse`/`postToolUse` should complete in < 5 s
 - Do not depend on external network calls in `preToolUse` (blocks every tool invocation)
 
 ---
@@ -99,8 +99,8 @@ Suggested timeouts by event:
 | `sessionStart` | 15                               |
 | `preToolUse`   | 10                               |
 | `sessionEnd`   | 180 (includes full quality gate) |
-| `PostToolUse`  | 30                               |
-| `Stop`         | 30                               |
+| `postToolUse`  | 30                               |
+| `stop`         | 30                               |
 
 If the key already exists, append a new object to the array — do not replace existing hooks.
 
@@ -113,7 +113,7 @@ If the key already exists, append a new object to the array — do not replace e
 bash .github/hooks/scripts/<script-name>.sh
 ```
 
-For `preToolUse` / `PostToolUse` hooks that read stdin, pipe a sample payload:
+For `preToolUse` / `postToolUse` hooks that read stdin, pipe a sample payload:
 
 ```bash
 echo '{"toolName":"edit","toolArgs":{"path":"src/app/page.tsx","new_str":"test"}}' | bash .github/hooks/scripts/<script-name>.sh
@@ -136,7 +136,7 @@ Output a summary with:
 
 ## Rules
 
-- **Never add `PostToolUse` to `hooks.json` by default** — it causes VS Code to open a new terminal for every file edit. Document it as an opt-in step if the user asks for it.
+- **Never add `postToolUse` to `hooks.json` by default** — it causes VS Code to open a new terminal for every file edit. Document it as an opt-in step if the user asks for it.
 - **Scripts must be idempotent** — safe to run multiple times without side effects
 - **No hardcoded secrets in scripts** — read from env vars or `.env.local`
 - **English only** — all comments and output messages in English

@@ -184,7 +184,7 @@ function parseModeFromArgs() {
   }
 
   throw new Error(
-    `Invalid mode '${modeValue}'. Use --mode=keep-auth or --mode=no-auth.`,
+    `Invalid mode '${modeValue}'. Use --mode=keep-auth, --mode=no-auth, or omit --mode (defaults to keep-auth; --mode=full-clean is a legacy alias for --mode=no-auth).`,
   );
 }
 

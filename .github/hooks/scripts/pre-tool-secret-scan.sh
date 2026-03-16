@@ -86,7 +86,7 @@ PATTERNS=(
 
 for pattern in "${PATTERNS[@]}"; do
   if echo "$CONTENT" | grep -qE "$pattern" 2>/dev/null; then
-    REASON="Potential secret/credential detected in file content (pattern: ${pattern:0:40}...). Hardcoded secrets must never be committed. Use environment variables (.env.local) and read them via process.env instead."
+    REASON="Potential secret/credential detected in file content (pattern: ${pattern:0:40}...). Hardcoded secrets must never be committed. Use environment variables (.env.local) and load them through '@/lib/env' (never direct process.env reads outside lib/env.ts)."
     python3 -c "
 import json, sys
 reason = sys.argv[1]
