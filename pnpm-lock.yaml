@@ -131,8 +131,8 @@ importers:
         specifier: ^16.3.2
         version: 16.3.2
       portless:
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
@@ -3006,10 +3006,10 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  portless@0.6.0:
-    resolution: {integrity: sha512-Jjk36bsWGTrqo+uyfKtHaXOfXq80BJ5EOdIRCWCbhYyJ04uV8dVw9/G4u31u1zQWmcE5WrZEYMGAm5XE+tDtXg==}
+  portless@0.7.0:
+    resolution: {integrity: sha512-rxreakOeTfgGcOpa4C5GSH4dra9xX4XIRunwRwtjp9g/ercLjkB/h4hT+4w0LQiIHER0xzxJ7sJxpBwEdtRZIg==}
     engines: {node: '>=20'}
-    os: [darwin, linux]
+    os: [darwin, linux, win32]
     hasBin: true
 
   possible-typed-array-names@1.1.0:
@@ -6542,7 +6542,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  portless@0.6.0:
+  portless@0.7.0:
     dependencies:
       chalk: 5.6.2
 
