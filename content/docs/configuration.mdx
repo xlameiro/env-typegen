@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Configure env-typegen via a config file or CLI flags.
+---
+
+## Config file
+
+Create `env-typegen.config.ts` at your project root:
+
+```typescript
+import { defineConfig } from "@xlameiro/env-typegen";
+
+export default defineConfig({
+  input: ".env.example",
+  output: "env.generated.ts",
+  generators: ["typescript", "zod"],
+  format: true,
+});
+```
+
+## CLI flags
+
+CLI flags override config file values when both are provided.
+
+| Flag          | Alias | Description                                    |
+| ------------- | ----- | ---------------------------------------------- |
+| `--input`     | `-i`  | Path to `.env.example` file                    |
+| `--output`    | `-o`  | Output file path                               |
+| `--format`    | `-f`  | Generator(s): `ts`, `zod`, `t3`, `declaration` |
+| `--generator` | `-g`  | Alias for `--format`                           |
+| `--stdout`    |       | Write output to stdout instead of a file       |
+| `--dry-run`   |       | Preview output without writing files           |
+| `--no-format` |       | Skip Prettier formatting of output             |
+| `--silent`    | `-s`  | Suppress all console output                    |
+| `--watch`     | `-w`  | Re-generate on file changes                    |
+| `--config`    | `-c`  | Path to config file                            |
+| `--version`   | `-v`  | Print version                                  |
+| `--help`      | `-h`  | Show help                                      |

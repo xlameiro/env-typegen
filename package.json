@@ -1,0 +1,98 @@
+{
+  "name": "env-typegen",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "setup": "node scripts/setup-env.mjs",
+    "postinstall": "node scripts/setup-env.mjs",
+    "dev": "next dev",
+    "dev:local": "portless run next dev",
+    "dev:local:https": "portless --https run next dev",
+    "build": "next build",
+    "generate": "fumadocs-mdx",
+    "start": "next start",
+    "lint": "eslint --max-warnings=0",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:all": "pnpm test && pnpm test:e2e",
+    "analyze": "ANALYZE=true SKIP_ENV_VALIDATION=true next build",
+    "knip": "knip",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0 --no-warn-ignored"
+    ],
+    "*.{ts,tsx,css,md,json,yaml,yml}": "prettier --write --ignore-unknown"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "husky"
+    ],
+    "overrides": {
+      "flatted": ">=3.4.0",
+      "undici": ">=7.24.0"
+    }
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fumadocs-core": "^16.6.17",
+    "fumadocs-mdx": "^14.2.10",
+    "fumadocs-ui": "^16.6.17",
+    "next": "16.1.6",
+    "nuqs": "^2.8.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
+    "tailwind-merge": "^3.5.0",
+    "temporal-polyfill": "^0.3.2",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@next/bundle-analyzer": "^16.1.6",
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jsdom": "^28.0.0",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^25",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^4.1.0",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-sonarjs": "^4.0.2",
+    "eslint-plugin-unicorn": "^63.0.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.0.0",
+    "knip": "^5.86.0",
+    "lint-staged": "^16.4.0",
+    "portless": "^0.7.0",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.1.0"
+  }
+}

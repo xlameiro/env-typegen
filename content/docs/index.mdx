@@ -1,0 +1,29 @@
+---
+title: Overview
+description: env-typegen generates TypeScript types, Zod schemas, t3-env configs, and declaration files from your .env.example files.
+---
+
+**env-typegen** reads a `.env.example` file and auto-generates fully-typed outputs so your environment variables are never `string | undefined` again.
+
+## What it does
+
+| Input          | Output                                         |
+| -------------- | ---------------------------------------------- |
+| `.env.example` | TypeScript `type Env = { ... }`                |
+| `.env.example` | Zod v4 schema (server + client split)          |
+| `.env.example` | `@t3-oss/env-nextjs` `createEnv(...)` call     |
+| `.env.example` | Ambient `.d.ts` augmenting `NodeJS.ProcessEnv` |
+
+## Quick start
+
+```bash
+pnpm add -D @xlameiro/env-typegen
+env-typegen --input .env.example --output env.generated.ts --format ts
+```
+
+## Guides
+
+- [Getting Started](/docs/getting-started)
+- [Configuration](/docs/configuration)
+- [Generators](/docs/generators)
+- [Programmatic API](/docs/api)

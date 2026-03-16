@@ -1,0 +1,14 @@
+# pnpm workspace configuration — monorepo root
+#
+# packages/*  : publishable library packages (env-typegen CLI/library)
+# apps/*      : applications (docs site — added in Phase 9)
+#
+# ignoredBuiltDependencies: suppresses noisy/failed postinstall scripts for packages
+# that do not require a build step in this project's environment.
+packages:
+  - "packages/*"
+  - "apps/*"
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

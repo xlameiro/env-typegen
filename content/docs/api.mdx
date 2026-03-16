@@ -1,0 +1,108 @@
+---
+title: Programmatic API
+description: Use env-typegen as a library in your own build scripts and pipelines.
+---
+
+## Installation
+
+```bash
+pnpm add -D @xlameiro/env-typegen
+```
+
+## Importing
+
+```typescript
+import {
+  parseEnvFile,
+  parseEnvFileContent,
+  inferType,
+  inferTypes,
+  generateTypeScriptTypes,
+  generateZodSchema,
+  generateT3Env,
+  generateDeclaration,
+  runGenerate,
+} from "@xlameiro/env-typegen";
+```
+
+## Core functions
+
+### `parseEnvFile(path)`
+
+Reads a `.env.example` file from disk and returns a `ParsedEnvFile`.
+
+```typescript
+const parsed = await parseEnvFile(".env.example");
+```
+
+### `parseEnvFileContent(content, filePath?)`
+
+Parses raw `.env` string content — useful in tests or streaming pipelines.
+
+```typescript
+const parsed = parseEnvFileContent("DATABASE_URL=\nPORT=3000");
+```
+
+### `inferType(key, value, options?)`
+
+Infers an `EnvVarType` from a key+value pair using heuristics (key name patterns, value shape).
+
+```typescript
+const type = inferType("PORT", "3000"); // → "number"
+const type2 = inferType("DEBUG", "true"); // → "boolean"
+```
+
+### `inferTypes(parsed)`
+
+Runs inference for all variables in a `ParsedEnvFile`.
+
+```typescript
+const typed = inferTypes(parsed);
+```
+
+### `generateTypeScriptTypes(parsed)`
+
+Produces a `type Env = { ... }` TypeScript declaration string.
+
+```typescript
+const output = generateTypeScriptTypes(typed);
+```
+
+### `generateZodSchema(parsed)`
+
+Produces a Zod v4 `z.object({ ... })` schema string split into server/client.
+
+```typescript
+const output = generateZodSchema(typed);
+```
+
+### `generateT3Env(parsed)`
+
+Produces a `@t3-oss/env-nextjs` `createEnv(...)` call string.
+
+```typescript
+const output = generateT3Env(typed);
+```
+
+### `generateDeclaration(parsed)`
+
+Produces a `.d.ts` file augmenting `NodeJS.ProcessEnv`.
+
+```typescript
+const output = generateDeclaration(typed);
+```
+
+### `runGenerate(options)`
+
+Orchestrates the full pipeline: parse → infer → generate → write to disk.
+
+```typescript
+await runGenerate({
+  input: ".env.example",
+  output: "env.generated.ts",
+  generators: ["typescript", "zod"],
+  format: true,
+  dryRun: false,
+  silent: false,
+});
+```

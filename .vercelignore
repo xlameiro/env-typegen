@@ -1,0 +1,20 @@
+# Dependencies and build output
+node_modules
+.next
+
+# Test files and artifacts
+playwright
+playwright-report
+test-results
+coverage
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/*.test-d.ts
+
+# Local/session artifacts
+.vercel
+.vscode
+*.tsbuildinfo
+*.log

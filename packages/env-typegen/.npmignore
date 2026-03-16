@@ -1,0 +1,30 @@
+# Source and tests — not needed by consumers
+src/
+tests/
+
+# Config files — not needed at runtime
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+vitest.setup.ts
+eslint.config.mjs
+commitlint.config.ts
+postcss.config.mjs
+playwright.config.ts
+
+# CI and agent tooling
+.github/
+.copilot/
+.changeset/
+playwright/
+
+# Lockfiles and workspace files
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Coverage and build artifacts (not dist/)
+coverage/
+.nyc_output/
+
+# Test output
+test-results/

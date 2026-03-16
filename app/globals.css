@@ -1,0 +1,197 @@
+/* Tailwind framework must come first so @layer order is established. */
+@import "tailwindcss";
+/* fumadocs compiled CSS second — it already includes Tailwind utilities. */
+@import "fumadocs-ui/style.css";
+
+/* Class-based dark mode — ThemeProvider applies html.dark via the Zustand theme store.
+ * This @custom-variant overrides the built-in dark: variant so all dark:* utilities
+ * respond to the html.dark class instead of only @media (prefers-color-scheme: dark). */
+@custom-variant dark (&:is(html.dark, html.dark *));
+
+/* ── Light theme ─────────────────────────────────────────────────────────── */
+:root {
+  /* ── App vars (zinc palette — clean, developer-focused) ── */
+  --background: #fafafa;
+  --foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #18181b;
+  --radius: 0.5rem;
+  /* Sidebar */
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #09090b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-accent: #e4e4e7;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-ring: #18181b;
+  --sidebar-primary-foreground: #fafafa;
+  /* fumadocs bridge — plain CSS beats @layer theme so these override fumadocs'  *
+   * static default-colors.css values at runtime. Utilities like bg-fd-background *
+   * already use var(--color-fd-*) references; we only need to point those vars  *
+   * at our zinc palette. Dark mode resolves automatically via html.dark           *
+   * (higher specificity 0-1-1 overrides this :root block 0-1-0).               */
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-popover: var(--popover);
+  --color-fd-popover-foreground: var(--popover-foreground);
+  --color-fd-card: var(--card);
+  --color-fd-card-foreground: var(--card-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--primary);
+  --color-fd-primary-foreground: var(--primary-foreground);
+  --color-fd-secondary: var(--secondary);
+  --color-fd-secondary-foreground: var(--secondary-foreground);
+  --color-fd-accent: var(--accent);
+  --color-fd-accent-foreground: var(--accent-foreground);
+  --color-fd-ring: var(--ring);
+}
+
+/* ── Tailwind utility mappings ───────────────────────────────────────────── */
+/* @theme inline re-registers app tokens as CSS var references so Tailwind       *
+ * utilities (bg-background, text-foreground, etc.) resolve at runtime from      *
+ * :root / html.dark instead of baking static values at compile time.            *
+ * Note: @theme inline cannot override fumadocs' fd-* tokens — those are         *
+ * bridged via plain :root CSS above, which beats @layer theme in the cascade.  */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: var(--radius);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── System dark fallback (pre-hydration, before ThemeProvider mounts) ───── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #09090b;
+    --foreground: #fafafa;
+    --muted: #18181b;
+    --muted-foreground: #a1a1aa;
+    --card: #09090b;
+    --card-foreground: #fafafa;
+    --popover: #09090b;
+    --popover-foreground: #fafafa;
+    --primary: #fafafa;
+    --primary-foreground: #18181b;
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+    --accent: #27272a;
+    --accent-foreground: #fafafa;
+    --destructive: #f87171;
+    --destructive-foreground: #fafafa;
+    --border: #27272a;
+    --input: #27272a;
+    --ring: #a1a1aa;
+    --sidebar: #18181b;
+    --sidebar-foreground: #fafafa;
+    --sidebar-border: #27272a;
+    --sidebar-accent: #27272a;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-ring: #a1a1aa;
+    --sidebar-primary-foreground: #09090b;
+  }
+}
+
+/* ── Explicit light theme on dark-system OS ──────────────────────────────── */
+/* html:not(.dark) specificity 0-1-1 beats @media { :root } (0-1-0), so when  *
+ * the user explicitly chose light mode ThemeProvider removes html.dark and    *
+ * these vars win — preventing the @media dark fallback from bleeding through. */
+html:not(.dark) {
+  --background: #fafafa;
+  --foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #18181b;
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #09090b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-accent: #e4e4e7;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-ring: #18181b;
+  --sidebar-primary-foreground: #fafafa;
+}
+
+/* ── Dark theme (applied by ThemeProvider as html.dark) ─────────────────── */
+/* Higher specificity (0-1-1) than fumadocs .dark (0-1-0) guarantees the fd-* *
+ * bridge vars correctly follow our dark palette on the root element.          */
+html.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --card: #09090b;
+  --card-foreground: #fafafa;
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --destructive-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #a1a1aa;
+  --sidebar: #18181b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-ring: #a1a1aa;
+  --sidebar-primary-foreground: #09090b;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}

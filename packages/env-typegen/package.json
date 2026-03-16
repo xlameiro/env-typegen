@@ -1,0 +1,104 @@
+{
+  "name": "@xlameiro/env-typegen",
+  "version": "0.1.1",
+  "description": "Generate type-safe TypeScript definitions, Zod schemas, and t3-env config from .env.example files",
+  "keywords": [
+    "env",
+    "dotenv",
+    "typescript",
+    "type-safe",
+    "codegen",
+    "cli",
+    "generator",
+    "environment-variables",
+    "t3-env",
+    "zod",
+    "nextjs",
+    "t3-stack",
+    "env-vars",
+    "type-generator",
+    "declarations",
+    "dotenv-typegen",
+    "schema-generator",
+    "developer-tools",
+    "type-inference",
+    "build-tools"
+  ],
+  "homepage": "https://github.com/xlameiro/env-typegen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xlameiro/env-typegen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xlameiro/env-typegen/issues"
+  },
+  "license": "MIT",
+  "author": "xlameiro",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "env-typegen": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint --max-warnings=0 src tests",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "prepublishOnly": "pnpm build && pnpm lint && pnpm type-check && pnpm test"
+  },
+  "dependencies": {
+    "picocolors": "^1.1.1",
+    "chokidar": "^4.0.3",
+    "prettier": "^3.5.3"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.28.1",
+    "@types/node": "^22.13.10",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^9.21.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.0"
+  },
+  "peerDependencies": {
+    "zod": ">=4.0.0",
+    "@t3-oss/env-nextjs": ">=0.10.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    },
+    "@t3-oss/env-nextjs": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

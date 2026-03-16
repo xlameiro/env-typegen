@@ -1,0 +1,89 @@
+---
+title: Generators
+description: Available output generators and what each one produces.
+---
+
+## Available generators
+
+### `ts` — TypeScript types
+
+Produces a `type Env` declaration and `ProcessEnv` namespace augmentation:
+
+```typescript
+// env.generated.typescript.ts
+export type Env = {
+  DATABASE_URL: string;
+  PORT: number;
+  DEBUG: boolean;
+};
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends Env {}
+  }
+}
+```
+
+### `zod` — Zod schema
+
+Produces a Zod v4 schema split into `server` and `client` objects:
+
+```typescript
+// env.generated.zod.ts
+import { z } from "zod";
+
+export const serverSchema = z.object({
+  DATABASE_URL: z.string(),
+  PORT: z.coerce.number(),
+});
+
+export const clientSchema = z.object({
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+});
+```
+
+Variables prefixed with `NEXT_PUBLIC_` are placed in `clientSchema`; all others go in `serverSchema`.
+
+### `t3` — @t3-oss/env-nextjs
+
+Produces a `createEnv(...)` call ready to drop into your project:
+
+```typescript
+// env.generated.t3.ts
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.string(),
+  },
+  client: {
+    NEXT_PUBLIC_APP_URL: z.string().url(),
+  },
+  runtimeEnv: process.env,
+});
+```
+
+### `declaration` — Ambient `.d.ts`
+
+Augments `NodeJS.ProcessEnv` with types for all declared variables:
+
+```typescript
+// env.generated.d.ts
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DATABASE_URL: string;
+      PORT: string;
+    }
+  }
+}
+```
+
+## Multiple generators
+
+Pass multiple `--format` flags to produce all outputs in one run:
+
+```bash
+env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaration
+```

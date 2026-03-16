@@ -1,0 +1,24 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: "This issue is stale because it has been open for 30 days with no activity."
+          stale-pr-message: "This PR is stale because it has been open for 30 days with no activity."
+          close-issue-message: "Closing this issue due to inactivity."
+          close-pr-message: "Closing this PR due to inactivity."
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
