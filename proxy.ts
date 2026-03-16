@@ -48,9 +48,11 @@ export default auth((req) => {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildCsp(nonce);
 
-  // Define your protected routes here — replace false with your conditions.
-  // Example: nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/settings")
-  const isProtectedRoute = false;
+  // Protect authenticated-only routes. Extend this list as you add more protected pages.
+  const isProtectedRoute =
+    nextUrl.pathname.startsWith("/dashboard") ||
+    nextUrl.pathname.startsWith("/settings") ||
+    nextUrl.pathname.startsWith("/profile");
 
   const isAuthRoute =
     nextUrl.pathname.startsWith("/auth/sign-in") ||
