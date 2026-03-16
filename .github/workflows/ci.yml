@@ -10,7 +10,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Group by workflow + target branch so that push-to-main events and all
+  # pull_request events targeting the same branch share one concurrency slot.
+  # A new push/PR cancels any in-progress run targeting the same branch.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.base.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
