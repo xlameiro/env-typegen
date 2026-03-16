@@ -487,20 +487,29 @@ Each phase is a self-contained unit of work that must pass the full quality gate
 
 **Continuation Prompt** (paste this into a fresh session after Phase 1 is done):
 
+> ⚠️ **MANDATORY — when emitting this Continuation Prompt, you MUST replace every `[...]` placeholder
+> below with the actual content from this plan.** Specifically, the Phase 2 scope block at the bottom
+> MUST contain the verbatim Phase 2 Scope table, Pre-conditions, Implementation steps, and
+> Post-conditions from this plan. A Continuation Prompt with unfilled placeholders is **broken** and
+> will cause the next session to produce incorrect output.
+
 ```
 Phase 1 of [migration/feature name] is complete.
 
 What was done in Phase 1:
-- [bullet list of files changed]
+- [bullet list of files changed — copy from the Feature Builder's completion output]
 - [key decisions made]
 - Checkpoint saved to vscode/memory key: "phase-1-complete"
 
 Quality gate: lint ✓ | type-check ✓ | test ✓ | build ✓
 
 Continue with Phase 2: [Phase 2 name and one-line scope].
-The full plan is at [describe where: session memory key / pasted below / etc.].
 
-[Paste the Phase 2 section of this plan here so the fresh session is fully self-contained]
+Phase 2 scope:
+
+[⚠️ REPLACE THIS LINE: copy the full Phase 2 section — Scope table, Pre-conditions,
+ Implementation steps, and Post-conditions — verbatim from this plan.
+ Do NOT emit this placeholder. If Phase 2 scope is missing, stop and ask.]
 ```
 
 ---
@@ -533,9 +542,27 @@ The full plan is at [describe where: session memory key / pasted below / etc.].
 
 **Continuation Prompt** (for Phase 3, or "No further phases"):
 
+> ⚠️ **MANDATORY — same rules as Phase 1 Continuation Prompt**: replace every `[...]` placeholder
+> with actual content. The Phase 3 scope block MUST be filled with the verbatim Phase 3 section
+> from this plan. Never emit a Continuation Prompt with unfilled placeholders.
+
 ```
 Phase 2 of [name] is complete.
-[Same pattern as Phase 1 Continuation Prompt]
+
+What was done in Phase 2:
+- [bullet list of files changed — copy from the Feature Builder's completion output]
+- [key decisions made]
+- Checkpoint saved to vscode/memory key: "phase-2-complete"
+
+Quality gate: lint ✓ | type-check ✓ | test ✓ | build ✓
+
+Continue with Phase 3: [Phase 3 name and one-line scope, OR write "This was the final phase — emit ## FEATURE COMPLETE ✅"].
+
+Phase 3 scope:
+
+[⚠️ REPLACE THIS LINE: copy the full Phase 3 section — Scope table, Pre-conditions,
+ Implementation steps, and Post-conditions — verbatim from this plan.
+ Do NOT emit this placeholder. If Phase 3 scope is missing, stop and ask.]
 ```
 
 ---

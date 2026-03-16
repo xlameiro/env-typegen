@@ -7,12 +7,21 @@ handoffs:
   - label: ▶ Continue Next Phase
     agent: Feature Builder
     prompt: |
-      Read the latest phase checkpoint from vscode/memory (look for keys like "phase-N-complete").
-      The checkpoint has four fields: phase number, feature name, files_changed, decisions, and quality_gate.
+      **⚠️ vscode/memory is session-scoped — do NOT use it as the primary source across sessions.**
 
-      Once you find it, continue with Phase <N+1> of that feature.
-      If the checkpoint is missing or expired, ask the user to paste the Continuation Prompt that was
-      emitted at the end of the previous session — it is self-contained and does not require memory.
+      Follow this exact lookup order before writing any code:
+
+      1. **Look for the Continuation Block in this conversation** — search for a block starting with
+         "## Phase <N> Complete ✅" or "▶ Continue with Phase <N+1>". This is the PRIMARY source.
+         Extract from it: feature name, files changed, key decisions, quality gate status, and Phase <N+1> scope.
+
+      2. **If no Continuation Block is visible** — try reading vscode/memory for a key like "phase-N-complete"
+         as a secondary fallback (it may not exist in a fresh VS Code session or after reload).
+
+      3. **If neither source has the Phase <N+1> scope** — STOP and tell the user:
+         "Please paste the Continuation Prompt from the end of the previous phase session.
+          It contains the Phase <N+1> scope that this session needs to proceed."
+         Do NOT attempt to infer Phase <N+1> scope from conversation summaries or training data.
 
       Follow the Phase-Aware Execution Protocol exactly. Implement Phase <N+1> only.
     send: false
@@ -264,9 +273,32 @@ Value (save all four fields):
   - quality_gate: "lint ✓ | type-check ✓ | test ✓ | build ✓"
 ```
 
+Additionally, if this is **Phase 1** (first session), save all remaining phase scopes so future sessions can retrieve them without needing the original plan conversation:
+
+```
+Key: "plan-phases"
+Value: [full text of all Phase N+1 … Phase N_last sections from the plan —
+        each phase's Scope table, Pre-conditions, Implementation steps, and Post-conditions]
+```
+
+> **Why**: `vscode/memory` keys are in-session only and will NOT survive a VS Code restart or a new chat window. The `plan-phases` key exists only as a best-effort secondary cache. The Continuation Block in Step 5 is the **primary** cross-session handoff mechanism — it must be self-contained and fully populated.
+
 #### Step 5 — Emit the Continuation Block and stop
 
-Do not start Phase N+1. Output the following block exactly — it is the self-contained prompt for the next session:
+> ⚠️ **CRITICAL — THE PLACEHOLDER BELOW MUST BE REPLACED BEFORE EMITTING:**
+>
+> The line `Phase <N+1> scope: [...]` is not optional filler. It MUST contain the actual
+> Phase N+1 Scope table, Pre-conditions, Implementation steps, and Post-conditions copied verbatim
+> from the plan. A Continuation Block with an unfilled placeholder is **broken** — it will cause the
+> next session to fall back to a lossy conversation summary and produce wrong or incomplete output.
+>
+> **To find Phase N+1 scope, in order:**
+>
+> 1. Look in this conversation for the Planner's plan (sections labeled "Phase <N+1>")
+> 2. Read `vscode/memory` key `"plan-phases"` (saved in Step 4 above)
+> 3. If neither is available, **stop and ask the user** to paste the Phase N+1 section — never emit a placeholder
+
+Do not start Phase N+1. Output the following block exactly, with the `Phase <N+1> scope` filled in:
 
 ```markdown
 ## Phase <N> Complete ✅
@@ -306,7 +338,10 @@ Quality gate passed: lint ✓ | type-check ✓ | test ✓ | build ✓
 Continue with **Phase <N+1> — [phase name]**.
 
 Phase <N+1> scope:
-[paste the Phase N+1 section from the original plan here — Scope table, Pre-conditions, Implementation steps, Post-conditions]
+
+<!-- ⚠️ REPLACE EVERYTHING BELOW WITH THE ACTUAL PHASE N+1 SCOPE FROM THE PLAN -->
+<!-- Scope table, Pre-conditions, Implementation steps, Post-conditions — verbatim from Planner output -->
+<!-- If you cannot find Phase N+1 scope, stop and ask the user. Never emit this placeholder. -->
 
 Read `.github/copilot-instructions.md` first. Implement Phase <N+1> only. When Phase <N+1> post-conditions pass, emit the Phase <N+2> Continuation Block (or the ## FEATURE COMPLETE ✅ marker if this is the last phase).
 ```
