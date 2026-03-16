@@ -22,6 +22,13 @@ pnpm install    # also runs postinstall → auto-creates .env.local with a gener
 3. Replace or delete example pages (see table below)
 4. Update `app/icon.tsx` with your favicon — the template ships a hardcoded "N" placeholder; change the letter and `stopColor` values to match your brand
 
+### Quick cleanup commands
+
+Use one of these before starting real feature work:
+
+- `pnpm clean:examples`: removes non-auth template examples and asks whether to keep auth when run interactively.
+- `pnpm clean:examples:full`: removes all template examples, including every auth-related file and config.
+
 ### Template map — example vs scaffold
 
 Files marked **Example** ship as working demonstrations. When starting a new project, **replace or delete them** — never add new pages alongside them.
@@ -89,6 +96,12 @@ All example files have a `@template-example` JSDoc marker at the top:
 ```
 
 Search the codebase: `grep -r "@template-example" app/ lib/` to find every file that must be replaced.
+
+Important:
+
+- `@template-example` markers are a discovery aid, not the only cleanup source of truth.
+- Some template artifacts (especially tests and route wiring) may not have this marker.
+- The cleanup script uses an explicit file inventory plus mode (`keep-auth` / `no-auth`) to remove template residue reliably.
 
 ---
 

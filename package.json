@@ -15,6 +15,7 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next .turbo",
     "clean:examples": "node scripts/clean-examples.mjs",
+    "clean:examples:full": "node scripts/clean-examples.mjs --mode=no-auth",
     "strip:ai": "node scripts/strip-ai-config.mjs",
     "restore:ai": "node scripts/restore-ai-config.mjs",
     "test": "vitest run",

@@ -42,6 +42,7 @@
 import { existsSync } from "node:fs";
 import { readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import readline from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -52,23 +53,171 @@ function info(msg) {
   process.stdout.write(msg + "\n");
 }
 
+/**
+ * @typedef {"changed" | "already-clean" | "failed"} OperationStatus
+ */
+
+/**
+ * @typedef {{status: OperationStatus, detail: string}} OperationResult
+ */
+
+/**
+ * @param {string} relPath
+ * @returns {Promise<OperationResult>}
+ */
 async function removeDir(relPath) {
   const abs = join(ROOT, relPath);
   if (existsSync(abs)) {
     await rm(abs, { recursive: true, force: true });
-    info(`  ✓ Removed  ${relPath}/`);
-  } else {
-    info(`  – Skipped  ${relPath}/ (not found)`);
+    return { status: "changed", detail: `Removed ${relPath}/` };
   }
+
+  return { status: "already-clean", detail: `${relPath}/ not found` };
 }
 
+/**
+ * @param {string} relPath
+ * @returns {Promise<OperationResult>}
+ */
 async function removeFile(relPath) {
   const abs = join(ROOT, relPath);
   if (existsSync(abs)) {
     await unlink(abs);
-    info(`  ✓ Removed  ${relPath}`);
-  } else {
-    info(`  – Skipped  ${relPath} (not found)`);
+    return { status: "changed", detail: `Removed ${relPath}` };
+  }
+
+  return { status: "already-clean", detail: `${relPath} not found` };
+}
+
+/**
+ * @param {string} relPath
+ * @param {string} content
+ * @returns {Promise<OperationResult>}
+ */
+async function writeFileIfDifferent(relPath, content) {
+  const abs = join(ROOT, relPath);
+  const current = existsSync(abs) ? await readFile(abs, "utf-8") : null;
+
+  if (current === content) {
+    return { status: "already-clean", detail: `${relPath} already up to date` };
+  }
+
+  await writeFile(abs, content, "utf-8");
+  return { status: "changed", detail: `Updated ${relPath}` };
+}
+
+/**
+ * @param {string} relPath
+ * @param {(input: string) => { output: string, changed: boolean }} transform
+ * @returns {Promise<OperationResult>}
+ */
+async function patchFile(relPath, transform) {
+  const abs = join(ROOT, relPath);
+  if (!existsSync(abs)) {
+    return { status: "already-clean", detail: `${relPath} not found` };
+  }
+
+  const current = await readFile(abs, "utf-8");
+  const { output, changed } = transform(current);
+
+  if (!changed) {
+    return {
+      status: "already-clean",
+      detail: `${relPath} already matches cleaned state`,
+    };
+  }
+
+  await writeFile(abs, output, "utf-8");
+  return { status: "changed", detail: `Patched ${relPath}` };
+}
+
+/**
+ * @param {OperationResult[]} results
+ */
+function printSummary(results) {
+  for (const result of results) {
+    if (result.status === "changed") {
+      info(`  ✓ ${result.detail}`);
+      continue;
+    }
+
+    if (result.status === "already-clean") {
+      info(`  – ${result.detail}`);
+      continue;
+    }
+
+    info(`  ✗ ${result.detail}`);
+  }
+
+  const changedCount = results.filter(
+    (result) => result.status === "changed",
+  ).length;
+  const alreadyCleanCount = results.filter(
+    (result) => result.status === "already-clean",
+  ).length;
+  const failedCount = results.filter(
+    (result) => result.status === "failed",
+  ).length;
+
+  info("\nSummary:");
+  info(`  Changed: ${changedCount}`);
+  info(`  Already clean: ${alreadyCleanCount}`);
+  info(`  Failed: ${failedCount}`);
+}
+
+/**
+ * @returns {"keep-auth" | "no-auth"}
+ */
+function parseModeFromArgs() {
+  const modeArg = process.argv.find((arg) => arg.startsWith("--mode="));
+
+  if (!modeArg) {
+    return "keep-auth";
+  }
+
+  const modeValue = modeArg.slice("--mode=".length);
+  if (modeValue === "keep-auth") {
+    return "keep-auth";
+  }
+  if (modeValue === "no-auth" || modeValue === "full-clean") {
+    return "no-auth";
+  }
+
+  throw new Error(
+    `Invalid mode '${modeValue}'. Use --mode=keep-auth or --mode=no-auth.`,
+  );
+}
+
+/**
+ * @returns {Promise<"keep-auth" | "no-auth">}
+ */
+async function resolveMode() {
+  const explicitMode = process.argv.some((arg) => arg.startsWith("--mode="));
+  if (explicitMode) {
+    return parseModeFromArgs();
+  }
+
+  if (!process.stdin.isTTY) {
+    return "keep-auth";
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  try {
+    const answer = (await rl.question("Keep authentication scaffold? (y/N): "))
+      .trim()
+      .toLowerCase();
+
+    if (answer === "y" || answer === "yes") {
+      return "keep-auth";
+    }
+
+    return "no-auth";
+  } finally {
+    rl.close();
   }
 }
 
@@ -78,7 +227,6 @@ async function removeFile(relPath) {
 const MINIMAL_README = `# Your Project Name
 
 > TODO: Replace this file with your project's README.
-> Run the \`/new-project\` prompt in GitHub Copilot to generate it, or write it manually.
 
 ## Getting Started
 
@@ -88,12 +236,26 @@ pnpm dev
 \`\`\`
 
 Open [http://localhost:3000](http://localhost:3000).
+`;
 
-## Resources
+const MINIMAL_AGENTS = `# AGENTS.md
 
-- [AGENTS.md](./AGENTS.md) — AI agent guide and template documentation
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — contribution guidelines
-- [SECURITY.md](./SECURITY.md) — security policy
+This repository is now a clean archetype scaffold.
+
+## Local Workflow
+
+1. Install dependencies: pnpm install
+2. Start development server: pnpm dev
+3. Before finishing work, run:
+  - pnpm lint
+  - pnpm type-check
+  - pnpm test
+  - pnpm build
+
+## Project Notes
+
+- Keep this file focused on project-specific decisions.
+- Remove obsolete setup notes as your project evolves.
 `;
 
 // ── Minimal home page stub ────────────────────────────────────────────────────
@@ -112,6 +274,47 @@ const MINIMAL_HOME_PAGE = `export default function HomePage() {
   );
 }
 `;
+
+const NO_AUTH_PROXY = [
+  'import { NextResponse } from "next/server";',
+  "",
+  'const CSP_HEADER = "Content-Security-Policy";',
+  "",
+  "function buildCsp(nonce: string): string {",
+  "  const self = \"'self'\";",
+  "  return [",
+  "    `default-src ${self}`,",
+  "    `script-src ${self} 'nonce-${nonce}' 'sha256-PvQI9hLWSH+jZhaO+lhQHad1gRsx3/mgt3lOM7XygHE='`,",
+  "    `style-src ${self} 'unsafe-inline'`,",
+  "    `img-src ${self} blob: data:`,",
+  "    `font-src ${self}`,",
+  "    \"object-src 'none'\",",
+  "    `base-uri ${self}`,",
+  "    `form-action ${self}`,",
+  "    \"frame-ancestors 'none'\",",
+  "    \"worker-src 'none'\",",
+  "    `manifest-src ${self}`,",
+  '    "upgrade-insecure-requests",',
+  '  ].join("; ");',
+  "}",
+  "",
+  "export default function proxy(req: { headers: Headers }): NextResponse {",
+  '  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");',
+  "  const csp = buildCsp(nonce);",
+  "",
+  "  const requestHeaders = new Headers(req.headers);",
+  '  requestHeaders.set("x-nonce", nonce);',
+  "",
+  "  const response = NextResponse.next({ request: { headers: requestHeaders } });",
+  "  response.headers.set(CSP_HEADER, csp);",
+  "  return response;",
+  "}",
+  "",
+  "export const config = {",
+  '  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],',
+  "};",
+  "",
+].join("\n");
 
 // ── Scaffold store — sidebar state removed, theme preserved ──────────────────
 // sidebarOpen / toggleSidebar / setSidebarOpen were only used by app/settings/
@@ -377,276 +580,319 @@ describe("signUpSchema", () => {
 });
 `;
 
+/**
+ * @param {OperationResult[]} results
+ * @returns {Promise<OperationResult[]>}
+ */
+async function applyNoAuthFullCleanup(results) {
+  const targets = [
+    "app/auth",
+    "app/api/auth",
+    "components/ui/google-icon.tsx",
+    "components/ui/google-icon.test.tsx",
+    "components/ui/form.tsx",
+    "components/ui/form.test.tsx",
+    "hooks/use-debounce.ts",
+    "hooks/use-debounce.test.ts",
+    "tests/auth.spec.ts",
+    "tests/sign-in.spec.ts",
+    "tests/auth.setup.ts",
+    "auth.ts",
+    "lib/auth.ts",
+    "lib/auth.test.ts",
+    "scripts/restore-ai-config.mjs",
+    "scripts/strip-ai-config.mjs",
+    "scripts/verify-skills.mjs",
+  ];
+
+  let nextResults = results;
+  for (const relPath of targets) {
+    if (
+      relPath.endsWith(".ts") ||
+      relPath.endsWith(".tsx") ||
+      relPath.endsWith(".mjs")
+    ) {
+      nextResults = nextResults.concat([await removeFile(relPath)]);
+      continue;
+    }
+
+    nextResults = nextResults.concat([await removeDir(relPath)]);
+  }
+
+  return nextResults;
+}
+
+/**
+ * @param {boolean} removeAuth
+ * @returns {Promise<OperationResult>}
+ */
+async function updatePackageForCleanup(removeAuth) {
+  const pkgPath = join(ROOT, "package.json");
+  const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
+  let pkgChanged = false;
+
+  if (pkg.name === "nextjs16-starter-template") {
+    pkg.name = "your-project-name";
+    pkgChanged = true;
+  }
+
+  if (removeAuth) {
+    for (const scriptKey of [
+      "strip:ai",
+      "restore:ai",
+      "skills:verify",
+      "skills:update",
+      "clean:examples:full",
+      "test:e2e",
+      "test:e2e:ui",
+      "test:e2e:headed",
+    ]) {
+      if (pkg.scripts?.[scriptKey]) {
+        delete pkg.scripts[scriptKey];
+        pkgChanged = true;
+      }
+    }
+
+    for (const dependencyKey of [
+      "next-auth",
+      "react-hook-form",
+      "@hookform/resolvers",
+    ]) {
+      if (pkg.dependencies?.[dependencyKey]) {
+        delete pkg.dependencies[dependencyKey];
+        pkgChanged = true;
+      }
+    }
+  }
+
+  if (!pkgChanged) {
+    return {
+      status: "already-clean",
+      detail: "package.json cleanup already applied",
+    };
+  }
+
+  await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
+  return { status: "changed", detail: "Patched package.json cleanup fields" };
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
+  const mode = await resolveMode();
+  const removeAuth = mode === "no-auth";
+  /** @type {OperationResult[]} */
+  let results = [];
+
   info("\n🧹  Cleaning example files from the template…\n");
+  info(`Mode: ${mode}\n`);
 
   // Example route directories (each includes co-located tests)
-  await removeDir("app/dashboard");
-  await removeDir("app/profile");
-  await removeDir("app/settings");
+  results = results.concat([
+    await removeDir("app/dashboard"),
+    await removeDir("app/profile"),
+    await removeDir("app/settings"),
+  ]);
 
   // Example library file and its test
-  await removeFile("lib/stats.ts");
-  await removeFile("lib/stats.test.ts");
+  results = results.concat([
+    await removeFile("lib/stats.ts"),
+    await removeFile("lib/stats.test.ts"),
+  ]);
 
   // Replace the example home page with a blank starter
-  await writeFile(join(ROOT, "app/page.tsx"), MINIMAL_HOME_PAGE, "utf-8");
-  info("  ✓ Replaced app/page.tsx →  minimal blank starter");
+  results = results.concat([
+    await writeFileIfDifferent("app/page.tsx", MINIMAL_HOME_PAGE),
+  ]);
 
   // Delete the test that was coupled to the example home page
-  await removeFile("app/page.test.tsx");
+  results = results.concat([await removeFile("app/page.test.tsx")]);
 
   // Remove E2E tests for example routes (including authenticated multi-route spec)
-  await removeFile("tests/dashboard.spec.ts");
-  await removeFile("tests/home.spec.ts");
-  await removeFile("tests/profile.spec.ts");
-  await removeFile("tests/settings.spec.ts");
-  await removeFile("tests/authenticated.spec.ts");
+  results = results.concat([
+    await removeFile("tests/dashboard.spec.ts"),
+    await removeFile("tests/home.spec.ts"),
+    await removeFile("tests/profile.spec.ts"),
+    await removeFile("tests/settings.spec.ts"),
+    await removeFile("tests/authenticated.spec.ts"),
+  ]);
 
   // Rewrite the Zustand store — strip example-only sidebarOpen state
-  await writeFile(
-    join(ROOT, "store/use-app-store.ts"),
-    CLEAN_APP_STORE,
-    "utf-8",
-  );
-  info("  ✓ Rewrote store/use-app-store.ts →  sidebar state removed");
+  results = results.concat([
+    await writeFileIfDifferent("store/use-app-store.ts", CLEAN_APP_STORE),
+    await writeFileIfDifferent(
+      "store/use-app-store.test.ts",
+      CLEAN_APP_STORE_TEST,
+    ),
+  ]);
 
-  await writeFile(
-    join(ROOT, "store/use-app-store.test.ts"),
-    CLEAN_APP_STORE_TEST,
-    "utf-8",
-  );
-  info("  ✓ Rewrote store/use-app-store.test.ts →  sidebar tests removed");
+  if (removeAuth) {
+    results = results.concat([
+      await writeFileIfDifferent("proxy.ts", NO_AUTH_PROXY),
+    ]);
+  } else {
+    results = results.concat([
+      await patchFile("proxy.ts", (input) => {
+        let output = input;
+        let changed = false;
 
-  // Patch proxy.ts — remove example-route guards and fix post-login redirect
-  {
-    const proxyPath = join(ROOT, "proxy.ts");
-    let proxy = await readFile(proxyPath, "utf-8");
+        const protectedRoutePattern =
+          /const isProtectedRoute =\s*\n\s*nextUrl\.pathname\.startsWith\("\/dashboard"\)\s*\|\|\s*\n\s*nextUrl\.pathname\.startsWith\("\/settings"\)\s*\|\|\s*\n\s*nextUrl\.pathname\.startsWith\("\/profile"\);/;
 
-    const oldIsProtected =
-      `  const isProtectedRoute =\n` +
-      `    nextUrl.pathname.startsWith("/dashboard") ||\n` +
-      `    nextUrl.pathname.startsWith("/profile") ||\n` +
-      `    nextUrl.pathname.startsWith("/settings");`;
-    const newIsProtected =
-      `  // Define your protected routes here — replace false with your conditions.\n` +
-      `  // Example: nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/settings")\n` +
-      `  const isProtectedRoute = false;`;
+        if (protectedRoutePattern.test(output)) {
+          output = output.replace(
+            protectedRoutePattern,
+            [
+              "const isProtectedRoute = false;",
+              "",
+              "  // TODO: Replace this placeholder with your real protected route rules.",
+            ].join("\n  "),
+          );
+          changed = true;
+        }
 
-    if (!proxy.includes(oldIsProtected)) {
-      info(
-        "  ⚠  proxy.ts: isProtectedRoute block not found — skipping (already patched?)",
-      );
-    } else {
-      proxy = proxy.replace(oldIsProtected, newIsProtected);
-    }
+        if (output.includes('new URL("/dashboard", nextUrl)')) {
+          output = output.replace(
+            'new URL("/dashboard", nextUrl)',
+            'new URL("/", nextUrl)',
+          );
+          changed = true;
+        }
 
-    const oldRedirect = `      new URL("/dashboard", nextUrl),`;
-    const newRedirect = `      new URL("/", nextUrl),`;
-
-    if (!proxy.includes(oldRedirect)) {
-      info(
-        "  ⚠  proxy.ts: /dashboard redirect not found — skipping (already patched?)",
-      );
-    } else {
-      proxy = proxy.replace(oldRedirect, newRedirect);
-    }
-
-    await writeFile(proxyPath, proxy, "utf-8");
-    info(
-      "  ✓ Patched proxy.ts →  example route guards removed, redirect → /",
-    );
+        return { output, changed };
+      }),
+    ]);
   }
 
   // Patch lib/constants.ts — remove example-only ROUTES entries
-  {
-    const constantsPath = join(ROOT, "lib/constants.ts");
-    let constants = await readFile(constantsPath, "utf-8");
+  results = results.concat([
+    await patchFile("lib/constants.ts", (input) => {
+      let output = input;
+      let changed = false;
 
-    const oldRoutes =
-      `  dashboard: "/dashboard",\n` +
-      `  settings: "/settings",\n` +
-      `  profile: "/profile",\n`;
+      for (const routeKey of ["dashboard", "settings", "profile"]) {
+        const routeLine = `  ${routeKey}: "/${routeKey}",\n`;
+        if (output.includes(routeLine)) {
+          output = output.replace(routeLine, "");
+          changed = true;
+        }
+      }
 
-    if (!constants.includes(oldRoutes)) {
-      info(
-        "  ⚠  lib/constants.ts: example ROUTES entries not found — skipping (already patched?)",
-      );
-    } else {
-      constants = constants.replace(oldRoutes, "");
-      await writeFile(constantsPath, constants, "utf-8");
-      info(
-        "  ✓ Patched lib/constants.ts →  dashboard/settings/profile routes removed",
-      );
-    }
-  }
+      return { output, changed };
+    }),
+  ]);
 
   // Rewrite lib/schemas/user.schema.ts — remove profile-only schemas and types
-  await writeFile(
-    join(ROOT, "lib/schemas/user.schema.ts"),
-    CLEAN_USER_SCHEMA,
-    "utf-8",
-  );
-  info(
-    "  ✓ Rewrote lib/schemas/user.schema.ts →  userSchema/createUserSchema/updateUserSchema removed",
-  );
-
-  await writeFile(
-    join(ROOT, "lib/schemas/user.schema.test.ts"),
-    CLEAN_USER_SCHEMA_TEST,
-    "utf-8",
-  );
-  info(
-    "  ✓ Rewrote lib/schemas/user.schema.test.ts →  profile schema tests removed",
-  );
+  results = results.concat([
+    await writeFileIfDifferent("lib/schemas/user.schema.ts", CLEAN_USER_SCHEMA),
+    await writeFileIfDifferent(
+      "lib/schemas/user.schema.test.ts",
+      CLEAN_USER_SCHEMA_TEST,
+    ),
+  ]);
 
   // Patch app/setup.test.ts — remove ROUTES.dashboard assertion (no longer exported)
-  {
-    const setupTestPath = join(ROOT, "app/setup.test.ts");
-    let setupTest = await readFile(setupTestPath, "utf-8");
+  results = results.concat([
+    await patchFile("app/setup.test.ts", (input) => {
+      const oldLine = `    expect(ROUTES.dashboard).toMatch(/^\\//);\n`;
+      if (!input.includes(oldLine)) {
+        return { output: input, changed: false };
+      }
 
-    const oldLine = `    expect(ROUTES.dashboard).toMatch(/^\\//);\n`;
-
-    if (!setupTest.includes(oldLine)) {
-      info(
-        "  ⚠  app/setup.test.ts: ROUTES.dashboard assertion not found — skipping (already patched?)",
-      );
-    } else {
-      setupTest = setupTest.replace(oldLine, "");
-      await writeFile(setupTestPath, setupTest, "utf-8");
-      info(
-        "  ✓ Patched app/setup.test.ts →  ROUTES.dashboard assertion removed",
-      );
-    }
-  }
+      return { output: input.replace(oldLine, ""), changed: true };
+    }),
+  ]);
 
   // Patch lib/utils.ts — sanitizeReturnTo fallback must use ROUTES.home after
   // ROUTES.dashboard is removed from lib/constants.ts
-  {
-    const utilsPath = join(ROOT, "lib/utils.ts");
-    let utils = await readFile(utilsPath, "utf-8");
+  results = results.concat([
+    await patchFile("lib/utils.ts", (input) => {
+      let output = input;
+      let changed = false;
 
-    const oldFallback =
-      `  if (!url || !url.startsWith("/") || url.startsWith("//")) {\n` +
-      `    return ROUTES.dashboard;\n`;
-    const newFallback =
-      `  if (!url || !url.startsWith("/") || url.startsWith("//")) {\n` +
-      `    return ROUTES.home;\n`;
+      const oldFallback =
+        `  if (!url || !url.startsWith("/") || url.startsWith("//")) {\n` +
+        `    return ROUTES.dashboard;\n`;
+      const newFallback =
+        `  if (!url || !url.startsWith("/") || url.startsWith("//")) {\n` +
+        `    return ROUTES.home;\n`;
 
-    if (!utils.includes(oldFallback)) {
-      info(
-        "  ⚠  lib/utils.ts: ROUTES.dashboard fallback not found — skipping (already patched?)",
-      );
-    } else {
-      utils = utils.replace(oldFallback, newFallback);
+      if (output.includes(oldFallback)) {
+        output = output.replace(oldFallback, newFallback);
+        changed = true;
+      }
 
-      // Also fix the JSDoc that referenced "dashboard"
-      utils = utils.replace(
-        " * Returns the dashboard route as the safe fallback.",
-        " * Returns the home route as the safe fallback.",
-      );
+      const oldJsdoc = " * Returns the dashboard route as the safe fallback.";
+      const newJsdoc = " * Returns the home route as the safe fallback.";
+      if (output.includes(oldJsdoc)) {
+        output = output.replace(oldJsdoc, newJsdoc);
+        changed = true;
+      }
 
-      await writeFile(utilsPath, utils, "utf-8");
-      info(
-        "  ✓ Patched lib/utils.ts →  sanitizeReturnTo fallback changed to ROUTES.home",
-      );
-    }
-  }
+      return { output, changed };
+    }),
+  ]);
 
   // Patch lib/utils.test.ts — update sanitizeReturnTo fallback assertions to ROUTES.home
-  {
-    const utilsTestPath = join(ROOT, "lib/utils.test.ts");
-    let utilsTest = await readFile(utilsTestPath, "utf-8");
+  results = results.concat([
+    await patchFile("lib/utils.test.ts", (input) => {
+      let output = input;
+      let changed = false;
 
-    const oldFallbackTests =
-      `  it("should return the dashboard route when given an absolute URL (open redirect attempt)", () => {\n` +
-      `    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/dashboard");\n` +
-      `  });\n\n` +
-      `  it("should return the dashboard route when given a protocol-relative URL (open redirect attempt)", () => {\n` +
-      `    expect(sanitizeReturnTo("//evil.com")).toBe("/dashboard");\n` +
-      `  });\n\n` +
-      `  it("should return the dashboard route when given an empty string", () => {\n` +
-      `    expect(sanitizeReturnTo("")).toBe("/dashboard");\n` +
-      `  });\n\n` +
-      `  it("should return the dashboard route when given undefined", () => {\n` +
-      `    expect(sanitizeReturnTo(undefined)).toBe("/dashboard");\n` +
-      `  });`;
-    const newFallbackTests =
-      `  it("should return the home route when given an absolute URL (open redirect attempt)", () => {\n` +
-      `    expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/");\n` +
-      `  });\n\n` +
-      `  it("should return the home route when given a protocol-relative URL (open redirect attempt)", () => {\n` +
-      `    expect(sanitizeReturnTo("//evil.com")).toBe("/");\n` +
-      `  });\n\n` +
-      `  it("should return the home route when given an empty string", () => {\n` +
-      `    expect(sanitizeReturnTo("")).toBe("/");\n` +
-      `  });\n\n` +
-      `  it("should return the home route when given undefined", () => {\n` +
-      `    expect(sanitizeReturnTo(undefined)).toBe("/");\n` +
-      `  });`;
+      if (output.includes("/dashboard")) {
+        output = output.replaceAll("/dashboard", "/");
+        output = output.replaceAll("dashboard route", "home route");
+        changed = true;
+      }
 
-    if (!utilsTest.includes(oldFallbackTests)) {
-      info(
-        "  ⚠  lib/utils.test.ts: dashboard fallback assertions not found — skipping (already patched?)",
-      );
-    } else {
-      utilsTest = utilsTest.replace(oldFallbackTests, newFallbackTests);
-      await writeFile(utilsTestPath, utilsTest, "utf-8");
-      info(
-        "  ✓ Patched lib/utils.test.ts →  sanitizeReturnTo assertions updated to ROUTES.home",
-      );
-    }
+      return { output, changed };
+    }),
+  ]);
+
+  if (removeAuth) {
+    results = await applyNoAuthFullCleanup(results);
   }
 
   // Replace README.md with a minimal stub
-  await writeFile(join(ROOT, "README.md"), MINIMAL_README, "utf-8");
-  info("  ✓ Replaced  README.md →  minimal stub (fill in real content for your project)");
+  results = results.concat([
+    await writeFileIfDifferent("README.md", MINIMAL_README),
+  ]);
 
-  // Patch package.json — update "name" to a neutral placeholder
-  {
-    const pkgPath = join(ROOT, "package.json");
-    const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
-
-    if (pkg.name === "nextjs16-starter-template") {
-      pkg.name = "your-project-name";
-      await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
-      info('  ✓ Patched  package.json →  "name" changed to "your-project-name"');
-    } else {
-      info('  – Skipped  package.json "name" (already patched?)');
-    }
+  if (removeAuth) {
+    results = results.concat([
+      await writeFileIfDifferent("AGENTS.md", MINIMAL_AGENTS),
+    ]);
   }
 
-  info("\n✅  Done! Example pages removed.\n");
+  results = results.concat([await updatePackageForCleanup(removeAuth)]);
+
+  printSummary(results);
+
+  info("\n✅  Done! Example cleanup complete.\n");
 
   info("Next steps:");
   info(
     "  1. Update lib/constants.ts   →  APP_NAME, APP_DESCRIPTION, APP_VERSION",
   );
   info(
-    "  2. Update package.json       →  set real \"name\", \"description\", \"repository\", \"author\"",
+    '  2. Update package.json       →  set real "name", "description", "repository", "author"',
   );
   info("  3. Edit app/page.tsx         →  Build your real home page");
-  info("  4. Update README.md          →  Replace the stub with your project's content");
+  info(
+    "  4. Update README.md          →  Replace the stub with your project's content",
+  );
   info(
     "  5. Update app/icon.tsx       →  Replace the placeholder favicon letter",
   );
-  info(
-    "  6. No auth needed?           →  Delete app/auth/ + components/ui/google-icon.tsx",
-  );
-  info(
-    "                                 + tests/auth.spec.ts + tests/sign-in.spec.ts",
-  );
-  info("     and simplify proxy.ts:");
-  info("     export default function () {}");
-  info("     export const config = { matcher: [] };");
-  info(
-    "\n💡  Run the /new-project prompt in GitHub Copilot to automate steps 1–4.",
-  );
-  info(
-    "\n📖  See AGENTS.md § 'Starting a New Project from This Template' for the full guide.\n",
-  );
+  info("  6. Run full cleanup without auth:");
+  info("     pnpm clean:examples:full");
+  if (removeAuth) {
+    info(
+      "  7. Review AGENTS.md        →  keep only conventions relevant to your project",
+    );
+  }
+
+  info("");
 }
 
 try {

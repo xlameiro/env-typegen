@@ -118,28 +118,35 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Script                 | Description                                                    |
-| ---------------------- | -------------------------------------------------------------- |
-| `pnpm setup`           | Generate `.env.local` from `.env.example` (run once per clone) |
-| `pnpm dev`             | Start development server                                       |
-| `pnpm dev:local`       | Dev with stable `.localhost` URL (Portless)                    |
-| `pnpm dev:local:https` | Dev with HTTPS + named `.localhost` URL (Portless)             |
-| `pnpm build`           | Production build                                               |
-| `pnpm start`           | Start production server                                        |
-| `pnpm lint`            | ESLint                                                         |
-| `pnpm type-check`      | TypeScript type check (`tsc --noEmit`)                         |
-| `pnpm test`            | Vitest unit tests                                              |
-| `pnpm test:watch`      | Vitest in watch mode                                           |
-| `pnpm test:e2e`        | Playwright E2E (headless)                                      |
-| `pnpm test:e2e:ui`     | Playwright UI mode                                             |
-| `pnpm test:e2e:headed` | Playwright with visible browser                                |
-| `pnpm test:all`        | Unit + E2E                                                     |
+| Script                     | Description                                                    |
+| -------------------------- | -------------------------------------------------------------- |
+| `pnpm setup`               | Generate `.env.local` from `.env.example` (run once per clone) |
+| `pnpm clean:examples`      | Remove template examples (interactive auth keep/remove choice) |
+| `pnpm clean:examples:full` | Remove all template artifacts, including auth-related files    |
+| `pnpm dev`                 | Start development server                                       |
+| `pnpm dev:local`           | Dev with stable `.localhost` URL (Portless)                    |
+| `pnpm dev:local:https`     | Dev with HTTPS + named `.localhost` URL (Portless)             |
+| `pnpm build`               | Production build                                               |
+| `pnpm start`               | Start production server                                        |
+| `pnpm lint`                | ESLint                                                         |
+| `pnpm type-check`          | TypeScript type check (`tsc --noEmit`)                         |
+| `pnpm test`                | Vitest unit tests                                              |
+| `pnpm test:watch`          | Vitest in watch mode                                           |
+| `pnpm test:e2e`            | Playwright E2E (headless)                                      |
+| `pnpm test:e2e:ui`         | Playwright UI mode                                             |
+| `pnpm test:e2e:headed`     | Playwright with visible browser                                |
+| `pnpm test:all`            | Unit + E2E                                                     |
 
 > **First-time E2E setup**: install browser binaries before running any Playwright test:
 >
 > ```bash
 > pnpm exec playwright install --with-deps chromium
 > ```
+
+### Template Markers
+
+Template examples commonly include the `@template-example` JSDoc marker, but not every removable artifact has this tag.
+Use cleanup commands as the source of truth when stripping template residue.
 
 ## Quality Gates
 
