@@ -50,3 +50,6 @@ next-env.d.ts
 playwright-report/
 test-results/
 .playwright-mcp/
+
+# Agent session checkpoints (ephemeral, not committed)
+.copilot/checkpoints/

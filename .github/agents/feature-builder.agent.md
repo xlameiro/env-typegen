@@ -7,7 +7,7 @@ handoffs:
   - label: ▶ Continue Next Phase
     agent: Feature Builder
     prompt: |
-      **⚠️ vscode/memory is session-scoped — do NOT use it as the primary source across sessions.**
+      **⚠️ vscode/memory is session-scoped and will be EMPTY in any new VS Code window or after a restart.**
 
       Follow this exact lookup order before writing any code:
 
@@ -15,13 +15,25 @@ handoffs:
          "## Phase <N> Complete ✅" or "▶ Continue with Phase <N+1>". This is the PRIMARY source.
          Extract from it: feature name, files changed, key decisions, quality gate status, and Phase <N+1> scope.
 
-      2. **If no Continuation Block is visible** — try reading vscode/memory for a key like "phase-N-complete"
-         as a secondary fallback (it may not exist in a fresh VS Code session or after reload).
+      2. **If no Continuation Block is visible** — read the checkpoint FILE:
+         `.copilot/checkpoints/phase-<N>-complete.md` (use `read/readFile` tool).
+         This file is written at the end of every phase and persists across VS Code restarts.
+         Determine N by looking for the highest-numbered checkpoint file in `.copilot/checkpoints/`.
 
-      3. **If neither source has the Phase <N+1> scope** — STOP and tell the user:
-         "Please paste the Continuation Prompt from the end of the previous phase session.
-          It contains the Phase <N+1> scope that this session needs to proceed."
-         Do NOT attempt to infer Phase <N+1> scope from conversation summaries or training data.
+      3. **If the checkpoint file is missing** — try reading vscode/memory for key "phase-N-complete"
+         as a last-resort fallback (only present if the previous phase ran in this same session).
+
+      4. **If none of the above has the Phase <N+1> scope** — HARD STOP. Tell the user:
+         "I cannot find the Phase <N+1> scope. Please paste the Continuation Prompt from the end
+          of the previous phase session. It contains the exact scope this session needs."
+
+      **CRITICAL — the following are NEVER valid substitutes for the Continuation Block or checkpoint file:**
+      - VS Code conversation summaries or context-window compaction summaries
+      - Any "I have the scope from the conversation summary" reasoning
+      - Training data or general knowledge about the feature
+      - Partial descriptions reconstructed from file diffs or git history
+
+      If none of sources 1–3 is available, you have no authoritative scope — STOP.
 
       Follow the Phase-Aware Execution Protocol exactly. Implement Phase <N+1> only.
     send: false
@@ -259,29 +271,59 @@ pnpm build       # production build succeeds
 
 Plus any feature-specific checks listed under Post-conditions. Fix all failures before continuing.
 
-#### Step 4 — Save a checkpoint to vscode/memory
+#### Step 4 — Save a checkpoint to a persistent file AND vscode/memory
 
-Before emitting the Continuation Block, save a checkpoint so it survives session compaction:
+Before emitting the Continuation Block, save a checkpoint in **two places**:
+
+**A — Write to a persistent checkpoint file (PRIMARY — survives VS Code restarts)**
+
+Create or overwrite `.copilot/checkpoints/phase-<N>-complete.md` with this content:
+
+```markdown
+# Phase <N> Complete — [feature name]
+
+## Checkpoint
+
+- phase: N
+- feature: [feature name from the plan]
+- files_changed:
+  - [file 1] — [one-line description]
+  - [file 2] — [one-line description]
+- decisions:
+  - [key decision 1 — anything a fresh session needs to know]
+  - [key decision 2]
+- quality_gate: lint ✓ | type-check ✓ | test ✓ | build ✓
+- completed_at: [ISO timestamp]
+
+## Phase <N+1> Scope
+
+[Paste the full Phase N+1 section verbatim from the plan here:
+Scope table, Pre-conditions, Implementation steps, Post-conditions]
+```
+
+> This file persists across VS Code restarts, new chat windows, and session memory expiration.
+> A new Feature Builder session can read it directly with `read/readFile`.
+
+**B — Also write to vscode/memory (secondary — best-effort, in-session only)**
 
 ```
 Key: "phase-<N>-complete"
-Value (save all four fields):
+Value:
   - phase: N
-  - feature: [feature name from the plan]
-  - files_changed: [comma-separated list of files created/modified]
-  - decisions: [key implementation decisions made — types chosen, trade-offs, anything a fresh session needs to know]
+  - feature: [feature name]
+  - files_changed: [comma-separated list]
+  - decisions: [key decisions]
   - quality_gate: "lint ✓ | type-check ✓ | test ✓ | build ✓"
 ```
 
-Additionally, if this is **Phase 1** (first session), save all remaining phase scopes so future sessions can retrieve them without needing the original plan conversation:
+Additionally, if this is **Phase 1** (first session), also write:
 
 ```
 Key: "plan-phases"
-Value: [full text of all Phase N+1 … Phase N_last sections from the plan —
-        each phase's Scope table, Pre-conditions, Implementation steps, and Post-conditions]
+Value: [full text of all Phase N+1 … Phase N_last sections from the plan]
 ```
 
-> **Why**: `vscode/memory` keys are in-session only and will NOT survive a VS Code restart or a new chat window. The `plan-phases` key exists only as a best-effort secondary cache. The Continuation Block in Step 5 is the **primary** cross-session handoff mechanism — it must be self-contained and fully populated.
+> **Why two places**: `vscode/memory` is in-session only — it will be empty in any new VS Code window or after a restart. The checkpoint FILE is the durable handoff mechanism. The `vscode/memory` key is a convenience for same-session lookups only. The Continuation Block in Step 5 is the user-facing handoff — it must be fully self-contained regardless of both storage mechanisms.
 
 #### Step 5 — Emit the Continuation Block and stop
 

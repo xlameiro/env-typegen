@@ -17,7 +17,8 @@ handoffs:
       3. Read the Phase 1 scope and pre-conditions carefully.
 
       When Phase 1 is complete and the quality gate (lint + type-check + test + build) passes:
-      - Save a checkpoint to vscode/memory with key "phase-1-complete" that records: files changed, key decisions made, current quality gate status.
+      - Write a checkpoint FILE to `.copilot/checkpoints/phase-1-complete.md` (create parent dirs if needed) with: feature name, files changed, key decisions, quality gate status, and the full Phase 2 scope verbatim from this plan.
+      - Also save to vscode/memory key "phase-1-complete" as a same-session convenience (this will be empty in any new VS Code window or after a restart — the FILE is the durable record).
       - Emit the ## Phase Complete block as specified in the plan — this is the continuation prompt for Phase 2.
       - Do NOT start Phase 2.
     send: false
@@ -336,7 +337,29 @@ Structure the work as a sequence of bounded batches:
 | Batches 2…N | Deep analysis per domain (one domain per batch)           | Domain findings, updated checkpoint                   |
 | Final batch | Cross-cutting synthesis + full recommendations            | Complete plan + Coverage Report + Confidence & Limits |
 
-**Checkpoint** — save to session memory (`vscode/memory`) at the end of every batch:
+**Checkpoint** — write to BOTH a persistent file AND session memory at the end of every batch:
+
+**A — Write checkpoint file (PRIMARY — persists across VS Code restarts):**
+
+Create `.copilot/checkpoints/planning-batch-<N>.md`:
+
+```markdown
+# Planning Batch <N> of <M> — [Migration/feature name]
+
+## Checkpoint
+
+- batch: N of M
+- covered_domains: [list]
+- pending_domains: [list]
+- key_findings:
+  - [finding 1]
+  - [finding 2]
+- decisions:
+  - [decision 1 with rationale]
+- next_batch_starts_at: [first file/domain for next session]
+```
+
+**B — Also write to vscode/memory key `planning-batch-<N>` (secondary — in-session only):**
 
 ```
 Batch: N of M
@@ -346,6 +369,8 @@ Key findings so far: [brief list]
 Next batch starts at: [first file/domain for next session]
 ```
 
+> **Why two places**: `vscode/memory` will be empty in any new VS Code window or after restart. The checkpoint FILE is the durable handoff mechanism. The Planning Continuation Block is the user-facing handoff — it must be fully self-contained regardless of both storage mechanisms.
+
 **Critical**: Never claim exhaustiveness while pending domains remain. End every Mode B batch with the structured Planning Continuation Block below — it must be self-contained enough to paste into a blank chat session with zero prior history.
 
 #### Planning Continuation Block (emit at the end of every Mode B batch except the final synthesis)
@@ -353,7 +378,7 @@ Next batch starts at: [first file/domain for next session]
 ```markdown
 ## Planning Batch <N> Complete
 
-**Checkpoint saved:** `planning-batch-<N>` in vscode/memory
+**Checkpoint file written:** `.copilot/checkpoints/planning-batch-<N>.md`
 
 ---
 
@@ -369,7 +394,12 @@ I am continuing a multi-session planning task.
 **Total estimated batches:** [M]
 **Batches completed so far:** 1…<N>
 
-**Checkpoint key to read first:** `planning-batch-<N>` in vscode/memory
+**Checkpoint to read first (in this order):**
+
+1. File: `.copilot/checkpoints/planning-batch-<N>.md` — use `read/readFile` tool
+2. Fallback: vscode/memory key `planning-batch-<N>` (only present in same VS Code session)
+3. If neither exists: STOP and ask the user to paste the previous Planning Continuation Block.
+   **Do NOT proceed using a conversation summary or compaction artifact — they are lossy.**
 
 **Domains already analysed:**
 
@@ -391,7 +421,8 @@ I am continuing a multi-session planning task.
 **Pending domains after this batch:** [list remaining]
 
 Read `.github/copilot-instructions.md` and `.github/agents/planner.agent.md` first.
-Then analyse [next domain], update the checkpoint in vscode/memory key `planning-batch-<N+1>`,
+Then read the checkpoint file at `.copilot/checkpoints/planning-batch-<N>.md` to restore full context.
+Then analyse [next domain], write checkpoint to `.copilot/checkpoints/planning-batch-<N+1>.md`,
 and emit the Planning Batch <N+1> Continuation Block (or the ## PLAN COMPLETE ✅ marker if this is the final synthesis batch).
 ```
 
