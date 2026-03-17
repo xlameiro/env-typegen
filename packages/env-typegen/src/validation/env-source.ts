@@ -17,7 +17,7 @@ function stripWrappingQuotes(value: string): string {
   return value;
 }
 
-export function parseEnvSourceContent(content: string): Record<string, string> {
+function parseEnvSourceContent(content: string): Record<string, string> {
   const result: Record<string, string> = {};
   const lines = content.split("\n");
 

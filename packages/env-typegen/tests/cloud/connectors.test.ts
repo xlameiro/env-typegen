@@ -34,6 +34,26 @@ describe("cloud connectors", () => {
     expect(values.API_URL).toBe("https://api.example.com");
   });
 
+  it("should parse alternate key/value shapes across providers", async () => {
+    const vercelPath = await makeJsonFixture(
+      "vercel-alt.json",
+      JSON.stringify({ envs: [{ name: "PORT", targetValue: "3000" }] }),
+    );
+    const cloudflarePath = await makeJsonFixture(
+      "cloudflare-alt.json",
+      JSON.stringify({ result: [{ key: "FEATURE_FLAG", value: "true" }] }),
+    );
+
+    const vercelValues = await loadCloudSource({ provider: "vercel", filePath: vercelPath });
+    const cloudflareValues = await loadCloudSource({
+      provider: "cloudflare",
+      filePath: cloudflarePath,
+    });
+
+    expect(vercelValues.PORT).toBe("3000");
+    expect(cloudflareValues.FEATURE_FLAG).toBe("true");
+  });
+
   it("should parse AWS snapshot payload", async () => {
     const filePath = await makeJsonFixture(
       "aws.json",
@@ -44,5 +64,17 @@ describe("cloud connectors", () => {
 
     const values = await loadCloudSource({ provider: "aws", filePath });
     expect(values.REDIS_URL).toBe("redis://cache");
+  });
+
+  it("should normalize aws names and default missing values to empty strings", async () => {
+    const filePath = await makeJsonFixture(
+      "aws-empty-value.json",
+      JSON.stringify({
+        Parameters: [{ name: "RAW_KEY" }],
+      }),
+    );
+
+    const values = await loadCloudSource({ provider: "aws", filePath });
+    expect(values.RAW_KEY).toBe("");
   });
 });

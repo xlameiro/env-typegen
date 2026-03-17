@@ -144,10 +144,6 @@ function buildContractFromExample(examplePath: string): EnvContract {
   };
 }
 
-export function defineContract(contract: EnvContract): EnvContract {
-  return contract;
-}
-
 function findDefaultContractPath(cwd: string): string | undefined {
   for (const fileName of CONTRACT_FILE_NAMES) {
     const candidatePath = path.resolve(cwd, fileName);

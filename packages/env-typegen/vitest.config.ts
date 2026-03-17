@@ -7,7 +7,13 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/cli.ts"], // CLI is tested with integration tests
+      exclude: [
+        "src/cli.ts",
+        "src/index.ts",
+        "src/**/types.ts",
+        "src/reporting/ci-contract.ts",
+        "src/schema/schema-model.ts",
+      ], // CLI and type-only modules are validated via type-check/integration
       thresholds: {
         lines: 85,
         functions: 85,

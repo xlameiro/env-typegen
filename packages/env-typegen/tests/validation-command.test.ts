@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -92,5 +92,269 @@ describe("validation command", () => {
     expect(diffExit).toBe(1);
     expect(doctorExit).toBe(1);
     expect((parsed.recommendations ?? []).length).toBeGreaterThan(0);
+  });
+
+  it("should print help text and exit successfully", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const exitCode = await runValidationCommand({
+      command: "check",
+      argv: ["--help"],
+    });
+
+    expect(exitCode).toBe(0);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Usage: env-typegen check"));
+  });
+
+  it("should validate cloud snapshots and write JSON output to a file", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = await createContractFile(dir);
+    const cloudSnapshotPath = path.join(dir, "vercel-env.json");
+    const outputFile = path.join(dir, "reports", "check.json");
+
+    await writeFile(
+      cloudSnapshotPath,
+      JSON.stringify([{ key: "PORT", value: "3000" }], null, 2),
+      "utf8",
+    );
+
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const exitCode = await runValidationCommand({
+      command: "check",
+      argv: [
+        "--contract",
+        contractPath,
+        "--cloud-provider",
+        "vercel",
+        "--cloud-file",
+        cloudSnapshotPath,
+        "--json=pretty",
+        "--output-file",
+        outputFile,
+      ],
+    });
+
+    const persisted = JSON.parse(await readFile(outputFile, "utf8")) as {
+      meta: { env: string };
+      status: string;
+    };
+
+    expect(exitCode).toBe(0);
+    expect(persisted.meta.env).toBe("cloud:vercel");
+    expect(persisted.status).toBe("ok");
+  });
+
+  it("should use config diff targets and schema file when targets are not passed", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const configPath = path.join(dir, "env-typegen.config.mjs");
+    const envA = path.join(dir, ".env.staging");
+    const envB = path.join(dir, ".env.production");
+
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      configPath,
+      [
+        "export default {",
+        '  schemaFile: "./env.contract.js",',
+        '  diffTargets: ["./.env.staging", "./.env.production"],',
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(envA, "PORT=3000\n", "utf8");
+    await writeFile(envB, "PORT=3000\n", "utf8");
+
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((chunk: string | Uint8Array) => {
+      writes.push(String(chunk));
+      return true;
+    });
+
+    const exitCode = await runValidationCommand({
+      command: "diff",
+      argv: ["--config", configPath, "--json=compact"],
+    });
+
+    expect(exitCode).toBe(0);
+    const output = writes[writes.length - 1] ?? "{}";
+    expect(JSON.parse(output)).toMatchObject({
+      status: "ok",
+      summary: { errors: 0 },
+    });
+  });
+
+  it("should fail fast for unsupported cloud providers", async () => {
+    await expect(
+      runValidationCommand({
+        command: "check",
+        argv: ["--cloud-provider", "invalid-provider"],
+      }),
+    ).rejects.toThrow("Unknown cloud provider");
+  });
+
+  it("should load relative plugins from config files and apply report transforms", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const pluginPath = path.join(dir, "report-plugin.mjs");
+    const configPath = path.join(dir, "env-typegen.config.mjs");
+    const envA = path.join(dir, ".env.a");
+    const envB = path.join(dir, ".env.b");
+
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      pluginPath,
+      [
+        "export default {",
+        '  name: "report-plugin",',
+        "  transformReport: (report) => ({",
+        "    ...report,",
+        '    recommendations: [...(report.recommendations ?? []), "plugin-applied"],',
+        "  }),",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      configPath,
+      [
+        "export default {",
+        '  input: ["./.env.a", "./.env.b"],',
+        '  schemaFile: "./env.contract.js",',
+        '  diffTargets: ["./.env.a", "./.env.b"],',
+        '  plugins: ["./report-plugin.mjs"],',
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(envA, "PORT=3000\n", "utf8");
+    await writeFile(envB, "PORT=3000\n", "utf8");
+
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((chunk: string | Uint8Array) => {
+      writes.push(String(chunk));
+      return true;
+    });
+
+    const exitCode = await runValidationCommand({
+      command: "diff",
+      argv: ["--config", configPath, "--json"],
+    });
+
+    const report = JSON.parse(writes[writes.length - 1] ?? "{}") as {
+      recommendations?: string[];
+      status: string;
+    };
+
+    expect(exitCode).toBe(0);
+    expect(report.status).toBe("ok");
+    expect(report.recommendations).toContain("plugin-applied");
+  });
+
+  it("should include cloud sources in diff and doctor command executions", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const cloudSnapshot = path.join(dir, "aws-env.json");
+    const envPath = path.join(dir, ".env");
+    const targetPath = path.join(dir, ".env.production");
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(envPath, "PORT=3000\n", "utf8");
+    await writeFile(targetPath, "PORT=3000\n", "utf8");
+    await writeFile(
+      cloudSnapshot,
+      JSON.stringify({ Parameters: [{ Name: "/prod/PORT", Value: "3000" }] }, null, 2),
+      "utf8",
+    );
+
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const diffExit = await runValidationCommand({
+      command: "diff",
+      argv: [
+        "--contract",
+        contractPath,
+        "--targets",
+        `${envPath},${targetPath}`,
+        "--cloud-provider",
+        "aws",
+        "--cloud-file",
+        cloudSnapshot,
+        "--json",
+      ],
+    });
+    const doctorExit = await runValidationCommand({
+      command: "doctor",
+      argv: [
+        "--env",
+        envPath,
+        "--contract",
+        contractPath,
+        "--targets",
+        `${envPath},${targetPath}`,
+        "--cloud-provider",
+        "aws",
+        "--cloud-file",
+        cloudSnapshot,
+        "--json",
+      ],
+    });
+
+    expect(diffExit).toBe(0);
+    expect(doctorExit).toBe(0);
+  });
+
+  it("should fallback to default diff targets when none are configured", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    await writeFile(contractPath, "export default { schemaVersion: 1, variables: {} };\n", "utf8");
+
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const exitCode = await runValidationCommand({
+      command: "diff",
+      argv: ["--contract", contractPath, "--no-strict", "--json"],
+    });
+
+    expect(exitCode).toBe(0);
   });
 });
