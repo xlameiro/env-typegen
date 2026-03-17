@@ -37,7 +37,7 @@ export default function Image() {
           marginTop: "0px",
         }}
       >
-        Open Source CLI Tool
+        Environment Governance CLI
       </p>
       <h1
         style={{

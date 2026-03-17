@@ -3,9 +3,9 @@
   "pages": [
     "index",
     "getting-started",
-    "configuration",
     "validation",
     "generators",
+    "configuration",
     "api"
   ]
 }

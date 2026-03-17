@@ -56,9 +56,9 @@ export type EnvTypegenConfig = {
 
 /** Config file names searched in order when calling loadConfig(). */
 export const CONFIG_FILE_NAMES = [
-  "env-typegen.config.ts",
   "env-typegen.config.mjs",
   "env-typegen.config.js",
+  "env-typegen.config.ts",
 ] as const;
 
 /**
@@ -81,6 +81,20 @@ export async function loadConfig(
   for (const name of CONFIG_FILE_NAMES) {
     const filePath = path.resolve(cwd, name);
     if (existsSync(filePath)) {
+      // Node.js cannot import TypeScript files natively — attempting import()
+      // on a .ts path throws "Unknown file extension .ts" and crashes every command.
+      // Detect early and emit an actionable error instead.
+      if (filePath.endsWith(".ts")) {
+        throw new Error(
+          `Config file "${name}" was found but TypeScript files cannot be loaded directly at runtime.\n` +
+            `Rename it to "env-typegen.config.mjs" and use ESM export syntax:\n\n` +
+            `  // env-typegen.config.mjs\n` +
+            `  import { defineConfig } from "@xlameiro/env-typegen";\n` +
+            `  export default defineConfig({ input: ".env.example" });\n\n` +
+            `Tip: keep env-typegen.config.ts for IDE autocompletion and create a sibling\n` +
+            `env-typegen.config.mjs for runtime loading.`,
+        );
+      }
       const fileUrl = pathToFileURL(filePath).href;
       const mod = (await import(fileUrl)) as { default?: EnvTypegenConfig };
       return mod.default;

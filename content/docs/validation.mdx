@@ -1,15 +1,20 @@
 ---
 title: Validation & Governance
-description: Contract-first validation commands, cloud snapshots, JSON reporting, and plugin extensibility.
+description: Enforce environment contracts with check, diff, and doctor, detect drift early, and export CI-ready diagnostics.
 ---
 
-## Commands at a glance
+## Why validation matters
 
-| Command  | Purpose                                                         |
-| -------- | --------------------------------------------------------------- |
-| `check`  | Validate one environment source against a contract              |
-| `diff`   | Detect drift across multiple sources                            |
-| `doctor` | Combine `check` + `diff` and return prioritized recommendations |
+Generation alone keeps types in sync, but production issues often come from environment drift.
+Validation commands let you enforce contracts before deployment.
+
+## Command decision guide
+
+| Command | Best when | Output style |
+| --- | --- | --- |
+| `check` | You want to validate one source against a contract | Pass/fail findings for one source |
+| `diff` | You need parity across multiple sources | Drift report across targets |
+| `doctor` | You want one consolidated diagnostic report | Combined findings + recommendations |
 
 ## Contract file
 
@@ -39,6 +44,16 @@ env-typegen diff --targets .env,.env.example,.env.production --contract env.cont
 
 # Aggregate diagnostics
 env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
+
+## CI pipeline pattern
+
+```bash
+# Pull request check
+env-typegen check --env .env --contract env.contract.ts --json --output-file reports/env-check.json
+
+# Release gate drift scan
+env-typegen diff --targets .env,.env.staging,.env.production --contract env.contract.ts --json=pretty --output-file reports/env-drift.json
 ```
 
 ## Strict mode
@@ -85,3 +100,17 @@ export default {
 Load them via `--plugin` flags or `plugins` in `env-typegen.config.ts`.
 
 All validation paths (`--env`, `--contract`, `--targets`, `--cloud-file`, `--output-file`) are resolved from your current working directory.
+
+## FAQ
+
+### Should I run `check` and `diff`, or only `doctor`?
+
+Use `doctor` when you want one command for diagnostics. Use `check` and `diff` separately when your CI has stage-specific gates.
+
+### Can I include sensitive values in JSON reports?
+
+Only when intentionally debugging. Use `--debug-values` with care because values may leak into logs.
+
+### Do cloud snapshots replace local `.env` checks?
+
+No. They complement local checks and help detect cross-environment drift before rollout.

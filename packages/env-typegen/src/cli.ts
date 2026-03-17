@@ -29,7 +29,9 @@ const HELP_TEXT = [
   "",
   "Options:",
   "  -i, --input <path>         Path to .env.example file(s). May be specified multiple times.",
-  "  -o, --output <path>        Output file path (default: env.generated.ts)",
+  "  -o, --output <path>        Output base path (default: env.generated.ts).",
+  "                             With multiple generators, suffixes are appended:",
+  "                             env.generated.typescript.ts, .zod.ts, .t3.ts, .declaration.d.ts",
   "  -f, --format <name>        Generator format: ts|zod|t3|declaration",
   "                             May be specified multiple times.",
   "  -g, --generator <name>     Backward-compatible alias for --format",
@@ -41,6 +43,15 @@ const HELP_TEXT = [
   "  -c, --config <path>        Path to config file",
   "  -v, --version              Print version",
   "  -h, --help                 Show this help",
+  "",
+  "Config file:",
+  "  Auto-discovered in order: env-typegen.config.mjs → .js → .ts (in cwd)",
+  "  CLI flags always override config file values.",
+  "  Use defineConfig() from @xlameiro/env-typegen for IDE autocompletion.",
+  "",
+  "Exit codes:",
+  "  0  Success — files generated without errors",
+  "  1  Error — invalid flags or generation failed",
 ].join("\n");
 
 const VALIDATION_SUBCOMMANDS = new Set(["check", "diff", "doctor"]);

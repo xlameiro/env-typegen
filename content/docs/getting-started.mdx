@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install env-typegen, generate typed outputs, and run your first contract-based validations.
+description: Install env-typegen, generate typed outputs in minutes, and add contract-based environment checks to CI.
 ---
 
 ## Installation
@@ -9,13 +9,15 @@ description: Install env-typegen, generate typed outputs, and run your first con
 pnpm add -D @xlameiro/env-typegen
 ```
 
-## Basic usage
+## 1) Generate your first typed output
 
 ```bash
 env-typegen --input .env.example --output env.generated.ts --format ts
 ```
 
-## Generate multiple outputs
+This command gives you a typed environment contract directly from `.env.example`.
+
+## 2) Generate multiple outputs from one source
 
 ```bash
 env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaration
@@ -28,7 +30,7 @@ When multiple formats are specified, each generator writes a separate file:
 - `env.generated.t3.ts`
 - `env.generated.d.ts`
 
-## Watch mode
+## 3) Enable watch mode during local development
 
 Automatically re-generates on every change to your `.env.example`:
 
@@ -36,7 +38,7 @@ Automatically re-generates on every change to your `.env.example`:
 env-typegen -i .env.example -o env.generated.ts -f ts --watch
 ```
 
-## Create a validation contract
+## 4) Create a validation contract
 
 Create `env.contract.ts` in your project root:
 
@@ -50,7 +52,7 @@ export default {
 };
 ```
 
-## Validate env files against the contract
+## 5) Validate environment files against that contract
 
 ```bash
 # Validate one environment source
@@ -63,7 +65,7 @@ env-typegen diff --targets .env,.env.example,.env.production --contract env.cont
 env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
 ```
 
-## JSON output for CI
+## 6) Export JSON output for CI pipelines
 
 ```bash
 env-typegen check --env .env --json --output-file reports/env-check.json
@@ -72,3 +74,20 @@ env-typegen check --env .env --json --output-file reports/env-check.json
 Strict mode is enabled by default for validation commands. Use `--no-strict` to downgrade undeclared variables to warnings.
 
 All command paths (`--env`, `--contract`, `--targets`, and `--output-file`) are resolved from your current working directory.
+
+## Recommended rollout path
+
+1. Start with generation-only (`ts` + `zod`) to remove manual typing.
+2. Add `check` in CI to enforce required variables and types.
+3. Add `diff` and `doctor` to prevent drift between environments.
+4. Add cloud snapshots and plugins only when your team needs them.
+
+## FAQ
+
+### Do I need all generators from day one?
+
+No. You can start with one format and add more over time with repeated `--format` flags.
+
+### What if I do not have `env.contract.ts` yet?
+
+env-typegen can bootstrap from `.env.example`, but explicit contracts are recommended for governance.

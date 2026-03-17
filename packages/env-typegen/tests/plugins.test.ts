@@ -117,5 +117,12 @@ describe("plugins", () => {
         cwd: process.cwd(),
       }),
     ).rejects.toThrow("Invalid plugin");
+
+    await expect(
+      loadPlugins({
+        pluginPaths: [pluginPath],
+        cwd: process.cwd(),
+      }),
+    ).rejects.toThrow("transformSource");
   });
 });

@@ -50,7 +50,14 @@ async function loadPluginFromPath(pluginPath: string, cwd: string): Promise<EnvT
   const moduleValue = (await import(pathToFileURL(resolvedPath).href)) as PluginModule;
   const candidate = moduleValue.default ?? moduleValue.plugin;
   if (isPlugin(candidate)) return candidate;
-  throw new Error(`Invalid plugin at ${resolvedPath}. Expected a plugin object export.`);
+  throw new Error(
+    `Invalid plugin at ${resolvedPath}.\n` +
+      `Expected a default export matching:\n` +
+      `  { name: string,\n` +
+      `    transformSource?(ctx: { environment: string; values: Record<string, string> }): Record<string, string>,\n` +
+      `    transformReport?(report: ValidationReport): ValidationReport,\n` +
+      `    transformContract?(contract: EnvContract): EnvContract }`,
+  );
 }
 
 export async function loadPlugins(options: LoadPluginsOptions): Promise<EnvTypegenPlugin[]> {

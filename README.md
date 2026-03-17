@@ -1,46 +1,54 @@
 # env-typegen
 
-Generate TypeScript types, Zod schemas, t3-env configs, and declaration files from `.env.example`.
+Generate typed environment artifacts and enforce environment contracts from one source of truth.
 
 [![npm version](https://img.shields.io/npm/v/@xlameiro/env-typegen)](https://www.npmjs.com/package/@xlameiro/env-typegen)
 [![CI](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml/badge.svg)](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Why this project
+## Why env-typegen
 
-Keeping env types, runtime validation, and `@t3-oss/env-nextjs` config in sync by hand is repetitive and error-prone.
-`env-typegen` turns a single `.env.example` file into typed artifacts you can use immediately.
+Teams often keep `.env.example`, runtime validation, and TypeScript types in separate places.
+That creates drift, hidden deploy risk, and repetitive maintenance.
 
-## Quick Start
+`env-typegen` solves this by:
+
+- generating typed outputs from `.env.example`
+- validating real environment sources against explicit contracts
+- detecting drift across local and cloud snapshots
+- exporting machine-readable diagnostics for CI gates
+
+## What it can do
+
+| Capability                    | Outcome                                      |
+| ----------------------------- | -------------------------------------------- |
+| Generate TypeScript (`ts`)    | Compile-time env typing                      |
+| Generate Zod (`zod`)          | Runtime validation schema                    |
+| Generate `t3` output          | `@t3-oss/env-nextjs` config scaffold         |
+| Generate `declaration` output | `NodeJS.ProcessEnv` augmentation             |
+| `check` command               | Contract validation of one source            |
+| `diff` command                | Drift analysis across multiple sources       |
+| `doctor` command              | Consolidated diagnostics and recommendations |
+| Cloud snapshot support        | Vercel, Cloudflare, AWS parity checks        |
+| Plugin hooks                  | Extend contract/source/report behavior       |
+
+## Quick start
 
 ```bash
-# Recommended: local dev dependency
+# Install as a dev dependency
 pnpm add -D @xlameiro/env-typegen
-# or: npm install --save-dev @xlameiro/env-typegen
 
-# Generate all outputs (default): typescript + zod + t3 + declaration
+# Generate all outputs (typescript + zod + t3 + declaration)
 npx env-typegen -i .env.example -o src/env.generated.ts
 
-# Generate only Zod
-npx env-typegen -i .env.example -o src/env.schema.ts -f zod
-
-# Watch mode
-npx env-typegen -i .env.example -o src/env.generated.ts --watch
-
-# Validate one env source against a contract (strict by default)
+# Validate one env source against a contract
 npx env-typegen check --env .env --contract env.contract.ts
 ```
 
-## Validation and governance
-
-The package also supports contract-first validation workflows:
-
-- `check` validates one source against a contract
-- `diff` compares multiple sources and detects drift
-- `doctor` combines validation and drift findings with recommendations
+## Governance workflow commands
 
 ```bash
-# Compare drift across common targets
+# Compare drift across environments
 npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
 
 # Aggregated diagnostics
@@ -50,72 +58,34 @@ npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --
 npx env-typegen check --env .env --json --output-file reports/env-check.json
 ```
 
-### Cloud snapshots
+## Common use cases
 
-You can add cloud sources directly in validation commands:
+- Standardize env contracts across multiple apps in a monorepo.
+- Block pull requests when required variables are missing or mistyped.
+- Detect deployment drift between staging and production.
+- Keep TypeScript, Zod, and runtime env configuration in sync.
 
-```bash
-npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
-npx env-typegen diff --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
-```
+## Comparison: manual approach vs env-typegen
 
-Supported providers: `vercel`, `cloudflare`, `aws`.
+| Scenario               | Manual approach              | env-typegen                   |
+| ---------------------- | ---------------------------- | ----------------------------- |
+| Keep env types updated | Hand-maintained, error-prone | Generated from `.env.example` |
+| Runtime checks         | Ad-hoc or inconsistent       | Contract-first commands       |
+| Drift detection        | Usually custom scripts       | Built-in `diff` + `doctor`    |
+| CI reporting           | Hard to standardize          | JSON output for automation    |
 
-### Plugins
+## Documentation map
 
-Validation commands support a plugin system for transforming:
+- Website docs: [`/content/docs`](content/docs)
+- Package docs: [`packages/env-typegen/README.md`](packages/env-typegen/README.md)
+- Website route: `/docs/getting-started`
+- Website route: `/docs/validation`
+- Website route: `/docs/api`
 
-- contract (`transformContract`)
-- source values (`transformSource`)
-- final reports (`transformReport`)
+## LLM and crawler discoverability
 
-Load plugins with `--plugin` flags or via `plugins` in `env-typegen.config.ts`.
-
-## Generator formats
-
-Use `-f`/`--format` (repeatable) to select outputs:
-
-| Format value         | Output                                       |
-| -------------------- | -------------------------------------------- |
-| `ts` or `typescript` | TypeScript types (`EnvVars`)                 |
-| `zod`                | Zod v4 schema                                |
-| `t3`                 | `createEnv` config for `@t3-oss/env-nextjs`  |
-| `declaration`        | `.d.ts` augmentation for `NodeJS.ProcessEnv` |
-
-If you omit `-f`, env-typegen generates all four outputs by default.
-
-## Example
-
-Given `.env.example`:
-
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-DATABASE_URL=postgresql://localhost:5432/mydb
-```
-
-`env-typegen -i .env.example -o src/env.generated.ts -f ts` generates:
-
-```ts
-export type EnvVars = {
-  NEXT_PUBLIC_APP_URL: string;
-  DATABASE_URL: string;
-};
-```
-
-## Monorepo structure
-
-```text
-packages/
-  env-typegen/    # npm package and CLI source
-app/              # Website/docs (Next.js)
-```
-
-## Documentation
-
-- Package docs and full CLI/API reference: [`packages/env-typegen/README.md`](packages/env-typegen/README.md)
-- Website docs (Fumadocs): [`content/docs/`](content/docs)
-- Contribution guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
+- [`llms.txt`](llms.txt): concise capability and navigation index for LLM crawlers
+- [`llms-full.txt`](llms-full.txt): expanded, task-oriented map for agentic consumers
 
 ## Contributing
 

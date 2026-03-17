@@ -24,7 +24,12 @@
     "test:all": "pnpm test && pnpm test:e2e",
     "analyze": "ANALYZE=true SKIP_ENV_VALIDATION=true next build",
     "knip": "knip",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "pnpm --filter @xlameiro/env-typegen changeset",
+    "version-packages": "pnpm --filter @xlameiro/env-typegen changeset version",
+    "release": "pnpm --filter @xlameiro/env-typegen release",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "engines": {
     "node": ">=20",

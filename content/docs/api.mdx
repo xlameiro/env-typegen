@@ -1,6 +1,6 @@
 ---
 title: Programmatic API
-description: Use env-typegen as a library in your own build scripts and pipelines.
+description: Use env-typegen programmatically in custom scripts, CI pipelines, and platform automation workflows.
 ---
 
 ## Installation
@@ -8,6 +8,13 @@ description: Use env-typegen as a library in your own build scripts and pipeline
 ```bash
 pnpm add -D @xlameiro/env-typegen
 ```
+
+## When to use the API instead of the CLI
+
+- You need custom orchestration in build scripts.
+- You want to merge env validation into an existing pipeline tool.
+- You want plugin hooks controlled in code.
+- You need to process dynamic env content streams before generation.
 
 ## Importing
 
@@ -34,6 +41,15 @@ import {
   applyReportPlugins,
 } from "@xlameiro/env-typegen";
 ```
+
+## Architecture map
+
+| Layer | Key functions |
+| --- | --- |
+| Parse and infer | `parseEnvFile`, `parseEnvFileContent`, `inferType`, `inferTypes` |
+| Generate artifacts | `generateTypeScriptTypes`, `generateZodSchema`, `generateT3Env`, `generateDeclaration` |
+| Pipeline orchestration | `runGenerate`, `runValidationCommand` |
+| Integrations | `loadCloudSource`, `loadPlugins`, plugin application helpers |
 
 ## Core functions
 
@@ -150,3 +166,49 @@ const plugins = await loadPlugins({
 
 const report = applyReportPlugins(baseReport, plugins);
 ```
+
+## Integration examples
+
+### Build step wrapper
+
+```typescript
+await runGenerate({
+  input: ".env.example",
+  output: "src/env.generated.ts",
+  generators: ["typescript", "zod", "declaration"],
+  format: true,
+  dryRun: false,
+  silent: false,
+});
+```
+
+### CI validation gate
+
+```typescript
+const exitCode = await runValidationCommand({
+  command: "doctor",
+  argv: [
+    "--env",
+    ".env",
+    "--targets",
+    ".env,.env.staging,.env.production",
+    "--contract",
+    "env.contract.ts",
+    "--json",
+  ],
+});
+
+if (exitCode !== 0) {
+  process.exit(exitCode);
+}
+```
+
+## FAQ
+
+### Is the API stable for automation use?
+
+Yes. The exported functions are intended for programmatic integration, not only CLI internals.
+
+### Should I call generators directly or use `runGenerate`?
+
+Use `runGenerate` for standard pipelines, and direct generator calls when you need custom composition.

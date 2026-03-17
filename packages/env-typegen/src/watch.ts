@@ -1,7 +1,7 @@
-import path from "node:path";
 import { watch } from "chokidar";
+import path from "node:path";
 
-import { loadConfig, CONFIG_FILE_NAMES } from "./config.js";
+import { CONFIG_FILE_NAMES, loadConfig } from "./config.js";
 import type { RunGenerateOptions } from "./pipeline.js";
 import { runGenerate } from "./pipeline.js";
 import { error, log } from "./utils/logger.js";
@@ -56,6 +56,9 @@ export function startWatch({ inputPath, runOptions, cwd = process.cwd() }: Watch
         runOptions.format = reloaded.format ?? runOptions.format;
         if (reloaded.inferenceRules !== undefined) {
           runOptions.inferenceRules = reloaded.inferenceRules;
+        }
+        if (reloaded.output !== undefined) {
+          runOptions.output = reloaded.output;
         }
       }
       void runGenerate(runOptions).catch((err: unknown) => {

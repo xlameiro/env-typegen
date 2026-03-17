@@ -13,8 +13,8 @@ import {
   type PluginReference,
 } from "./plugins.js";
 import {
-  diffEnvironmentSources,
   buildDoctorReport,
+  diffEnvironmentSources,
   validateAgainstContract,
 } from "./validation/engine.js";
 import { loadEnvSource } from "./validation/env-source.js";
@@ -69,6 +69,10 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "  --plugin <path>           Plugin module path (repeatable)",
     "  -c, --config <path>       Config file path",
     "  -h, --help                Show this help",
+    "",
+    "Exit codes:",
+    "  0  All checks passed (status: ok or warn)",
+    "  1  One or more checks failed (status: fail) or invalid usage",
   ].join("\n"),
   diff: [
     "Usage: env-typegen diff [options]",
@@ -88,6 +92,10 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "  --plugin <path>           Plugin module path (repeatable)",
     "  -c, --config <path>       Config file path",
     "  -h, --help                Show this help",
+    "",
+    "Exit codes:",
+    "  0  All checks passed (status: ok or warn)",
+    "  1  One or more checks failed (status: fail) or invalid usage",
   ].join("\n"),
   doctor: [
     "Usage: env-typegen doctor [options]",
@@ -108,6 +116,10 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "  --plugin <path>           Plugin module path (repeatable)",
     "  -c, --config <path>       Config file path",
     "  -h, --help                Show this help",
+    "",
+    "Exit codes:",
+    "  0  All checks passed (status: ok or warn)",
+    "  1  One or more checks failed (status: fail) or invalid usage",
   ].join("\n"),
 };
 

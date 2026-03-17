@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure env-typegen via a config file or CLI flags.
+description: Configure env-typegen with reusable presets, command overrides, and environment governance defaults.
 ---
 
 ## Config file
@@ -19,6 +19,40 @@ export default defineConfig({
   strict: true,
   diffTargets: [".env", ".env.example", ".env.production"],
   plugins: ["./plugins/custom-validator.mjs"],
+});
+```
+
+## Practical presets
+
+### Generation-focused preset
+
+```typescript
+export default defineConfig({
+  input: ".env.example",
+  output: "env.generated.ts",
+  generators: ["typescript", "zod"],
+  format: true,
+});
+```
+
+### Governance-focused preset
+
+```typescript
+export default defineConfig({
+  schemaFile: "env.contract.ts",
+  strict: true,
+  diffTargets: [".env", ".env.staging", ".env.production"],
+});
+```
+
+### Monorepo-friendly preset
+
+```typescript
+export default defineConfig({
+  input: "apps/web/.env.example",
+  output: "apps/web/src/env.generated.ts",
+  schemaFile: "config/env.contract.ts",
+  diffTargets: ["apps/web/.env", "apps/api/.env", "config/.env.production"],
 });
 ```
 
@@ -61,9 +95,25 @@ CLI flags override config file values when both are provided.
 | `--config <path>`    | all           | Config file path                                                                   |
 | `--help`             | all           | Show command help                                                                  |
 
+## Precedence model
+
+1. CLI flags (highest priority)
+2. Config file values
+3. Built-in defaults
+
 ## Defaults and path resolution
 
 - Strict mode is enabled by default for validation commands.
 - `diff` defaults to `.env,.env.example,.env.production` when targets are not provided.
 - When `--contract` is omitted, env-typegen auto-discovers `env.contract.ts`, `env.contract.mjs`, or `env.contract.js`.
 - All paths are resolved from your current working directory.
+
+## FAQ
+
+### Should I always commit `env-typegen.config.ts`?
+
+Yes for team consistency. It centralizes defaults and reduces CI/local mismatch.
+
+### Can I use different configs per command?
+
+Yes. Use `--config <path>` to load command-specific configuration files.

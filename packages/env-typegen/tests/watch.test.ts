@@ -2,11 +2,9 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CONFIG_FILE_NAMES, type InferenceRule } from "../src/config.js";
-import type { RunGenerateOptions } from "../src/pipeline.js";
-import type * as configModule from "../src/config.js";
-import type * as loggerModule from "../src/utils/logger.js";
+import * as configModule from "../src/config.js";
 import type * as pipelineModule from "../src/pipeline.js";
+import type * as loggerModule from "../src/utils/logger.js";
 import { startWatch } from "../src/watch.js";
 
 const { watchMock, runGenerateMock, loadConfigMock, logMock, errorMock } = vi.hoisted(() => ({
@@ -71,7 +69,7 @@ async function waitForPendingPromises(): Promise<void> {
   });
 }
 
-function createRunOptions(): RunGenerateOptions {
+function createRunOptions(): pipelineModule.RunGenerateOptions {
   return {
     input: ".env.example",
     output: "env.generated.ts",
@@ -168,7 +166,7 @@ describe("startWatch", () => {
     expect(watchMock).toHaveBeenCalledTimes(2);
     expect(watchMock).toHaveBeenNthCalledWith(1, inputPaths, { persistent: true });
 
-    const configPaths = CONFIG_FILE_NAMES.map((name) => path.resolve(cwd, name));
+    const configPaths = configModule.CONFIG_FILE_NAMES.map((name) => path.resolve(cwd, name));
     expect(watchMock).toHaveBeenNthCalledWith(2, configPaths, {
       persistent: true,
       ignoreInitial: true,
@@ -215,7 +213,7 @@ describe("startWatch", () => {
 
   it("should reload config changes and update run options", async () => {
     const runOptions = createRunOptions();
-    const customRule: InferenceRule = {
+    const customRule: configModule.InferenceRule = {
       id: "custom",
       priority: 1,
       match: (key: string) => key === "APP_MODE",
@@ -247,6 +245,20 @@ describe("startWatch", () => {
     expect(runOptions.inferenceRules).toEqual([customRule]);
     expect(runGenerateMock).toHaveBeenCalledTimes(2);
     expect(errorMock).toHaveBeenCalledWith('{"reason":"regen failed"}');
+  });
+
+  it("should update output path when config reload includes output", async () => {
+    const runOptions = createRunOptions();
+    loadConfigMock.mockResolvedValue({ output: "new-path.ts" });
+    runGenerateMock.mockResolvedValue(undefined);
+
+    startWatch({ inputPath: ".env.example", runOptions, cwd: "/workspace" });
+
+    const configWatcher = getWatcherHarness(1);
+    configWatcher.emit("change", "env-typegen.config.mjs");
+    await waitForDebounceWindow();
+
+    expect(runOptions.output).toBe("new-path.ts");
   });
 
   it("should report config reload failures", async () => {

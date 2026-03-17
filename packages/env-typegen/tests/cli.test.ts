@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createRequire } from "node:module";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -324,5 +324,43 @@ describe("runCli", () => {
 
     const logs = logSpy.mock.calls.map((call) => String(call[0])).join("\n");
     expect(logs).not.toContain("Generated");
+  });
+
+  it("should document the multi-generator output suffix convention in --help", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("typescript.ts");
+  });
+
+  it("should document config file auto-discovery order in --help", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Config file:");
+    expect(output).toContain("env-typegen.config.mjs");
+  });
+
+  it("should document exit codes in generate --help", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Exit codes:");
+  });
+
+  it("should document exit codes in check --help", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["check", "--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Exit codes:");
+    expect(output).toContain("status: ok or warn");
   });
 });

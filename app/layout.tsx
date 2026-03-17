@@ -29,10 +29,14 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
     default: APP_NAME,
   },
+  applicationName: APP_NAME,
   description: APP_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
   keywords: [
     "env-typegen",
+    "env validation",
+    "config drift detection",
+    "environment governance",
     "TypeScript",
     "environment variables",
     ".env",
@@ -44,6 +48,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Xabier Lameiro", url: LINKEDIN_URL }],
   creator: "Xabier Lameiro",
+  category: "developer tools",
   openGraph: {
     title: APP_NAME,
     description: APP_DESCRIPTION,
@@ -61,15 +66,28 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: APP_NAME,
     description: APP_DESCRIPTION,
+    images: [`${SITE_URL}/opengraph-image`],
     creator: "@xlameiro",
     site: "@xlameiro",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   alternates: {
     canonical: SITE_URL,
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
 };
 

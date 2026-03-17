@@ -1,9 +1,18 @@
 ---
 title: Generators
-description: Available output generators and what each one produces.
+description: Choose the right output generator for your workflow, from TypeScript and Zod to t3-env and declaration files.
 ---
 
-## Available generators
+## Generator selection by outcome
+
+| Goal | Generator |
+| --- | --- |
+| Typed compile-time hints in code | `ts` / `typescript` |
+| Runtime schema validation with Zod | `zod` |
+| Drop-in env config for `@t3-oss/env-nextjs` | `t3` |
+| Global `process.env` augmentation | `declaration` |
+
+## Available generators and outputs
 
 ### `ts` — TypeScript types
 
@@ -80,10 +89,27 @@ declare global {
 }
 ```
 
-## Multiple generators
+## Combining generators
 
 Pass multiple `--format` flags to produce all outputs in one run:
 
 ```bash
 env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaration
 ```
+
+## Recommended combos
+
+- App runtime safety: `-f zod -f declaration`
+- Full-stack TypeScript teams: `-f ts -f zod -f declaration`
+- Next.js + `@t3-oss/env-nextjs`: `-f t3 -f zod`
+- Migration path from ad-hoc env typing: start with `-f ts`, then add `zod`
+
+## FAQ
+
+### Is `declaration` enough without `ts`?
+
+It augments `process.env` globally, but `ts` gives an explicit generated type that is often easier to import and test.
+
+### Can I skip `t3` if I do not use Next.js?
+
+Yes. `t3` is optional and only needed if you want `@t3-oss/env-nextjs` output.

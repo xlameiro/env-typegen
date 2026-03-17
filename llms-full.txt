@@ -1,0 +1,170 @@
+# env-typegen (extended LLM context)
+
+## One-line summary
+
+env-typegen turns `.env.example` into typed code artifacts and validates real environment sources against explicit contracts to prevent config drift.
+
+## Core value proposition
+
+Most teams duplicate env definitions across:
+
+- `.env.example`
+- TypeScript types
+- runtime schemas
+- deployment environment checks
+
+env-typegen centralizes this workflow and provides both generation and governance.
+
+## Capability model
+
+### A) Generation pipeline
+
+Input: `.env.example`
+
+Outputs:
+
+1. TypeScript env types (`ts`, `typescript`)
+2. Zod schema (`zod`)
+3. `@t3-oss/env-nextjs` scaffold (`t3`)
+4. Ambient declaration (`declaration`)
+
+### B) Validation pipeline
+
+Input:
+
+- Contract file (`env.contract.ts` / `.mjs` / `.js`)
+- One or more environment sources
+
+Commands:
+
+1. `check`: validate one source
+2. `diff`: compare multiple sources for drift
+3. `doctor`: combine findings and recommend actions
+
+### C) Integration layer
+
+- Cloud snapshots: `vercel`, `cloudflare`, `aws`
+- Plugin hooks:
+  - `transformContract`
+  - `transformSource`
+  - `transformReport`
+- Programmatic API for custom scripts and CI wrappers
+
+## CLI command map
+
+### Generate
+
+```bash
+env-typegen --input .env.example --output env.generated.ts
+env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaration
+env-typegen -i .env.example -o env.generated.ts --watch
+```
+
+### Validate
+
+```bash
+env-typegen check --env .env --contract env.contract.ts
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
+
+### CI reporting
+
+```bash
+env-typegen check --env .env --json --output-file reports/env-check.json
+env-typegen diff --targets .env,.env.staging,.env.production --json=pretty --output-file reports/env-drift.json
+```
+
+### Cloud snapshots
+
+```bash
+env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
+env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.ts
+env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+```
+
+## Typical workflows
+
+### Workflow 1: local type safety
+
+1. Generate `ts` + `zod`.
+2. Import generated artifacts into app code.
+
+### Workflow 2: CI contract gate
+
+1. Define `env.contract.ts`.
+2. Run `check` in pull requests.
+3. Fail pipeline if contract violations are detected.
+
+### Workflow 3: release drift control
+
+1. Compare staging and production targets with `diff`.
+2. Use `doctor` for prioritized remediation before deploy.
+
+### Workflow 4: cloud parity validation
+
+1. Export cloud env snapshots.
+2. Validate snapshots against the same contract as local env files.
+
+## Programmatic API map
+
+Import from `@xlameiro/env-typegen`:
+
+- Parsing/inference:
+  - `parseEnvFile`
+  - `parseEnvFileContent`
+  - `inferType`
+  - `inferTypes`
+- Generators:
+  - `generateTypeScriptTypes`
+  - `generateZodSchema`
+  - `generateT3Env`
+  - `generateDeclaration`
+- High-level orchestrators:
+  - `runGenerate`
+  - `runValidationCommand`
+- Integrations:
+  - `loadCloudSource`
+  - `loadPlugins`
+  - `applyContractPlugins`
+  - `applySourcePlugins`
+  - `applyReportPlugins`
+
+## Important semantics
+
+- Strict mode is enabled by default for validation commands.
+- `--no-strict` downgrades undeclared variables to warnings.
+- Paths are resolved from the current working directory.
+- If contract path is omitted, env-typegen auto-discovers:
+  - `env.contract.ts`
+  - `env.contract.mjs`
+  - `env.contract.js`
+
+## Documentation map (for retrieval)
+
+- Root overview: `README.md`
+- Package docs: `packages/env-typegen/README.md`
+- Website docs source:
+  - `content/docs/index.mdx`
+  - `content/docs/getting-started.mdx`
+  - `content/docs/validation.mdx`
+  - `content/docs/generators.mdx`
+  - `content/docs/configuration.mdx`
+  - `content/docs/api.mdx`
+- Docs navigation: `content/docs/meta.json`
+
+## Query-to-doc routing hints
+
+If the user asks about:
+
+- "how to start" -> `getting-started.mdx`
+- "contract validation" / "drift" / "doctor" -> `validation.mdx`
+- "which generator should I use" -> `generators.mdx`
+- "CLI flags and defaults" -> `configuration.mdx`
+- "library API" / "programmatic use" -> `api.mdx`
+
+## Non-goals
+
+- Does not manage secrets storage.
+- Does not replace secret managers.
+- Does not fetch cloud environments directly without user-provided snapshot files.

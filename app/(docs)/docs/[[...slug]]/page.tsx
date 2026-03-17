@@ -52,6 +52,8 @@ export async function generateMetadata({
   }
 
   const slugPath = slug?.join("/") ?? "";
+  const docsPath = slugPath.length > 0 ? `/docs/${slugPath}` : "/docs";
+  const canonicalUrl = `${SITE_URL}${docsPath}`;
 
   return {
     title: page.data.title,
@@ -60,15 +62,17 @@ export async function generateMetadata({
       title: `${page.data.title} | ${APP_NAME}`,
       description: page.data.description,
       type: "article",
-      url: `${SITE_URL}/docs/${slugPath}`,
+      url: canonicalUrl,
+      images: [{ url: `${SITE_URL}/opengraph-image`, alt: APP_NAME }],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${page.data.title} | ${APP_NAME}`,
       description: page.data.description,
+      images: [`${SITE_URL}/opengraph-image`],
     },
     alternates: {
-      canonical: `${SITE_URL}/docs/${slugPath}`,
+      canonical: canonicalUrl,
     },
   } satisfies Metadata;
 }

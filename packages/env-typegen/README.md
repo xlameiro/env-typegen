@@ -1,22 +1,21 @@
 # env-typegen
 
-> From `.env.example` to TypeScript in one command.
+> From `.env.example` to typed outputs and contract-based environment governance.
 
 [![npm version](https://badge.fury.io/js/%40xlameiro%2Fenv-typegen.svg)](https://npmjs.com/package/@xlameiro/env-typegen)
 [![CI](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml/badge.svg)](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 
-## What it does
+## What this package does
 
-`env-typegen` reads `.env.example` files and automatically generates:
+`@xlameiro/env-typegen` reads `.env.example` and helps you:
 
-- TypeScript types (`type EnvVars = { PORT: number; DATABASE_URL: string }`)
-- Zod v4 schemas (`z.object({ PORT: z.coerce.number() })`)
-- `@t3-oss/env-nextjs` `createEnv` configuration
-- `.d.ts` declaration files that augment `NodeJS.ProcessEnv`
+- generate TypeScript, Zod, t3-env, and declaration outputs
+- validate real env files against explicit contracts
+- detect drift across multiple targets
+- produce CI-friendly JSON diagnostics
 
-## Install
+## Installation
 
 ```bash
 pnpm add -D @xlameiro/env-typegen
@@ -27,69 +26,55 @@ npm install --save-dev @xlameiro/env-typegen
 ## Quick Start
 
 ```bash
-# Generate all outputs (default: typescript + zod + t3 + declaration)
+# Generate all outputs by default
 npx env-typegen --input .env.example --output src/env.generated.ts
 
-# Generate only a Zod schema
+# Generate only Zod schema
 npx env-typegen -i .env.example -o src/env.schema.ts -g zod
 
-# Generate multiple outputs explicitly
-npx env-typegen -i .env.example -o src/env.ts -f typescript -f zod
-
-# Generate without running Prettier
-npx env-typegen -i .env.example -o src/env.ts --no-format
-
-# Watch mode — regenerate on every change
-npx env-typegen -i .env.example -o src/env.ts --watch
-
-# Validate one env source against a contract (strict by default)
-npx env-typegen check --env .env --contract env.contract.ts
-
-# Compare drift across multiple env files
-npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
-
-# Full diagnostics (check + diff + recommendations)
-npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
-
-# Machine-readable report for CI pipelines
-npx env-typegen check --env .env --json --output-file reports/env-check.json
+# Watch mode
+npx env-typegen -i .env.example -o src/env.generated.ts --watch
 ```
-
-All paths (`--env`, `--contract`, `--targets`, and `--output-file`) are resolved from your current working directory.
 
 ## Generator formats
 
-Use `-f` / `--format` (or `-g` / `--generator` alias):
+| Value                | Output                                       |
+| -------------------- | -------------------------------------------- |
+| `ts` or `typescript` | TypeScript env types                         |
+| `zod`                | Zod v4 schema                                |
+| `t3`                 | `@t3-oss/env-nextjs` `createEnv(...)` config |
+| `declaration`        | Ambient `.d.ts` env declaration              |
 
-| Value                | Meaning                              |
-| -------------------- | ------------------------------------ |
-| `ts` or `typescript` | Generate TypeScript types            |
-| `zod`                | Generate Zod schema                  |
-| `t3`                 | Generate `@t3-oss/env-nextjs` config |
-| `declaration`        | Generate `.d.ts` declaration         |
+Multiple outputs in one run:
 
-## Validation commands
+```bash
+npx env-typegen -i .env.example -o src/env.ts -f typescript -f zod -f declaration
+```
 
-`env-typegen` also includes governance-focused commands:
+## Validation and governance commands
 
-- `check` — validates one env source against the contract
-- `diff` — compares env sources and detects configuration drift
-- `doctor` — aggregates findings and prints remediation suggestions
+```bash
+# Validate one source
+npx env-typegen check --env .env --contract env.contract.ts
 
-### Strict mode
+# Compare drift across sources
+npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
 
-- Strict mode is enabled by default for validation commands.
-- Use `--no-strict` to downgrade undeclared variables to warnings.
+# Aggregated diagnostics
+npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
 
-### JSON output
+JSON output for CI:
 
-- `--json` outputs compact JSON
-- `--json=pretty` outputs formatted JSON
-- `--output-file <path>` writes the JSON report to disk
+```bash
+npx env-typegen check --env .env --json --output-file reports/env-check.json
+```
 
-### Cloud snapshots
+Strict mode is enabled by default. Use `--no-strict` to downgrade undeclared variables to warnings.
 
-Validation commands can include cloud snapshot files as additional sources:
+## Cloud snapshots
+
+Validation commands can include cloud snapshot sources:
 
 ```bash
 npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
@@ -99,15 +84,15 @@ npx env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract
 
 Supported providers: `vercel`, `cloudflare`, `aws`.
 
-### Plugins
+## Plugin hooks
 
-Use plugins to extend validation behavior:
+Use plugins to customize validation behavior:
 
-- `transformContract` — mutate the loaded contract before validation
-- `transformSource` — mutate environment values per source
-- `transformReport` — enrich final validation reports
+- `transformContract`
+- `transformSource`
+- `transformReport`
 
-Load plugins with repeated `--plugin` flags or from `env-typegen.config.ts` (`plugins` field).
+Load plugins with repeated `--plugin` flags or via `plugins` in `env-typegen.config.ts`.
 
 ## Programmatic API
 
@@ -120,61 +105,38 @@ import {
   loadCloudSource,
   loadPlugins,
 } from "@xlameiro/env-typegen";
-
-// High-level: full pipeline
-await runGenerate({
-  input: ".env.example",
-  output: "src/env.generated.ts",
-  generators: ["typescript"],
-  format: true,
-});
-
-// Low-level: parse then generate individually
-const parsed = parseEnvFile(".env.example");
-const ts = generateTypeScriptTypes(parsed);
-
-// Run validation commands programmatically
-const exitCode = await runValidationCommand({
-  command: "check",
-  argv: ["--env", ".env", "--contract", "env.contract.ts", "--json"],
-});
-
-// Load cloud snapshots and plugins in custom integrations
-const cloudValues = await loadCloudSource({ provider: "vercel", filePath: "vercel-env.json" });
-const plugins = await loadPlugins({ pluginPaths: ["./plugins/custom.mjs"] });
 ```
 
-## Configuration
+## Typical adoption path
 
-Create `env-typegen.config.ts` at your project root:
+1. Start with generation-only output (`ts`, `zod`).
+2. Add `check` in CI for contract enforcement.
+3. Add `diff` and `doctor` for drift prevention.
+4. Add cloud snapshots and plugins for advanced workflows.
 
-```ts
-import { defineConfig } from "@xlameiro/env-typegen";
+## FAQ
 
-export default defineConfig({
-  input: ".env.example",
-  output: "src/env.generated.ts",
-  generators: ["typescript", "zod"],
-  format: true,
-  schemaFile: "env.contract.ts",
-  strict: true,
-  diffTargets: [".env", ".env.example", ".env.production"],
-  plugins: ["./plugins/custom-validator.mjs"],
-});
-```
+### Is this package only for Next.js?
 
-## Documentation
+No. It is framework-agnostic. The `t3` generator is optional.
 
-- Fumadocs source in repo: [`/content/docs`](../../content/docs)
-- Package markdown docs: [`/packages/env-typegen/docs`](./docs)
+### Can I use it without a contract file?
+
+Yes, but explicit contracts are recommended for governance and CI reliability.
+
+### Which command should I run in CI?
+
+Start with `check`. Add `diff` or `doctor` as your pipeline maturity grows.
+
+## Docs and references
+
+- Website docs source: [`/content/docs`](../../content/docs)
+- Package docs index: [`/packages/env-typegen/docs`](./docs)
+- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Status
 
 `env-typegen` is actively maintained and published on npm.
-
-## Changelog
-
-See [`CHANGELOG.md`](./CHANGELOG.md) for release notes.
 
 ## License
 

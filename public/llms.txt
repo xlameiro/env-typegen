@@ -1,0 +1,74 @@
+# env-typegen
+
+env-typegen is a CLI and library for generating typed environment artifacts from `.env.example` and enforcing contract-based environment validation in CI/CD.
+
+## What this project is for
+
+- Keep TypeScript, runtime validation, and env docs aligned from one source.
+- Detect environment drift before deployment.
+- Emit machine-readable validation reports for automation.
+
+## Primary capabilities
+
+1. Code generation from `.env.example`
+   - TypeScript types
+   - Zod schemas
+   - `@t3-oss/env-nextjs` config scaffold
+   - Ambient `.d.ts` declarations
+2. Validation and governance commands
+   - `check` (single source contract validation)
+   - `diff` (cross-source drift analysis)
+   - `doctor` (aggregated diagnostics and recommendations)
+3. Cloud snapshot validation
+   - Providers: Vercel, Cloudflare, AWS
+4. Plugin hooks
+   - `transformContract`
+   - `transformSource`
+   - `transformReport`
+
+## Recommended entry points
+
+- Repository overview: `README.md`
+- npm package docs: `packages/env-typegen/README.md`
+- Website docs source: `content/docs/`
+- Getting started: `content/docs/getting-started.mdx`
+- Validation guide: `content/docs/validation.mdx`
+- Generators guide: `content/docs/generators.mdx`
+- API guide: `content/docs/api.mdx`
+
+## Core CLI examples
+
+```bash
+# Generate outputs
+env-typegen --input .env.example --output env.generated.ts
+
+# Validate one source
+env-typegen check --env .env --contract env.contract.ts
+
+# Detect drift
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Full diagnostics
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
+
+## API surface (library)
+
+Main exports include:
+
+- Parsing/inference: `parseEnvFile`, `parseEnvFileContent`, `inferType`, `inferTypes`
+- Generators: `generateTypeScriptTypes`, `generateZodSchema`, `generateT3Env`, `generateDeclaration`
+- Pipelines: `runGenerate`, `runValidationCommand`
+- Integrations: `loadCloudSource`, `loadPlugins`
+
+## Audience
+
+- TypeScript and Next.js teams managing env contracts
+- Platform/DevOps teams enforcing env governance in CI
+- Monorepo maintainers needing consistent env policy
+
+## Extended machine-readable context
+
+For deeper task-oriented guidance and expanded command/reference context, see:
+
+- `llms-full.txt`

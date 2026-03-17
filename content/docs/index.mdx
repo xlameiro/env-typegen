@@ -1,26 +1,36 @@
 ---
 title: Overview
-description: env-typegen generates typed env artifacts and validates environments with contract-first checks.
+description: env-typegen turns .env.example files into typed artifacts and enforces environment contracts with drift-aware validation.
 ---
 
-**env-typegen** combines generation and governance in one tool:
+env-typegen combines code generation and governance in one workflow:
 
-- Generate typed outputs from `.env.example`
-- Validate real env sources with `check`, `diff`, and `doctor`
+- Generate typed artifacts from `.env.example`
+- Validate real environments against a contract
+- Detect drift before production deploys
+- Export JSON diagnostics for CI and automation
 
-## What it does
+## Why teams adopt env-typegen
 
-| Capability          | Result                                                                        |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `.env.example`      | TypeScript `type Env = { ... }`                                               |
-| `.env.example`      | Zod v4 schema (server + client split)                                         |
-| `.env.example`      | `@t3-oss/env-nextjs` `createEnv(...)` output                                 |
-| `.env.example`      | Ambient `.d.ts` augmenting `NodeJS.ProcessEnv`                                |
-| `check`             | Contract-first validation of one environment source                           |
-| `diff`              | Drift detection across multiple environment sources                            |
-| `doctor`            | Aggregated diagnostics with actionable recommendations                         |
-| Cloud snapshots     | Source loading from Vercel, Cloudflare, and AWS snapshot JSON files           |
-| Plugins             | Extensible hooks for contract, source, and report transformation              |
+| Problem | How env-typegen helps |
+| --- | --- |
+| Manual env typing is repetitive | Generates TypeScript, Zod, t3-env, and declaration outputs |
+| Runtime config drifts silently | Validates sources with `check`, `diff`, and `doctor` |
+| CI pipelines need machine-readable signals | Emits compact or pretty JSON reports |
+| Multi-platform env parity is hard | Supports cloud snapshots from Vercel, Cloudflare, and AWS |
+
+## Capability map
+
+| Input | Output or action |
+| --- | --- |
+| `.env.example` | TypeScript env types |
+| `.env.example` | Zod v4 schemas (server/client split) |
+| `.env.example` | `@t3-oss/env-nextjs` `createEnv(...)` config |
+| `.env.example` | Ambient `.d.ts` for `NodeJS.ProcessEnv` |
+| Contract + source (`check`) | Compliance report for one environment |
+| Contract + targets (`diff`) | Drift report across multiple sources |
+| `check` + `diff` (`doctor`) | Prioritized diagnostics and recommendations |
+| Optional plugins | Contract, source, and report transformation hooks |
 
 ## Quick start
 
@@ -31,6 +41,37 @@ env-typegen --input .env.example --output env.generated.ts --format ts
 # Validate one env source against a contract (strict by default)
 env-typegen check --env .env --contract env.contract.ts
 ```
+
+## Choose your path
+
+| Goal | Start here |
+| --- | --- |
+| Generate typed outputs quickly | [Getting Started](/docs/getting-started) |
+| Enforce env governance in CI | [Validation & Governance](/docs/validation) |
+| Tune CLI behavior and defaults | [Configuration](/docs/configuration) |
+| Pick the right output format | [Generators](/docs/generators) |
+| Integrate with custom scripts | [Programmatic API](/docs/api) |
+
+## Common use cases
+
+- Next.js and TypeScript teams that want one source of truth for environment contracts.
+- Platform teams enforcing env hygiene in pull request and deployment pipelines.
+- Monorepos that need consistent env policy across apps and services.
+- Teams migrating from ad-hoc dotenv validation to repeatable, auditable checks.
+
+## FAQ
+
+### Is env-typegen only for Next.js projects?
+
+No. It works for any Node.js or TypeScript project. The `t3` generator is optional.
+
+### Can I adopt it incrementally?
+
+Yes. Start with generation-only output, then add `check`, `diff`, and `doctor` in CI as contracts mature.
+
+### Can I validate cloud environments without direct API calls?
+
+Yes. Validation commands accept snapshot JSON files for Vercel, Cloudflare, and AWS.
 
 ## Guides
 
