@@ -1,0 +1,27 @@
+{
+  "Parameters": [
+    {
+      "Name": "DATABASE_URL",
+      "Value": "postgresql://aws-rds:5432/prod_db",
+      "Type": "SecureString"
+    },
+    { "Name": "PORT", "Value": "8080", "Type": "String" },
+    { "Name": "NODE_ENV", "Value": "production", "Type": "String" },
+    {
+      "Name": "AUTH_SECRET",
+      "Value": "aws-secret-key-minimum-32-chars-long-here!!",
+      "Type": "SecureString"
+    },
+    {
+      "Name": "STRIPE_SECRET_KEY",
+      "Value": "sk_live_AWS_PLACEHOLDER",
+      "Type": "SecureString"
+    },
+    {
+      "Name": "NEXT_PUBLIC_APP_URL",
+      "Value": "https://myapp.com",
+      "Type": "String"
+    },
+    { "Name": "AWS_ONLY_VAR", "Value": "only-in-aws", "Type": "String" }
+  ]
+}

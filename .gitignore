@@ -75,3 +75,7 @@ skills-lock.json
 
 # QA
 .qa/
+
+# QA sessions — commits fixtures + report, ignores generated output
+qa-test/outputs/
+qa-test/reports/*.json

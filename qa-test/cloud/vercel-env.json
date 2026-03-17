@@ -1,0 +1,45 @@
+[
+  {
+    "key": "DATABASE_URL",
+    "value": "postgresql://vercel-host:5432/vercel_db",
+    "target": ["production", "preview", "development"],
+    "type": "encrypted"
+  },
+  { "key": "PORT", "value": "8080", "target": ["production"], "type": "plain" },
+  {
+    "key": "NODE_ENV",
+    "value": "production",
+    "target": ["production"],
+    "type": "plain"
+  },
+  {
+    "key": "AUTH_SECRET",
+    "value": "vercel-secret-key-minimum-32-chars-long!!",
+    "target": ["production", "preview"],
+    "type": "encrypted"
+  },
+  {
+    "key": "STRIPE_SECRET_KEY",
+    "value": "sk_live_VERCEL_PLACEHOLDER",
+    "target": ["production"],
+    "type": "encrypted"
+  },
+  {
+    "key": "NEXT_PUBLIC_APP_URL",
+    "value": "https://myapp.vercel.app",
+    "target": ["production"],
+    "type": "plain"
+  },
+  {
+    "key": "NEXT_PUBLIC_API_URL",
+    "value": "https://api.myapp.vercel.app",
+    "target": ["production"],
+    "type": "plain"
+  },
+  {
+    "key": "VERCEL_ONLY_VAR",
+    "value": "only-in-vercel",
+    "target": ["production"],
+    "type": "plain"
+  }
+]
