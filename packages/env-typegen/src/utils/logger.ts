@@ -1,4 +1,10 @@
-import { green, red, yellow } from "picocolors";
+// Use default import from picocolors — it is a CJS-only module.
+// Named ESM imports (`import { green } from "picocolors"`) resolve in the
+// bundled CLI build (noExternal inlines it), but fail at runtime in the
+// unbundled library build (dist/index.js) because Node.js cannot find named
+// exports on a CJS module.  Default import + destructuring works in both.
+import pc from "picocolors";
+const { green, red, yellow } = pc;
 
 /** Prints a plain informational message to stdout. */
 export function log(message: string): void {
