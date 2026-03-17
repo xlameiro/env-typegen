@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -47,6 +48,9 @@ function isPlugin(value: unknown): value is EnvTypegenPlugin {
 
 async function loadPluginFromPath(pluginPath: string, cwd: string): Promise<EnvTypegenPlugin> {
   const resolvedPath = path.resolve(cwd, pluginPath);
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Plugin not found: ${pluginPath}`);
+  }
   const moduleValue = (await import(pathToFileURL(resolvedPath).href)) as PluginModule;
   const candidate = moduleValue.default ?? moduleValue.plugin;
   if (isPlugin(candidate)) return candidate;

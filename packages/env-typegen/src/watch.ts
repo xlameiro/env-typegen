@@ -1,4 +1,5 @@
 import { watch } from "chokidar";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 import { CONFIG_FILE_NAMES, loadConfig } from "./config.js";
@@ -29,6 +30,17 @@ function debounce<TArgs extends unknown[]>(
 }
 
 export function startWatch({ inputPath, runOptions, cwd = process.cwd() }: WatchOptions): void {
+  // Fail fast if any input file does not exist — do not start a watcher that would never fire.
+  const inputPaths = Array.isArray(inputPath) ? inputPath : [inputPath];
+  for (const singlePath of inputPaths) {
+    if (!existsSync(singlePath)) {
+      error(`File not found: ${singlePath}`);
+      // `return` so that in test environments where process.exit is mocked,
+      // execution stops here instead of falling through to startWatch logic.
+      return process.exit(1);
+    }
+  }
+
   const inputLabel = Array.isArray(inputPath) ? inputPath.join(", ") : inputPath;
   log(`Watching ${inputLabel} for changes...`);
 

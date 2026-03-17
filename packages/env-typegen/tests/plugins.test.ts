@@ -125,4 +125,13 @@ describe("plugins", () => {
       }),
     ).rejects.toThrow("transformSource");
   });
+
+  it("should throw 'Plugin not found' when the plugin file does not exist", async () => {
+    await expect(
+      loadPlugins({
+        pluginPaths: ["nonexistent-plugin.mjs"],
+        cwd: process.cwd(),
+      }),
+    ).rejects.toThrow("Plugin not found: nonexistent-plugin.mjs");
+  });
 });

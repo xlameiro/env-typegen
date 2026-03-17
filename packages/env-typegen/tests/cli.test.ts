@@ -125,6 +125,40 @@ describe("runGenerate", () => {
       runGenerate(opts({ input: path.join(dir, "nonexistent.env"), generators: ["typescript"] })),
     ).rejects.toThrow();
   });
+
+  it("should not write an output file and not log generated content when dryRun is true", async () => {
+    const input = await makeInput("API_KEY=secret\n");
+    const output = path.join(dir, "env.dry.ts");
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runGenerate(opts({ input, output, generators: ["typescript"], dryRun: true }));
+
+    // Output file must NOT be created in dry-run mode.
+    await expect(import("node:fs/promises").then((m) => m.access(output))).rejects.toThrow();
+    // Generated TypeScript content must NOT appear in stdout.
+    const logged = consoleSpy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(logged).not.toContain("API_KEY");
+    expect(logged).not.toContain("export");
+  });
+
+  it("should not write output files in dry-run with multiple generators", async () => {
+    const input = await makeInput("PORT=8080\n");
+    const output = path.join(dir, "env.multi.ts");
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runGenerate(opts({ input, output, generators: ["typescript", "zod"], dryRun: true }));
+
+    // Neither multi-generator output file should exist.
+    await expect(
+      import("node:fs/promises").then((m) => m.access(path.join(dir, "env.multi.typescript.ts"))),
+    ).rejects.toThrow();
+    await expect(
+      import("node:fs/promises").then((m) => m.access(path.join(dir, "env.multi.zod.ts"))),
+    ).rejects.toThrow();
+    // Content from either generator must NOT appear in stdout.
+    const logged = consoleSpy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(logged).not.toContain("PORT");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -275,7 +309,7 @@ describe("runCli", () => {
     await expect(readFile(outputPath, "utf8")).rejects.toThrow();
   });
 
-  it("should print generated content to stdout in --dry-run mode", async () => {
+  it("should print only 'would write' and not generated content in --dry-run mode", async () => {
     const inputPath = path.join(dir, ".env.example");
     await writeFile(inputPath, "PUBLIC_URL=https://example.com\n");
     const outputPath = path.join(dir, "out.ts");
@@ -291,8 +325,12 @@ describe("runCli", () => {
       "--dry-run",
     ]);
 
+    // The output file must NOT be written in dry-run mode.
+    await expect(readFile(outputPath, "utf8")).rejects.toThrow();
+    // Generated TypeScript content must NOT appear in stdout — only the "would write" message.
     const printed = logSpy.mock.calls.map((call) => String(call[0])).join("\n");
-    expect(printed).toContain("PUBLIC_URL");
+    expect(printed).not.toContain("PUBLIC_URL");
+    expect(printed).not.toContain("export");
   });
 
   it("should disable formatting with --no-format", async () => {

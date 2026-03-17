@@ -3,21 +3,29 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as configModule from "../src/config.js";
+import type * as fsModule from "node:fs";
 import type * as pipelineModule from "../src/pipeline.js";
 import type * as loggerModule from "../src/utils/logger.js";
 import { startWatch } from "../src/watch.js";
 
-const { watchMock, runGenerateMock, loadConfigMock, logMock, errorMock } = vi.hoisted(() => ({
-  watchMock: vi.fn(),
-  runGenerateMock: vi.fn<(...args: unknown[]) => Promise<void>>(),
-  loadConfigMock: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
-  logMock: vi.fn<(message: string) => void>(),
-  errorMock: vi.fn<(message: string) => void>(),
-}));
+const { watchMock, runGenerateMock, loadConfigMock, logMock, errorMock, existsSyncMock } =
+  vi.hoisted(() => ({
+    watchMock: vi.fn(),
+    runGenerateMock: vi.fn<(...args: unknown[]) => Promise<void>>(),
+    loadConfigMock: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+    logMock: vi.fn<(message: string) => void>(),
+    errorMock: vi.fn<(message: string) => void>(),
+    existsSyncMock: vi.fn<(path: string) => boolean>(),
+  }));
 
 vi.mock("chokidar", () => ({
   watch: watchMock,
 }));
+
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof fsModule>();
+  return { ...actual, existsSync: existsSyncMock };
+});
 
 vi.mock("../src/pipeline.js", async (importOriginal) => {
   const actualModule = await importOriginal<typeof pipelineModule>();
@@ -118,6 +126,9 @@ describe("startWatch", () => {
     vi.clearAllMocks();
     watcherHarnesses.length = 0;
     sigintHandler = undefined;
+
+    // Default: all input paths exist so the existing tests pass unmodified.
+    existsSyncMock.mockReturnValue(true);
 
     watchMock.mockImplementation(() => {
       const watcherHarness = createWatcherHarness();
@@ -284,5 +295,29 @@ describe("startWatch", () => {
     expect(getWatcherHarness(1).closeMock).toHaveBeenCalledTimes(1);
     expect(logMock).toHaveBeenCalledWith("Watcher stopped.");
     expect(vi.mocked(process.exit)).toHaveBeenCalledWith(0);
+  });
+
+  it("should exit 1 with a friendly error when an input file does not exist", () => {
+    existsSyncMock.mockReturnValue(false);
+
+    startWatch({ inputPath: "/tmp/nonexistent.env", runOptions: createRunOptions() });
+
+    expect(errorMock).toHaveBeenCalledWith("File not found: /tmp/nonexistent.env");
+    expect(vi.mocked(process.exit)).toHaveBeenCalledWith(1);
+    // Watcher must NOT have been started when the input is missing.
+    expect(watchMock).not.toHaveBeenCalled();
+  });
+
+  it("should exit 1 on the first missing file when multiple inputs are given", () => {
+    existsSyncMock.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+    startWatch({
+      inputPath: [".env.example", "/tmp/missing.env"],
+      runOptions: createRunOptions(),
+    });
+
+    expect(errorMock).toHaveBeenCalledWith("File not found: /tmp/missing.env");
+    expect(vi.mocked(process.exit)).toHaveBeenCalledWith(1);
+    expect(watchMock).not.toHaveBeenCalled();
   });
 });

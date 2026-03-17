@@ -86,10 +86,6 @@ async function persistOutput(params: {
 
   if (dryRun) {
     if (!silent) {
-      if (!isSingle) {
-        console.log(`// --- ${generator}: ${outputPath} ---`);
-      }
-      console.log(generated);
       success(`Dry run: would write ${outputPath}`);
     }
     return;
