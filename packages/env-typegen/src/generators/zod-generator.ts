@@ -5,15 +5,15 @@ import type { EnvVarType, ParsedEnvFile } from "../parser/types.js";
  *
  * - `number`  → `z.coerce.number()` (env vars are strings; coerce handles the cast)
  * - `boolean` → `z.coerce.boolean()` (env vars are strings; coerce handles truthy cast)
- * - `url`     → `z.string().url()`
- * - `email`   → `z.string().email()`
+ * - `url`     → `z.url()`
+ * - `email`   → `z.email()`
  * - everything else → `z.string()` (string | semver | json | unknown)
  */
 function toZodType(envVarType: EnvVarType): string {
   if (envVarType === "number") return "z.coerce.number()";
   if (envVarType === "boolean") return "z.coerce.boolean()";
-  if (envVarType === "url") return "z.string().url()";
-  if (envVarType === "email") return "z.string().email()";
+  if (envVarType === "url") return "z.url()";
+  if (envVarType === "email") return "z.email()";
   return "z.string()";
 }
 
@@ -26,21 +26,21 @@ function toZodType(envVarType: EnvVarType): string {
  * import { z } from "zod";
  *
  * export const serverEnvSchema = z.object({
- *   DATABASE_URL: z.string().url(),
+ *   DATABASE_URL: z.url(),
  *   PORT: z.coerce.number(),
  * });
  *
  * export const clientEnvSchema = z.object({
- *   NEXT_PUBLIC_API_URL: z.string().url(),
+ *   NEXT_PUBLIC_API_URL: z.url(),
  * });
  *
- * export const envSchema = serverEnvSchema.merge(clientEnvSchema);
+ * export const envSchema = z.object({ ...serverEnvSchema.shape, ...clientEnvSchema.shape });
  * export type Env = z.infer<typeof envSchema>;
  * ```
  *
  * - Server-side vars (non-`NEXT_PUBLIC_`) go into `serverEnvSchema`
  * - Client-side vars (`NEXT_PUBLIC_` prefix) go into `clientEnvSchema`
- * - `envSchema` is the merged union of both, for full-stack validation
+ * - `envSchema` merges both shapes via object spread to avoid deprecated `.merge()`
  * - `annotatedType` takes precedence over `inferredType` when both are set
  * - Optional vars have `.optional()` appended to their Zod expression
  */
@@ -76,7 +76,10 @@ export function generateZodSchema(parsed: ParsedEnvFile): string {
   lines.push(
     "});",
     "",
-    "export const envSchema = serverEnvSchema.merge(clientEnvSchema);",
+    "export const envSchema = z.object({",
+    "  ...serverEnvSchema.shape,",
+    "  ...clientEnvSchema.shape,",
+    "});",
     "export type Env = z.infer<typeof envSchema>;",
   );
 

@@ -5,9 +5,14 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inspect, parseArgs } from "node:util";
 
-import { loadConfig, type EnvTypegenConfig, type GeneratorName } from "./config.js";
+import {
+  CONFIG_FILE_NAMES,
+  loadConfig,
+  type EnvTypegenConfig,
+  type GeneratorName,
+} from "./config.js";
 import { runGenerate, type RunGenerateOptions } from "./pipeline.js";
-import { error } from "./utils/logger.js";
+import { error, log } from "./utils/logger.js";
 import { runValidationCommand } from "./validation-command.js";
 import { startWatch } from "./watch.js";
 
@@ -45,9 +50,11 @@ const HELP_TEXT = [
   "  -h, --help                 Show this help",
   "",
   "Config file:",
-  "  Auto-discovered in order: env-typegen.config.mjs → .js → .ts (in cwd)",
+  "  Auto-discovered in order: env-typegen.config.mjs → .js (in cwd)",
   "  CLI flags always override config file values.",
   "  Use defineConfig() from @xlameiro/env-typegen for IDE autocompletion.",
+  "  Note: with multiple --input values, --output basename is ignored;",
+  "        outputs are named from each input file stem.",
   "",
   "Exit codes:",
   "  0  Success — files generated without errors",
@@ -152,21 +159,60 @@ async function loadExplicitConfig(
   return rawConfig ? applyConfigPaths(rawConfig, configDir) : undefined;
 }
 
+function findAutoDiscoveredConfigPath(cwd: string): string | undefined {
+  for (const configName of CONFIG_FILE_NAMES) {
+    const resolvedPath = path.resolve(cwd, configName);
+    if (existsSync(resolvedPath)) {
+      return resolvedPath;
+    }
+  }
+  return undefined;
+}
+
+function parseGenerateAlias(argv: string[]): string[] {
+  if (argv[0] === "generate") {
+    return argv.slice(1);
+  }
+  return argv;
+}
+
+async function maybeRunValidationSubcommand(argv: string[]): Promise<boolean> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand === undefined || !VALIDATION_SUBCOMMANDS.has(maybeSubcommand)) {
+    return false;
+  }
+
+  await runValidationSubcommand(maybeSubcommand as ValidationSubcommand, argv.slice(1));
+  return true;
+}
+
+async function loadCliConfig(values: { config?: string }): Promise<EnvTypegenConfig | undefined> {
+  if (values.config !== undefined) {
+    return loadExplicitConfig(path.resolve(values.config), values.config);
+  }
+
+  const cwd = process.cwd();
+  const fileConfig = await loadConfig(cwd);
+  if (fileConfig !== undefined) {
+    const autoConfigPath = findAutoDiscoveredConfigPath(cwd);
+    if (autoConfigPath !== undefined) {
+      log(`Using config: ${autoConfigPath}`);
+    }
+  }
+
+  return fileConfig;
+}
+
 export async function runCli(argv: string[] = process.argv.slice(2)): Promise<void> {
   // "generate" is the implicit default subcommand — accept it explicitly as an alias
   // so `env-typegen generate -i ...` behaves the same as `env-typegen -i ...`.
-  if (argv[0] === "generate") {
-    argv = argv.slice(1);
-  }
-
-  const maybeSubcommand = argv[0];
-  if (maybeSubcommand !== undefined && VALIDATION_SUBCOMMANDS.has(maybeSubcommand)) {
-    await runValidationSubcommand(maybeSubcommand as ValidationSubcommand, argv.slice(1));
+  const normalizedArgv = parseGenerateAlias(argv);
+  if (await maybeRunValidationSubcommand(normalizedArgv)) {
     return;
   }
 
   const { values } = parseArgs({
-    args: argv,
+    args: normalizedArgv,
     options: {
       input: { type: "string", short: "i", multiple: true },
       output: { type: "string", short: "o" },
@@ -193,19 +239,13 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
     return;
   }
 
-  // Load config file — explicit path from --config, or auto-discover in cwd
-  let fileConfig: EnvTypegenConfig | undefined;
-  if (values.config === undefined) {
-    fileConfig = await loadConfig(process.cwd());
-  } else {
-    fileConfig = await loadExplicitConfig(path.resolve(values.config), values.config);
-  }
+  const fileConfig = await loadCliConfig(values);
 
   // Merge: CLI flags take precedence over config file values
   const cliInput = values.input?.length ? values.input : undefined;
   const input: string | string[] | undefined = cliInput ?? fileConfig?.input;
   if (input === undefined) {
-    error("No input file specified. Use -i <path> or set input in env-typegen.config.ts");
+    error("No input file specified. Use -i <path> or set input in env-typegen.config.mjs");
     process.exit(1);
   }
 

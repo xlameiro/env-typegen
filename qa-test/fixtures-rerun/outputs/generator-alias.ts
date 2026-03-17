@@ -4,9 +4,9 @@ import { z } from "zod";
 export const serverEnvSchema = z.object({
   NODE_ENV: z.string(),
   PORT: z.coerce.number(),
-  APP_URL: z.string().url(),
-  DATABASE_URL: z.string().url(),
-  DATABASE_READONLY_URL: z.string().url(),
+  APP_URL: z.url(),
+  DATABASE_URL: z.url(),
+  DATABASE_READONLY_URL: z.url(),
   AUTH_SECRET: z.string(),
   JWT_EXPIRY_SECONDS: z.coerce.number(),
   ENABLE_BETA_FEATURES: z.coerce.boolean(),
@@ -16,5 +16,8 @@ export const serverEnvSchema = z.object({
 
 export const clientEnvSchema = z.object({});
 
-export const envSchema = serverEnvSchema.merge(clientEnvSchema);
+export const envSchema = z.object({
+  ...serverEnvSchema.shape,
+  ...clientEnvSchema.shape,
+});
 export type Env = z.infer<typeof envSchema>;

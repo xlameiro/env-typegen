@@ -63,7 +63,7 @@ export {
  * Generate a Zod v4 schema from a parsed env file.
  *
  * Numeric values become `z.coerce.number()`, booleans become `z.coerce.boolean()`,
- * URLs become `z.string().url()`, emails become `z.string().email()`.
+ * URLs become `z.url()`, emails become `z.email()`.
  */
 export { generateZodSchema } from "./generators/zod-generator.js";
 
@@ -121,7 +121,7 @@ export type { EnvContract, EnvContractEntry, EnvVarRuntime } from "./schema/sche
 export { CONTRACT_FILE_NAMES, defineContract, loadContract } from "./schema/schema-loader.js";
 
 /**
- * Configuration API — define and load `env-typegen.config.ts` / `env-typegen.config.js`.
+ * Configuration API — define and load `env-typegen.config.mjs` / `env-typegen.config.js`.
  * - {@link defineConfig} — type-safe config factory (identity function for inference)
  * - {@link loadConfig} — searches for a config file starting from a given directory
  */

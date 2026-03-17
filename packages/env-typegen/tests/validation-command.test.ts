@@ -88,7 +88,7 @@ describe("validation command", () => {
       ],
     });
 
-    const lastJson = writes[writes.length - 1] ?? "{}";
+    const lastJson = writes.at(-1) ?? "{}";
     const parsed = JSON.parse(lastJson) as { recommendations?: string[] };
 
     expect(diffExit).toBe(1);
@@ -193,7 +193,7 @@ describe("validation command", () => {
     });
 
     expect(exitCode).toBe(0);
-    const output = writes[writes.length - 1] ?? "{}";
+    const output = writes.at(-1) ?? "{}";
     expect(JSON.parse(output)).toMatchObject({
       status: "ok",
       summary: { errors: 0 },
@@ -271,7 +271,7 @@ describe("validation command", () => {
       argv: ["--config", configPath, "--json"],
     });
 
-    const report = JSON.parse(writes[writes.length - 1] ?? "{}") as {
+    const report = JSON.parse(writes.at(-1) ?? "{}") as {
       recommendations?: string[];
       status: string;
     };
@@ -358,5 +358,102 @@ describe("validation command", () => {
     });
 
     expect(exitCode).toBe(0);
+  });
+
+  it("should not include .env.example in default diff targets", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const envPath = path.join(dir, ".env");
+    const productionPath = path.join(dir, ".env.production");
+    const examplePath = path.join(dir, ".env.example");
+    const originalCwd = process.cwd();
+
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    DATABASE_READONLY_URL: { expected: { type: "url" }, required: false, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(envPath, "", "utf8");
+    await writeFile(productionPath, "", "utf8");
+    await writeFile(examplePath, "DATABASE_READONLY_URL=\n", "utf8");
+
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((chunk: string | Uint8Array) => {
+      writes.push(String(chunk));
+      return true;
+    });
+
+    try {
+      process.chdir(dir);
+      const exitCode = await runValidationCommand({
+        command: "diff",
+        argv: ["--contract", contractPath, "--json"],
+      });
+
+      expect(exitCode).toBe(0);
+      const report = JSON.parse(writes.at(-1) ?? "{}") as {
+        issues: { environment: string }[];
+      };
+      expect(report.issues.map((issue) => issue.environment)).not.toContain(".env.example");
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it("should summarize missing target files in doctor output", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const envPath = path.join(dir, ".env");
+    const originalCwd = process.cwd();
+
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(envPath, "PORT=3000\n", "utf8");
+
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation((chunk: string | Uint8Array) => {
+      writes.push(String(chunk));
+      return true;
+    });
+
+    try {
+      process.chdir(dir);
+      const exitCode = await runValidationCommand({
+        command: "doctor",
+        argv: ["--env", envPath, "--contract", contractPath, "--json"],
+      });
+
+      expect(exitCode).toBe(1);
+      const report = JSON.parse(writes.at(-1) ?? "{}") as {
+        summary: { errors: number };
+        issues: { environment: string; key: string; message: string }[];
+      };
+      const missingTargetIssue = report.issues.find(
+        (issue) => issue.environment === ".env.production" && issue.key === "*",
+      );
+      expect(report.summary.errors).toBe(1);
+      expect(missingTargetIssue?.message).toContain("was not found; treating as empty");
+    } finally {
+      process.chdir(originalCwd);
+    }
   });
 });

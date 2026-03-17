@@ -31,7 +31,7 @@ describe("public API index", () => {
 
     expect(generatedTypescript).toContain("APP_URL");
     expect(generatedTypescript).toContain("APP_PORT");
-    expect(generatedZod).toContain("z.string().url()");
+    expect(generatedZod).toContain("z.url()");
     expect(generatedZod).toContain("z.coerce.number()");
   });
 

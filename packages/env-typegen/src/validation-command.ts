@@ -13,6 +13,7 @@ import {
   loadPlugins,
   type PluginReference,
 } from "./plugins.js";
+import { warn } from "./utils/logger.js";
 import {
   buildDoctorReport,
   diffEnvironmentSources,
@@ -20,7 +21,7 @@ import {
 } from "./validation/engine.js";
 import { loadEnvSource } from "./validation/env-source.js";
 import { emitValidationReport } from "./validation/output.js";
-import type { ValidationReport } from "./validation/types.js";
+import type { ValidationIssue, ValidationReport } from "./validation/types.js";
 
 type ValidationCommand = "check" | "diff" | "doctor";
 type JsonMode = "off" | "compact" | "pretty";
@@ -79,7 +80,7 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "Usage: env-typegen diff [options]",
     "",
     "Options:",
-    "  --targets <list>          Comma-separated targets (default: .env,.env.example,.env.production)",
+    "  --targets <list>          Comma-separated targets (default: .env,.env.production)",
     "  --contract <path>         Contract file path (default: env.contract.ts)",
     "  --example <path>          Fallback .env.example used to bootstrap contract",
     "  --strict                  Validate extras as errors (default: true)",
@@ -103,7 +104,7 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "",
     "Options:",
     "  --env <path>              Environment file to validate (default: .env)",
-    "  --targets <list>          Comma-separated targets for drift analysis",
+    "  --targets <list>          Comma-separated targets for drift analysis (default: .env,.env.production)",
     "  --contract <path>         Contract file path (default: env.contract.ts)",
     "  --example <path>          Fallback .env.example used to bootstrap contract",
     "  --strict                  Validate extras as errors (default: true)",
@@ -269,7 +270,73 @@ function parseTargets(
     return fileConfig.diffTargets;
   }
 
-  return [".env", ".env.example", ".env.production"];
+  return [".env", ".env.production"];
+}
+
+function splitExistingAndMissingTargets(targets: string[]): {
+  existingTargets: string[];
+  missingTargets: string[];
+} {
+  const existingTargets: string[] = [];
+  const missingTargets: string[] = [];
+
+  for (const target of targets) {
+    const resolvedTarget = path.resolve(target);
+    if (existsSync(resolvedTarget)) {
+      existingTargets.push(target);
+      continue;
+    }
+    missingTargets.push(target);
+  }
+
+  return { existingTargets, missingTargets };
+}
+
+function buildMissingTargetIssue(target: string, missingCount: number): ValidationIssue {
+  const suffix = missingCount === 1 ? "" : "s";
+  return {
+    code: "ENV_MISSING",
+    type: "missing",
+    severity: "error",
+    key: "*",
+    environment: target,
+    message: `Target file ${target} was not found; treating as empty (${missingCount} missing variable${suffix}).`,
+    value: null,
+  };
+}
+
+function summarizeDoctorMissingTargetIssues(
+  report: ValidationReport,
+  missingTargets: string[],
+): ValidationReport {
+  if (missingTargets.length === 0) return report;
+
+  const missingTargetSet = new Set(missingTargets);
+  const retainedIssues = report.issues.filter(
+    (issue) => !(issue.code === "ENV_MISSING" && missingTargetSet.has(issue.environment)),
+  );
+
+  const groupedIssues = missingTargets.map((target) => {
+    const missingCount = report.issues.filter(
+      (issue) => issue.code === "ENV_MISSING" && issue.environment === target,
+    ).length;
+    return buildMissingTargetIssue(target, missingCount);
+  });
+
+  const issues = [...retainedIssues, ...groupedIssues];
+  const errors = issues.filter((issue) => issue.severity === "error").length;
+  const warnings = issues.filter((issue) => issue.severity === "warning").length;
+
+  return {
+    ...report,
+    status: errors > 0 ? "fail" : "ok",
+    issues,
+    summary: {
+      errors,
+      warnings,
+      total: issues.length,
+    },
+  };
 }
 
 async function prepareCommonContext(values: ValidationArgValues): Promise<{
@@ -381,8 +448,14 @@ async function runDiffCommand(args: ParsedValidationArgs): Promise<number> {
     context.plugins,
   );
 
+  const targets = parseTargets(args.values, context.fileConfig);
+  const { existingTargets, missingTargets } = splitExistingAndMissingTargets(targets);
+  for (const missingTarget of missingTargets) {
+    warn(`Target file not found: ${missingTarget} — treating as empty`);
+  }
+
   const sources: Record<string, Record<string, string>> = {};
-  for (const target of parseTargets(args.values, context.fileConfig)) {
+  for (const target of existingTargets) {
     const values = await loadEnvSource({ filePath: target, allowMissing: true });
     sources[target] = applySourcePlugins({ environment: target, values }, context.plugins);
   }
@@ -443,8 +516,14 @@ async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
     debugValues: context.debugValues,
   });
 
+  const targets = parseTargets(args.values, context.fileConfig);
+  const { existingTargets, missingTargets } = splitExistingAndMissingTargets(targets);
+  for (const missingTarget of missingTargets) {
+    warn(`Target file not found: ${missingTarget} — treating as empty`);
+  }
+
   const sources: Record<string, Record<string, string>> = {};
-  for (const target of parseTargets(args.values, context.fileConfig)) {
+  for (const target of existingTargets) {
     const values = await loadEnvSource({ filePath: target, allowMissing: true });
     sources[target] = applySourcePlugins({ environment: target, values }, context.plugins);
   }
@@ -469,10 +548,9 @@ async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
     debugValues: context.debugValues,
   });
 
-  const report = applyReportPlugins(
-    buildDoctorReport({ checkReport, diffReport }),
-    context.plugins,
-  );
+  const rawReport = buildDoctorReport({ checkReport, diffReport });
+  const summarizedReport = summarizeDoctorMissingTargetIssues(rawReport, missingTargets);
+  const report = applyReportPlugins(summarizedReport, context.plugins);
 
   return emitAndReturnExitCode(report, {
     jsonMode: args.jsonMode,

@@ -8,8 +8,7 @@ import {
   NPM_URL,
   SITE_URL,
 } from "@/lib/constants";
-import type { Metadata } from "next";
-import type { Route } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -213,7 +212,7 @@ export default function HomePage() {
               Built for teams that need reliable environment governance
             </h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              env-typegen is designed for teams that have moved beyond ad-hoc
+              env-typegen is designed for teams that have moved beyond ad-hoc{" "}
               <code>.env</code> handling and need repeatable, reviewable, and
               typed environment contracts. Instead of relying on tribal
               knowledge and manual checks, you can generate strongly typed

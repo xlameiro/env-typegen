@@ -22,10 +22,12 @@ describe("generateZodSchema", () => {
       expect(output).toContain("export const clientEnvSchema = z.object({");
     });
 
-    it("should export envSchema as serverEnvSchema.merge(clientEnvSchema)", () => {
+    it("should export envSchema by composing both schema shapes", () => {
       const parsed = parseEnvFileContent("KEY=value", "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).toContain("export const envSchema = serverEnvSchema.merge(clientEnvSchema);");
+      expect(output).toContain("export const envSchema = z.object({");
+      expect(output).toContain("...serverEnvSchema.shape");
+      expect(output).toContain("...clientEnvSchema.shape");
     });
 
     it("should export the Env type via z.infer", () => {
@@ -61,16 +63,16 @@ describe("generateZodSchema", () => {
       expect(output).not.toContain('.transform((v) => v === "true")');
     });
 
-    it("should use z.string().url() for a url var", () => {
+    it("should use z.url() for a url var", () => {
       const parsed = parseEnvFileContent("APP_URL=https://example.com", "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).toContain("APP_URL: z.string().url(),");
+      expect(output).toContain("APP_URL: z.url(),");
     });
 
-    it("should use z.string().email() for an email var", () => {
+    it("should use z.email() for an email var", () => {
       const parsed = parseEnvFileContent("SMTP_FROM=noreply@example.com", "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).toContain("SMTP_FROM: z.string().email(),");
+      expect(output).toContain("SMTP_FROM: z.email(),");
     });
 
     it("should use z.string() for a semver var", () => {
@@ -104,14 +106,14 @@ describe("generateZodSchema", () => {
       const content = "# @type url\nOPT_URL=";
       const parsed = parseEnvFileContent(content, "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).toContain("OPT_URL: z.string().url().optional(),");
+      expect(output).toContain("OPT_URL: z.url().optional(),");
     });
 
     it("should NOT append .optional() for a required var with a value", () => {
       const parsed = parseEnvFileContent("DATABASE_URL=postgresql://localhost/db", "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).not.toContain("DATABASE_URL: z.string().url().optional()");
-      expect(output).toContain("DATABASE_URL: z.string().url(),");
+      expect(output).not.toContain("DATABASE_URL: z.url().optional()");
+      expect(output).toContain("DATABASE_URL: z.url(),");
     });
   });
 
@@ -129,7 +131,7 @@ describe("generateZodSchema", () => {
       const content = ["# @type url", "ENDPOINT=not-yet-set"].join("\n");
       const parsed = parseEnvFileContent(content, "/test.env");
       const output = generateZodSchema(parsed);
-      expect(output).toContain("ENDPOINT: z.string().url(),");
+      expect(output).toContain("ENDPOINT: z.url(),");
     });
   });
 

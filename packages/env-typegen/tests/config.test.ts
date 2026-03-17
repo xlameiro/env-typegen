@@ -97,17 +97,18 @@ describe("loadConfig", () => {
     expect(config).toEqual({ input: [".env.example", ".env.local.example"] });
   });
 
-  it("should throw an actionable error when only env-typegen.config.ts exists", async () => {
+  it("should ignore env-typegen.config.ts during auto-discovery", async () => {
     const configPath = path.join(dir, "env-typegen.config.ts");
     await writeFile(configPath, `export default { input: ".env.example" };\n`, "utf8");
 
-    await expect(loadConfig(dir)).rejects.toThrow("env-typegen.config.mjs");
+    const config = await loadConfig(dir);
+    expect(config).toBeUndefined();
   });
 
-  it("should prefer env-typegen.config.mjs over .ts when both exist", async () => {
+  it("should prefer env-typegen.config.mjs over .js when both exist", async () => {
     await writeFile(
-      path.join(dir, "env-typegen.config.ts"),
-      `export default { input: "ts-input.env" };\n`,
+      path.join(dir, "env-typegen.config.js"),
+      `export default { input: "js-input.env" };\n`,
       "utf8",
     );
     await writeFile(

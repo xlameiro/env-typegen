@@ -97,16 +97,16 @@ describe("generateT3Env", () => {
       expect(output).not.toContain("transform");
     });
 
-    it("should use z.string().url() for a url var", () => {
+    it("should use z.url() for a url var", () => {
       const parsed = parseEnvFileContent("DATABASE_URL=postgres://localhost/db", "/test.env");
       const output = generateT3Env(parsed);
-      expect(output).toContain("DATABASE_URL: z.string().url(),");
+      expect(output).toContain("DATABASE_URL: z.url(),");
     });
 
-    it("should use z.string().email() for an email var", () => {
+    it("should use z.email() for an email var", () => {
       const parsed = parseEnvFileContent("SMTP_FROM=noreply@example.com", "/test.env");
       const output = generateT3Env(parsed);
-      expect(output).toContain("SMTP_FROM: z.string().email(),");
+      expect(output).toContain("SMTP_FROM: z.email(),");
     });
 
     it("should use z.string() for semver vars", () => {
@@ -120,7 +120,7 @@ describe("generateT3Env", () => {
     it("should append .optional() for vars with empty values", () => {
       const parsed = parseEnvFileContent("WEBHOOK_URL=", "/test.env");
       const output = generateT3Env(parsed);
-      expect(output).toContain("WEBHOOK_URL: z.string().url().optional(),");
+      expect(output).toContain("WEBHOOK_URL: z.url().optional(),");
     });
 
     it("should append .optional() after the Zod type for optional number var", () => {
@@ -163,7 +163,7 @@ describe("generateT3Env", () => {
       const parsed = parseEnvFileContent(content, "/test.env");
       const output = generateT3Env(parsed);
       // Should produce .describe("It's a \"main\" database URL") — not .describe("It's a "main" database URL")
-      expect(output).toContain('.describe("It\'s a \\"main\\" database URL")');
+      expect(output).toContain(String.raw`.describe("It's a \"main\" database URL")`);
     });
   });
 

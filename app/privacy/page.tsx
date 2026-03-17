@@ -39,7 +39,9 @@ export default function PrivacyPage() {
               persistent identifiers. We do not build user profiles.
             </li>
             <li>
-              <strong>Does not store personally identifiable information</strong>{" "}
+              <strong>
+                Does not store personally identifiable information
+              </strong>{" "}
               from visitors.
             </li>
             <li>
@@ -73,9 +75,8 @@ export default function PrivacyPage() {
                   rel="noopener noreferrer"
                   className="underline hover:text-foreground"
                 >
-                  privacy policy
+                  privacy policy.
                 </a>
-                .
               </p>
             </div>
             <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -89,9 +90,8 @@ export default function PrivacyPage() {
                   rel="noopener noreferrer"
                   className="underline hover:text-foreground"
                 >
-                  privacy policy
+                  privacy policy.
                 </a>
-                .
               </p>
             </div>
           </div>
@@ -162,7 +162,9 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold tracking-tight">Policy updates</h2>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Policy updates
+          </h2>
           <p className="text-sm leading-7 text-muted-foreground">
             Material updates to this policy are tracked in repository history so
             changes remain auditable over time. Continued use of this site after
