@@ -1,6 +1,15 @@
 import type { EnvVarType, ParsedEnvFile } from "../parser/types.js";
 
 /**
+ * Escapes a string for safe embedding inside a double-quoted JavaScript string
+ * literal. Backslashes must be escaped before double quotes so that a backslash
+ * at the end of the value does not inadvertently escape the closing quote.
+ */
+function escapeJsStringLiteral(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+/**
  * Maps an EnvVarType to its Zod schema expression for use in t3-env createEnv().
  *
  * Note: boolean uses `z.coerce.boolean()` here (not the `.transform()` approach
@@ -54,7 +63,7 @@ export function generateT3Env(parsed: ParsedEnvFile): string {
       const effectiveType = variable.annotatedType ?? variable.inferredType;
       let zodExpr = toT3ZodType(effectiveType);
       if (variable.description !== undefined) {
-        zodExpr += `.describe("${variable.description.replace(/"/g, '\\"')}")`;
+        zodExpr += `.describe("${escapeJsStringLiteral(variable.description)}")`;
       }
       if (variable.isOptional) {
         zodExpr += ".optional()";
@@ -70,7 +79,7 @@ export function generateT3Env(parsed: ParsedEnvFile): string {
       const effectiveType = variable.annotatedType ?? variable.inferredType;
       let zodExpr = toT3ZodType(effectiveType);
       if (variable.description !== undefined) {
-        zodExpr += `.describe("${variable.description.replace(/"/g, '\\"')}")`;
+        zodExpr += `.describe("${escapeJsStringLiteral(variable.description)}")`;
       }
       if (variable.isOptional) {
         zodExpr += ".optional()";

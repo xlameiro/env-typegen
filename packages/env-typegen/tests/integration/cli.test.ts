@@ -1,7 +1,7 @@
+import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -10,21 +10,18 @@ const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(CURRENT_DIR, "../..");
 const DIST_CLI = path.resolve(PACKAGE_ROOT, "dist/cli.js");
 
-/** Run the built CLI synchronously and return stdout+stderr as a string. */
+/** Run the built CLI synchronously and return stdout as a string. */
 function runBuiltCli(args: string[], cwd: string): string {
-  const allArgs = args.map((a) => JSON.stringify(a)).join(" ");
-  const command = `node ${JSON.stringify(DIST_CLI)} ${allArgs}`;
-  try {
-    return execSync(command, { cwd, stdio: "pipe", encoding: "utf8" });
-  } catch (err: unknown) {
-    const e = err as NodeJS.ErrnoException & {
-      stdout?: string;
-      stderr?: string;
-    };
+  const result = spawnSync("node", [DIST_CLI, ...args], {
+    cwd,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
     throw new Error(
-      `CLI exited with non-zero status.\nstdout: ${e.stdout ?? ""}\nstderr: ${e.stderr ?? ""}`,
+      `CLI exited with non-zero status.\nstdout: ${result.stdout ?? ""}\nstderr: ${result.stderr ?? ""}`,
     );
   }
+  return result.stdout;
 }
 
 async function exists(filePath: string): Promise<boolean> {
@@ -38,7 +35,7 @@ async function exists(filePath: string): Promise<boolean> {
 
 describe("cli integration", () => {
   beforeAll(() => {
-    execSync("pnpm build", { cwd: PACKAGE_ROOT, stdio: "pipe" });
+    spawnSync("pnpm", ["build"], { cwd: PACKAGE_ROOT, stdio: "pipe" });
   });
 
   let dir: string;
