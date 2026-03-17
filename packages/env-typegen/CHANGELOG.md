@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+### Patch Changes
+
+- 4ad0d2a: ## Fuzzy Dancers Find — env-typegen QA deficiency fixes (D1-D12)
+
 ## 0.1.4
 
 ### Patch Changes
