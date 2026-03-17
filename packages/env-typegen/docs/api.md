@@ -11,6 +11,9 @@ import {
   generateT3Env,
   generateDeclaration,
   runGenerate,
+  runValidationCommand,
+  loadCloudSource,
+  loadPlugins,
 } from "@xlameiro/env-typegen";
 ```
 
@@ -25,3 +28,6 @@ import {
 - `generateT3Env(parsed)` — produces a `@t3-oss/env-nextjs` `createEnv(...)` call
 - `generateDeclaration(parsed)` — produces a `.d.ts` file augmenting `NodeJS.ProcessEnv`
 - `runGenerate(options)` — orchestrates the full pipeline (parse → infer → generate → write)
+- `runValidationCommand({ command, argv })` — runs `check`, `diff`, or `doctor` programmatically
+- `loadCloudSource({ provider, filePath })` — loads cloud snapshot values (Vercel/Cloudflare/AWS)
+- `loadPlugins({ pluginPaths, configPlugins })` — loads and resolves plugin references

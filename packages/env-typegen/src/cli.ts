@@ -1,6 +1,6 @@
 // CLI entry point — shebang (#!/usr/bin/env node) is injected by tsup banner config.
-import { createRequire } from "node:module";
 import { realpathSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inspect, parseArgs } from "node:util";
@@ -8,6 +8,7 @@ import { inspect, parseArgs } from "node:util";
 import { loadConfig, type EnvTypegenConfig, type GeneratorName } from "./config.js";
 import { runGenerate, type RunGenerateOptions } from "./pipeline.js";
 import { error } from "./utils/logger.js";
+import { runValidationCommand } from "./validation-command.js";
 import { startWatch } from "./watch.js";
 
 // Re-export for consumers who import programmatic API via this file
@@ -21,7 +22,10 @@ const HELP_TEXT = [
   "env-typegen — Generate TypeScript types from .env.example",
   "",
   "Usage:",
-  "  env-typegen -i <path> [options]",
+  "  env-typegen [generate] -i <path> [options]",
+  "  env-typegen check [options]",
+  "  env-typegen diff [options]",
+  "  env-typegen doctor [options]",
   "",
   "Options:",
   "  -i, --input <path>         Path to .env.example file(s). May be specified multiple times.",
@@ -39,6 +43,8 @@ const HELP_TEXT = [
   "  -h, --help                 Show this help",
 ].join("\n");
 
+const VALIDATION_SUBCOMMANDS = new Set(["check", "diff", "doctor"]);
+
 const FORMAT_TO_GENERATOR: Readonly<Record<string, GeneratorName>> = {
   ts: "typescript",
   typescript: "typescript",
@@ -49,6 +55,29 @@ const FORMAT_TO_GENERATOR: Readonly<Record<string, GeneratorName>> = {
 
 function normalizeGenerator(input: string): GeneratorName | undefined {
   return FORMAT_TO_GENERATOR[input] ?? FORMAT_TO_GENERATOR[input.toLowerCase()];
+}
+
+function resolveGenerators(
+  rawFormats: readonly string[] | undefined,
+  rawGenerators: readonly string[] | undefined,
+  fallback: GeneratorName[] | undefined,
+): GeneratorName[] {
+  const requested = [...(rawFormats ?? []), ...(rawGenerators ?? [])].map(String);
+  if (requested.length === 0) {
+    return fallback ?? (["typescript", "zod", "t3", "declaration"] as GeneratorName[]);
+  }
+
+  const normalizedGenerators = requested
+    .map((item) => normalizeGenerator(item))
+    .filter((item): item is GeneratorName => item !== undefined);
+
+  const invalid = requested.filter((item) => normalizeGenerator(item) === undefined);
+  if (invalid.length > 0) {
+    error(`Unknown format(s): ${invalid.join(", ")}. Valid: ts, zod, t3, declaration`);
+    process.exit(1);
+  }
+
+  return [...new Set(normalizedGenerators)];
 }
 
 function getErrorMessage(errorValue: unknown): string {
@@ -81,13 +110,25 @@ function applyConfigPaths(config: EnvTypegenConfig, configDir: string): EnvTypeg
   };
 }
 
-/**
- * Parses command-line arguments and runs the CLI.
- *
- * Exported for unit testing — pass a custom argv array to avoid reading
- * from process.argv.
- */
+type ValidationSubcommand = "check" | "diff" | "doctor";
+
+async function runValidationSubcommand(
+  subcommand: ValidationSubcommand,
+  argv: string[],
+): Promise<void> {
+  const exitCode = await runValidationCommand({ command: subcommand, argv });
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+  }
+}
+
 export async function runCli(argv: string[] = process.argv.slice(2)): Promise<void> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand !== undefined && VALIDATION_SUBCOMMANDS.has(maybeSubcommand)) {
+    await runValidationSubcommand(maybeSubcommand as ValidationSubcommand, argv.slice(1));
+    return;
+  }
+
   const { values } = parseArgs({
     args: argv,
     options: {
@@ -145,27 +186,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   const output = values.output ?? fileConfig?.output ?? "env.generated.ts";
 
   // Collect and validate generators from --format (spec) and --generator (compat)
-  const rawFormats = values.format;
-  const rawGenerators = values.generator;
-
-  const requested = [...(rawFormats ?? []), ...(rawGenerators ?? [])].map(String);
-  let generators: GeneratorName[];
-  if (requested.length > 0) {
-    const normalizedGenerators = requested
-      .map((item) => normalizeGenerator(item))
-      .filter((item): item is GeneratorName => item !== undefined);
-
-    const invalid = requested.filter((item) => normalizeGenerator(item) === undefined);
-    if (invalid.length > 0) {
-      error(`Unknown format(s): ${invalid.join(", ")}. Valid: ts, zod, t3, declaration`);
-      process.exit(1);
-    }
-
-    generators = [...new Set(normalizedGenerators)];
-  } else {
-    generators =
-      fileConfig?.generators ?? (["typescript", "zod", "t3", "declaration"] as GeneratorName[]);
-  }
+  const generators = resolveGenerators(values.format, values.generator, fileConfig?.generators);
 
   const shouldFormat = values["no-format"] === true ? false : (fileConfig?.format ?? true);
   const useStdout = values.stdout ?? false;

@@ -110,4 +110,127 @@ describe("parseCommentBlock", () => {
       expect(result.annotatedType).toBeUndefined();
     });
   });
+
+  describe("@enum annotation", () => {
+    it("should parse a comma-separated list of enum values", () => {
+      const result = parseCommentBlock(["# @enum development,staging,production"]);
+      expect(result.enumValues).toEqual(["development", "staging", "production"]);
+    });
+
+    it("should trim whitespace around each enum value", () => {
+      const result = parseCommentBlock(["# @enum  a , b , c "]);
+      expect(result.enumValues).toEqual(["a", "b", "c"]);
+    });
+
+    it("should ignore an empty @enum value list", () => {
+      const result = parseCommentBlock(["# @enum "]);
+      expect(result.enumValues).toBeUndefined();
+    });
+
+    it("should set enumValues to undefined when @enum is absent", () => {
+      const result = parseCommentBlock(["# @required"]);
+      expect(result.enumValues).toBeUndefined();
+    });
+  });
+
+  describe("@min annotation", () => {
+    it("should parse a valid integer minimum constraint", () => {
+      const result = parseCommentBlock(["# @min 3"]);
+      expect(result.constraints?.min).toBe(3);
+    });
+
+    it("should parse a floating-point minimum", () => {
+      const result = parseCommentBlock(["# @min 0.5"]);
+      expect(result.constraints?.min).toBe(0.5);
+    });
+
+    it("should ignore a non-numeric @min value", () => {
+      const result = parseCommentBlock(["# @min abc"]);
+      expect(result.constraints).toBeUndefined();
+    });
+  });
+
+  describe("@max annotation", () => {
+    it("should parse a valid integer maximum constraint", () => {
+      const result = parseCommentBlock(["# @max 65535"]);
+      expect(result.constraints?.max).toBe(65535);
+    });
+
+    it("should parse a floating-point maximum", () => {
+      const result = parseCommentBlock(["# @max 1.5"]);
+      expect(result.constraints?.max).toBe(1.5);
+    });
+
+    it("should ignore a non-numeric @max value", () => {
+      const result = parseCommentBlock(["# @max NaN"]);
+      expect(result.constraints).toBeUndefined();
+    });
+  });
+
+  describe("combined @min + @max", () => {
+    it("should produce a constraints object with both min and max", () => {
+      const result = parseCommentBlock(["# @min 1", "# @max 100"]);
+      expect(result.constraints).toEqual({ min: 1, max: 100 });
+    });
+
+    it("should produce a constraints object with only min when @max is absent", () => {
+      const result = parseCommentBlock(["# @min 0"]);
+      expect(result.constraints).toEqual({ min: 0 });
+    });
+
+    it("should produce a constraints object with only max when @min is absent", () => {
+      const result = parseCommentBlock(["# @max 50"]);
+      expect(result.constraints).toEqual({ max: 50 });
+    });
+  });
+
+  describe("@runtime annotation", () => {
+    it("should accept 'server' as a valid runtime value", () => {
+      const result = parseCommentBlock(["# @runtime server"]);
+      expect(result.runtime).toBe("server");
+    });
+
+    it("should accept 'client' as a valid runtime value", () => {
+      const result = parseCommentBlock(["# @runtime client"]);
+      expect(result.runtime).toBe("client");
+    });
+
+    it("should accept 'edge' as a valid runtime value", () => {
+      const result = parseCommentBlock(["# @runtime edge"]);
+      expect(result.runtime).toBe("edge");
+    });
+
+    it("should ignore an invalid @runtime value", () => {
+      const result = parseCommentBlock(["# @runtime browser"]);
+      expect(result.runtime).toBeUndefined();
+    });
+
+    it("should set runtime to undefined when @runtime is absent", () => {
+      const result = parseCommentBlock(["# @required"]);
+      expect(result.runtime).toBeUndefined();
+    });
+  });
+
+  describe("@secret annotation", () => {
+    it("should set isSecret to true when @secret is present", () => {
+      const result = parseCommentBlock(["# @secret"]);
+      expect(result.isSecret).toBe(true);
+    });
+
+    it("should set isSecret to undefined when @secret is absent", () => {
+      const result = parseCommentBlock(["# @required"]);
+      expect(result.isSecret).toBeUndefined();
+    });
+
+    it("should set isSecret alongside other annotations", () => {
+      const result = parseCommentBlock([
+        "# @description JWT signing key",
+        "# @required",
+        "# @secret",
+      ]);
+      expect(result.isSecret).toBe(true);
+      expect(result.description).toBe("JWT signing key");
+      expect(result.isRequired).toBe(true);
+    });
+  });
 });

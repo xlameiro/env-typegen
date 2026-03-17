@@ -46,6 +46,21 @@ export type ParsedEnvVar = {
 
   /** 1-based line number of the KEY=VALUE line in the source file */
   lineNumber: number;
+
+  /** Allowed literal values from a `@enum` annotation (e.g. `["development", "staging", "production"]`). */
+  enumValues?: string[];
+
+  /** Numeric range constraints from `@min` / `@max` annotations. */
+  constraints?: { min?: number; max?: number };
+
+  /** Runtime scope from a `@runtime` annotation (`server` | `client` | `edge`). */
+  runtime?: "server" | "client" | "edge";
+
+  /**
+   * When true, the variable's value must never appear in reports or generated
+   * output — declared via a `@secret` annotation.
+   */
+  isSecret?: boolean;
 };
 
 /**

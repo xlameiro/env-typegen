@@ -41,7 +41,21 @@ npx env-typegen -i .env.example -o src/env.ts --no-format
 
 # Watch mode — regenerate on every change
 npx env-typegen -i .env.example -o src/env.ts --watch
+
+# Validate one env source against a contract (strict by default)
+npx env-typegen check --env .env --contract env.contract.ts
+
+# Compare drift across multiple env files
+npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Full diagnostics (check + diff + recommendations)
+npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Machine-readable report for CI pipelines
+npx env-typegen check --env .env --json --output-file reports/env-check.json
 ```
+
+All paths (`--env`, `--contract`, `--targets`, and `--output-file`) are resolved from your current working directory.
 
 ## Generator formats
 
@@ -53,6 +67,25 @@ Use `-f` / `--format` (or `-g` / `--generator` alias):
 | `zod`                | Generate Zod schema                  |
 | `t3`                 | Generate `@t3-oss/env-nextjs` config |
 | `declaration`        | Generate `.d.ts` declaration         |
+
+## Validation commands
+
+`env-typegen` also includes governance-focused commands:
+
+- `check` — validates one env source against the contract
+- `diff` — compares env sources and detects configuration drift
+- `doctor` — aggregates findings and prints remediation suggestions
+
+### Strict mode
+
+- Strict mode is enabled by default for validation commands.
+- Use `--no-strict` to downgrade undeclared variables to warnings.
+
+### JSON output
+
+- `--json` outputs compact JSON
+- `--json=pretty` outputs formatted JSON
+- `--output-file <path>` writes the JSON report to disk
 
 ## Programmatic API
 

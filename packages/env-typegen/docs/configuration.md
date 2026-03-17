@@ -10,6 +10,10 @@ export default defineConfig({
   output: "env.generated.ts",
   generators: ["typescript", "zod"],
   format: true,
+  schemaFile: "env.contract.ts",
+  strict: true,
+  diffTargets: [".env", ".env.example", ".env.production"],
+  plugins: ["./plugins/custom-validator.ts"],
 });
 ```
 

@@ -3,8 +3,10 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import type { InferenceRule } from "./inferrer/rules.js";
+import type { PluginReference } from "./plugins.js";
 
 export type { InferenceRule };
+export type { PluginReference };
 
 /** Generator identifiers supported by env-typegen. */
 export type GeneratorName = "typescript" | "zod" | "t3" | "declaration";
@@ -24,6 +26,32 @@ export type EnvTypegenConfig = {
    * Rules are matched in ascending priority order; lower numbers win.
    */
   inferenceRules?: InferenceRule[];
+
+  /**
+   * Path to the contract file (`env.contract.ts`).
+   * When provided, the contract is the authoritative source of type information.
+   * Relative to the config file directory or `process.cwd()`.
+   */
+  schemaFile?: string;
+
+  /**
+   * When `true`, variables absent from the contract emit errors rather than warnings.
+   * Defaults to `true`.
+   */
+  strict?: boolean;
+
+  /**
+   * Resolution strategy for type information.
+   * - `"legacy"` (default): inference-first; annotations override inferred types.
+   * - `"contract-first"`: contract is authoritative; inference is a fallback only.
+   */
+  schemaMode?: "legacy" | "contract-first";
+
+  /** Default target files for `env-typegen diff` when --targets is omitted. */
+  diffTargets?: string[];
+
+  /** Plugin references (module paths or plugin objects). */
+  plugins?: PluginReference[];
 };
 
 /** Config file names searched in order when calling loadConfig(). */

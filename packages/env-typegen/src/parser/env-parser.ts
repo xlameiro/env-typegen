@@ -108,6 +108,18 @@ export function parseEnvFileContent(
       if (currentGroup !== undefined) {
         parsedVar.group = currentGroup;
       }
+      if (annotations.enumValues !== undefined) {
+        parsedVar.enumValues = annotations.enumValues;
+      }
+      if (annotations.constraints !== undefined) {
+        parsedVar.constraints = annotations.constraints;
+      }
+      if (annotations.runtime !== undefined) {
+        parsedVar.runtime = annotations.runtime;
+      }
+      if (annotations.isSecret !== undefined) {
+        parsedVar.isSecret = annotations.isSecret;
+      }
 
       vars.push(parsedVar);
       commentBlock = [];
