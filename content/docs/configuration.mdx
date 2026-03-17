@@ -25,6 +25,42 @@ export default defineConfig({
 For direct Node.js runtime execution, prefer `.mjs` or `.js` config files.
 TypeScript config files (`.ts`) require a runtime loader such as `tsx` or `ts-node`.
 
+## Advanced config options
+
+### `schemaMode`
+
+Controls how env-typegen resolves type information when a contract is present.
+
+- `legacy` (default): inference-first behavior with annotation overrides.
+- `contract-first`: the contract becomes authoritative; inference is used as fallback only.
+
+```typescript
+export default defineConfig({
+  input: ".env.example",
+  schemaFile: "env.contract.mjs",
+  schemaMode: "contract-first",
+});
+```
+
+### `inferenceRules`
+
+Adds custom type inference rules before built-in rules. Rules are evaluated in ascending `priority` order (lower number runs first).
+
+```typescript
+export default defineConfig({
+  input: ".env.example",
+  inferenceRules: [
+    {
+      type: "string",
+      priority: 5,
+      match(key, value) {
+        return key.endsWith("_TOKEN") && value.length > 0;
+      },
+    },
+  ],
+});
+```
+
 ## Practical presets
 
 ### Generation-focused preset
@@ -89,6 +125,7 @@ CLI flags override config file values when both are provided.
 | `--strict`                | all               | Validate extras as errors (default behavior)                         |
 | `--no-strict`             | all               | Downgrade undeclared variables to warnings                           |
 | `--json`                  | all               | Emit compact machine-readable JSON report                            |
+| `--json=compact`          | all               | Explicit alias of `--json` (compact machine-readable JSON)           |
 | `--json=pretty`           | all               | Emit pretty JSON report                                              |
 | `--output-file <path>`    | all               | Persist JSON report to file                                          |
 | `--debug-values`          | all               | Include raw values in issues (unsafe for CI logs)                    |

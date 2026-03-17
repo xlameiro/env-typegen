@@ -44,12 +44,57 @@ import {
 
 ## Architecture map
 
-| Layer | Key functions |
-| --- | --- |
-| Parse and infer | `parseEnvFile`, `parseEnvFileContent`, `inferType`, `inferTypes` |
-| Generate artifacts | `generateTypeScriptTypes`, `generateZodSchema`, `generateT3Env`, `generateDeclaration` |
-| Pipeline orchestration | `runGenerate`, `runValidationCommand` |
-| Integrations | `loadCloudSource`, `loadPlugins`, plugin application helpers |
+| Layer                  | Key functions                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Parse and infer        | `parseEnvFile`, `parseEnvFileContent`, `inferType`, `inferTypes`                       |
+| Generate artifacts     | `generateTypeScriptTypes`, `generateZodSchema`, `generateT3Env`, `generateDeclaration` |
+| Pipeline orchestration | `runGenerate`, `runValidationCommand`                                                  |
+| Integrations           | `loadCloudSource`, `loadPlugins`, plugin application helpers                           |
+
+## Additional public exports
+
+The API surface also includes helpers for config loading, contract lifecycle, validation reports, and typed contracts.
+
+### Config and contract lifecycle
+
+```typescript
+import {
+  defineConfig,
+  loadConfig,
+  defineContract,
+  loadContract,
+  CONTRACT_FILE_NAMES,
+} from "@xlameiro/env-typegen";
+```
+
+Use these when you need runtime loading and typed authoring for `env-typegen.config.*` and `env.contract.*` files.
+
+### Validation and reporting internals
+
+```typescript
+import {
+  validateContract,
+  buildCiReport,
+  formatCiReport,
+  runCheck,
+} from "@xlameiro/env-typegen";
+```
+
+Use these when you need lower-level contract validation and CI report composition in custom pipelines.
+
+### Parser annotations and contract types
+
+```typescript
+import {
+  parseCommentBlock,
+  inferenceRules,
+  type EnvContract,
+  type EnvContractEntry,
+  type EnvVarRuntime,
+} from "@xlameiro/env-typegen";
+```
+
+Use these to build custom tooling around annotation parsing, inference customization, or strongly typed contract objects.
 
 ## Core functions
 
