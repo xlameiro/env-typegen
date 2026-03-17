@@ -78,7 +78,7 @@ export function startWatch({ inputPath, runOptions, cwd = process.cwd() }: Watch
   const configPaths = CONFIG_FILE_NAMES.map((name) => path.resolve(cwd, name));
   const configWatcher = watch(configPaths, { persistent: true, ignoreInitial: true });
   for (const event of ["add", "change"] as const) {
-    configWatcher.on(event, (eventPath: string) => void handleConfigChange(eventPath));
+    configWatcher.on(event, (eventPath: string) => handleConfigChange(eventPath));
   }
 
   process.on("SIGINT", () => {

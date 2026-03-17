@@ -20,12 +20,14 @@ function readEntryValue(entry: Record<string, unknown>, keys: string[]): string 
   return undefined;
 }
 
+function getVercelEntries(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value as unknown[];
+  if (isRecord(value) && Array.isArray(value.envs)) return value.envs as unknown[];
+  return [];
+}
+
 function parseVercelPayload(value: unknown): Record<string, string> {
-  const entries = Array.isArray(value)
-    ? value
-    : isRecord(value) && Array.isArray(value.envs)
-      ? value.envs
-      : [];
+  const entries = getVercelEntries(value);
   const result: Record<string, string> = {};
   for (const entry of entries) {
     if (!isRecord(entry)) continue;
@@ -37,12 +39,14 @@ function parseVercelPayload(value: unknown): Record<string, string> {
   return result;
 }
 
+function getCloudflareEntries(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value as unknown[];
+  if (isRecord(value) && Array.isArray(value.result)) return value.result as unknown[];
+  return [];
+}
+
 function parseCloudflarePayload(value: unknown): Record<string, string> {
-  const entries = Array.isArray(value)
-    ? value
-    : isRecord(value) && Array.isArray(value.result)
-      ? value.result
-      : [];
+  const entries = getCloudflareEntries(value);
   const result: Record<string, string> = {};
   for (const entry of entries) {
     if (!isRecord(entry)) continue;
@@ -61,11 +65,7 @@ function parseAwsPayload(value: unknown): Record<string, string> {
     if (!isRecord(entry)) continue;
     const name = readEntryValue(entry, ["Name", "name"]);
     if (name === undefined) continue;
-    const key =
-      name
-        .split("/")
-        .filter((part) => part.length > 0)
-        .pop() ?? name;
+    const key = name.split("/").findLast((part) => part.length > 0) ?? name;
     const envValue = readEntryValue(entry, ["Value", "value"]) ?? "";
     result[key] = envValue;
   }

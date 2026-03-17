@@ -5,8 +5,8 @@ import { pathToFileURL } from "node:url";
 import type { InferenceRule } from "./inferrer/rules.js";
 import type { PluginReference } from "./plugins.js";
 
-export type { InferenceRule };
-export type { PluginReference };
+export type { InferenceRule } from "./inferrer/rules.js";
+export type { PluginReference } from "./plugins.js";
 
 /** Generator identifiers supported by env-typegen. */
 export type GeneratorName = "typescript" | "zod" | "t3" | "declaration";

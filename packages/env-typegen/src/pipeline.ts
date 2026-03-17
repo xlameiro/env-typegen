@@ -128,7 +128,7 @@ export async function runGenerate(options: RunGenerateOptions): Promise<void> {
     const parsed = parseEnvFileContent(
       content,
       inputPath,
-      inferenceRules !== undefined ? { inferenceRules } : undefined,
+      inferenceRules === undefined ? undefined : { inferenceRules },
     );
 
     for (const generator of generators) {

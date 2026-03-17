@@ -158,7 +158,7 @@ export async function loadValidationContract(
   const { fallbackExamplePath, contractPath, cwd = process.cwd() } = options;
   const discoveredContractPath = findDefaultContractPath(cwd);
   const resolvedContractPath =
-    contractPath !== undefined ? path.resolve(cwd, contractPath) : discoveredContractPath;
+    contractPath === undefined ? discoveredContractPath : path.resolve(cwd, contractPath);
 
   if (resolvedContractPath !== undefined && existsSync(resolvedContractPath)) {
     const moduleUrl = pathToFileURL(resolvedContractPath).href;

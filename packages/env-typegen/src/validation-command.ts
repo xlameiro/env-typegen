@@ -210,8 +210,10 @@ function parseValidationArgs(argv: string[]): ParsedValidationArgs {
   });
 
   const castValues = values as ValidationArgValues;
-  const jsonMode =
-    castValues.json === true ? (assignedMode === "off" ? "compact" : assignedMode) : "off";
+  let jsonMode: JsonMode = "off";
+  if (castValues.json === true) {
+    jsonMode = assignedMode === "off" ? "compact" : assignedMode;
+  }
 
   return { values: castValues, jsonMode };
 }
@@ -321,12 +323,12 @@ async function runCheckCommand(args: ParsedValidationArgs): Promise<number> {
   let environment = args.values.env?.[0] ?? ".env";
   let sourceValues: Record<string, string>;
 
-  if (provider !== undefined) {
+  if (provider === undefined) {
+    sourceValues = await loadEnvSource({ filePath: environment, allowMissing: true });
+  } else {
     const cloudFile = context.cloudFile ?? `${provider}.env.json`;
     sourceValues = await loadCloudSource({ provider, filePath: cloudFile });
     environment = `cloud:${provider}`;
-  } else {
-    sourceValues = await loadEnvSource({ filePath: environment, allowMissing: true });
   }
 
   sourceValues = applySourcePlugins({ environment, values: sourceValues }, context.plugins);

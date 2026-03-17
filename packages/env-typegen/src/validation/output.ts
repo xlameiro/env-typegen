@@ -17,8 +17,8 @@ function toJsonString(report: ValidationReport, mode: JsonOutputMode): string {
 }
 
 function formatIssue(issue: ValidationIssue): string {
-  const expected = issue.expected !== undefined ? ` expected=${issue.expected.type}` : "";
-  const received = issue.receivedType !== undefined ? ` received=${issue.receivedType}` : "";
+  const expected = issue.expected === undefined ? "" : ` expected=${issue.expected.type}`;
+  const received = issue.receivedType === undefined ? "" : ` received=${issue.receivedType}`;
   return `${issue.severity.toUpperCase()} [${issue.code}] ${issue.environment}:${issue.key} ${issue.message}${expected}${received}`;
 }
 
@@ -28,15 +28,13 @@ function formatHumanReport(report: ValidationReport): string {
     `Status: ${report.status.toUpperCase()} (errors=${report.summary.errors}, warnings=${report.summary.warnings}, total=${report.summary.total})`,
   );
   if (report.issues.length > 0) {
-    lines.push("");
-    lines.push("Issues:");
+    lines.push("", "Issues:");
     for (const issue of report.issues) {
       lines.push(`- ${formatIssue(issue)}`);
     }
   }
   if (report.recommendations !== undefined && report.recommendations.length > 0) {
-    lines.push("");
-    lines.push("Recommendations:");
+    lines.push("", "Recommendations:");
     for (const recommendation of report.recommendations) {
       lines.push(`- ${recommendation}`);
     }

@@ -18,20 +18,20 @@ type Page = InferPageType<typeof source>;
 
 export default async function Page({ params }: Readonly<PageProps>) {
   const { slug } = await params;
-  const page = source.getPage(slug) as Page | undefined;
+  const page = source.getPage(slug);
 
   if (!page) {
     notFound();
   }
 
-  const MDX = page.data.body;
+  const Mdx = page.data.body;
 
   return (
     <DocsPage toc={page.data.toc}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDX />
+        <Mdx />
       </DocsBody>
     </DocsPage>
   );
@@ -41,9 +41,11 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   return source.generateParams();
 }
 
-export async function generateMetadata({ params }: Readonly<PageProps>) {
+export async function generateMetadata({
+  params,
+}: Readonly<PageProps>): Promise<Metadata> {
   const { slug } = await params;
-  const page = source.getPage(slug) as Page | undefined;
+  const page = source.getPage(slug);
 
   if (!page) {
     notFound();
