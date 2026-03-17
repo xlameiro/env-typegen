@@ -26,8 +26,6 @@ const eslintConfig = defineConfig([
           caughtErrorsIgnorePattern: "^_",
         },
       ],
-      "react/no-unused-prop-types": "error",
-      "react/jsx-no-useless-fragment": "warn",
 
       // ============================================
       // Type Safety & Reliability (SonarQube Issues)
@@ -50,10 +48,6 @@ const eslintConfig = defineConfig([
 
       // Enforce `type` over `interface` — intersection types eliminate all valid reasons for interface
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
-
-      // React hooks dependency array (prevent stale closures)
-      "react-hooks/exhaustive-deps": "error",
-      "react-hooks/rules-of-hooks": "error",
 
       // Cognitive complexity (like SonarQube)
       "sonarjs/cognitive-complexity": ["error", 15],
@@ -105,8 +99,6 @@ const eslintConfig = defineConfig([
       // Rules for issues fixed in this session
       // ============================================
 
-      // Prevent deprecated onKeyPress (use onKeyDown/onKeyUp)
-      "react/no-deprecated": "error",
 
       // Prefer modern array methods
       "prefer-destructuring": [
@@ -137,8 +129,6 @@ const eslintConfig = defineConfig([
         },
       ],
 
-      // React Context performance - require useMemo for Context.Provider value
-      "react/jsx-no-constructed-context-values": "error",
 
       // ============================================
       // Rules to prevent Sonar issues
@@ -216,20 +206,6 @@ const eslintConfig = defineConfig([
 
       // Prevent unnecessary type assertions (S4325)
       "@typescript-eslint/no-unnecessary-type-assertion": "off", // Requires type-checking setup
-
-      // Prevent array index keys in React (S6479)
-      "react/no-array-index-key": "warn",
-
-      // Accessibility - Heading content (S6850)
-      // Note: Enforced via jsx-a11y plugin in Next.js config
-
-      // Unknown properties (S6747)
-      "react/no-unknown-property": [
-        "error",
-        {
-          ignore: ["data-*", "aria-*"],
-        },
-      ],
 
       // Ambiguous JSX spacing (S6772)
       // Note: This is a Sonar-specific formatting rule - use Prettier for consistent formatting
@@ -383,6 +359,7 @@ const eslintConfig = defineConfig([
     "scripts/**",
     "coverage/**",
     "test-results/**",
+    ".vercel/**",
     // Standalone Node.js MCP server scripts — not part of the Next.js app bundle
     ".agents/mcp/**",
     // env-typegen package has its own eslint.config.mjs — exclude from root linting

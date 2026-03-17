@@ -4,6 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CONFIG_FILE_NAMES, type InferenceRule } from "../src/config.js";
 import type { RunGenerateOptions } from "../src/pipeline.js";
+import type * as configModule from "../src/config.js";
+import type * as loggerModule from "../src/utils/logger.js";
+import type * as pipelineModule from "../src/pipeline.js";
 import { startWatch } from "../src/watch.js";
 
 const { watchMock, runGenerateMock, loadConfigMock, logMock, errorMock } = vi.hoisted(() => ({
@@ -19,7 +22,7 @@ vi.mock("chokidar", () => ({
 }));
 
 vi.mock("../src/pipeline.js", async (importOriginal) => {
-  const actualModule = await importOriginal<typeof import("../src/pipeline.js")>();
+  const actualModule = await importOriginal<typeof pipelineModule>();
   return {
     ...actualModule,
     runGenerate: runGenerateMock,
@@ -27,7 +30,7 @@ vi.mock("../src/pipeline.js", async (importOriginal) => {
 });
 
 vi.mock("../src/config.js", async (importOriginal) => {
-  const actualModule = await importOriginal<typeof import("../src/config.js")>();
+  const actualModule = await importOriginal<typeof configModule>();
   return {
     ...actualModule,
     loadConfig: loadConfigMock,
@@ -35,7 +38,7 @@ vi.mock("../src/config.js", async (importOriginal) => {
 });
 
 vi.mock("../src/utils/logger.js", async (importOriginal) => {
-  const actualModule = await importOriginal<typeof import("../src/utils/logger.js")>();
+  const actualModule = await importOriginal<typeof loggerModule>();
   return {
     ...actualModule,
     log: logMock,
@@ -46,8 +49,8 @@ vi.mock("../src/utils/logger.js", async (importOriginal) => {
 type WatchCallback = (eventPath: string) => void;
 
 type WatcherHarness = {
-  readonly onMock: ReturnType<typeof vi.fn>;
-  readonly closeMock: ReturnType<typeof vi.fn>;
+  onMock: ReturnType<typeof vi.fn>;
+  closeMock: ReturnType<typeof vi.fn>;
   on: (eventName: string, callback: WatchCallback) => WatcherHarness;
   close: () => Promise<void>;
   emit: (eventName: string, eventPath: string) => void;
@@ -68,8 +71,7 @@ function createRunOptions(): RunGenerateOptions {
 function createWatcherHarness(): WatcherHarness {
   const callbacksByEvent = new Map<string, WatchCallback[]>();
   const closeMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-  let watcherHarness: WatcherHarness;
-
+  const watcherHarness = {} as WatcherHarness;
   const onMock = vi.fn((eventName: string, callback: WatchCallback) => {
     const callbacks = callbacksByEvent.get(eventName) ?? [];
     callbacks.push(callback);
@@ -77,10 +79,10 @@ function createWatcherHarness(): WatcherHarness {
     return watcherHarness;
   });
 
-  watcherHarness = {
+  Object.assign(watcherHarness, {
     onMock,
     closeMock,
-    on: onMock,
+    on: onMock as unknown as WatcherHarness["on"],
     close: closeMock,
     emit: (eventName: string, eventPath: string) => {
       const callbacks = callbacksByEvent.get(eventName) ?? [];
@@ -88,7 +90,7 @@ function createWatcherHarness(): WatcherHarness {
         callback(eventPath);
       }
     },
-  };
+  });
 
   return watcherHarness;
 }
