@@ -11,7 +11,7 @@ export const APP_VERSION = "0.1.0";
 // and .github/instructions/i18n.instructions.md for the full Tier 2 / Tier 3 setup guide.
 export const APP_LOCALE = "en";
 
-export const SITE_URL = env.NEXT_PUBLIC_APP_URL;
+export const SITE_URL = new URL(env.NEXT_PUBLIC_APP_URL).origin;
 
 // External links
 export const GITHUB_URL = "https://github.com/xlameiro/env-typegen";
@@ -20,4 +20,7 @@ export const NPM_URL = "https://www.npmjs.com/package/@xlameiro/env-typegen";
 
 export const ROUTES = {
   home: "/",
+  about: "/about",
+  contact: "/contact",
+  privacy: "/privacy",
 } as const;

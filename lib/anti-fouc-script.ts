@@ -11,6 +11,6 @@
  *  - theme === 'system' → add html.dark only when OS prefers dark
  *  - (no preference)    → fall back to OS preference
  *
- * proxy.ts is a passthrough stub in this project — no CSP hash is required.
+ * The script is allowed by the Content-Security-Policy configured in next.config.ts.
  */
 export const ANTI_FOUC_SCRIPT = `try{var s=localStorage.getItem('app-store');var t=s&&JSON.parse(s).state?.theme;if(t==='dark'||((!t||t==='system')&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`;

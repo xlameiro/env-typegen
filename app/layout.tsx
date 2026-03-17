@@ -17,17 +17,19 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
     template: `%s | ${APP_NAME}`,
-    default: APP_NAME,
+    default: `${APP_NAME} — type-safe environment contracts for TypeScript teams`,
   },
   applicationName: APP_NAME,
   description: APP_DESCRIPTION,
@@ -115,8 +117,8 @@ export default function RootLayout({
         {/*
          * Apply the dark class before first paint to prevent a flash of the light
          * theme for users who have manually selected dark mode via ThemeToggle.
-         * Script content lives in lib/anti-fouc-script.ts — its sha256 hash is
-         * allow-listed in proxy.ts script-src, so no per-request nonce is needed.
+         * Script content lives in lib/anti-fouc-script.ts and is allowed by the
+         * Content-Security-Policy configured in next.config.ts.
          * This keeps the root layout synchronous, which is required for PPR.
          */}
         <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
@@ -124,6 +126,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <a
+          href="#maincontent"
+          className="sr-only absolute left-4 top-4 z-[100] rounded-md bg-background px-3 py-2 text-sm font-medium text-foreground shadow focus:not-sr-only focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Skip to main content
+        </a>
         <NuqsAdapter>
           {/*
            * Disable fumadocs' built-in next-themes wrapper so it does not fight

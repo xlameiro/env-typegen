@@ -1,12 +1,23 @@
 import { GITHUB_URL } from "@/lib/constants";
 import { cacheLife } from "next/cache";
 
+function getRepositoryPath(repositoryUrl: string): string {
+  const { pathname } = new URL(repositoryUrl);
+  const withoutLeadingSlash = pathname.startsWith("/")
+    ? pathname.slice(1)
+    : pathname;
+  return withoutLeadingSlash.endsWith("/")
+    ? withoutLeadingSlash.slice(0, -1)
+    : withoutLeadingSlash;
+}
+
 async function fetchStarCount(): Promise<number> {
   "use cache";
   cacheLife("hours");
+  const repositoryPath = getRepositoryPath(GITHUB_URL);
   try {
     const response = await fetch(
-      "https://api.github.com/repos/xabierlameiro/env-typegen",
+      `https://api.github.com/repos/${repositoryPath}`,
       { headers: { Accept: "application/vnd.github.v3+json" } },
     );
     if (!response.ok) return 0;

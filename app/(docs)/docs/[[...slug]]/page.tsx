@@ -1,4 +1,4 @@
-import { APP_NAME, SITE_URL } from "@/lib/constants";
+import { APP_DESCRIPTION, APP_NAME, SITE_URL } from "@/lib/constants";
 import { source } from "@/lib/source";
 import type { InferPageType } from "fumadocs-core/source";
 import {
@@ -53,22 +53,30 @@ export async function generateMetadata({
 
   const slugPath = slug?.join("/") ?? "";
   const docsPath = slugPath.length > 0 ? `/docs/${slugPath}` : "/docs";
-  const canonicalUrl = `${SITE_URL}${docsPath}`;
+  const canonicalUrl = new URL(docsPath, SITE_URL).toString();
+  const baseDescription = page.data.description ?? APP_DESCRIPTION;
+  const metadataDescription =
+    baseDescription.length >= 140
+      ? baseDescription
+      : `${baseDescription} Learn how to generate typed environment contracts, validate runtime configuration, and enforce CI governance with ${APP_NAME}.`;
+  const metadataTitle = `${page.data.title} | ${APP_NAME} documentation`;
 
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title: {
+      absolute: metadataTitle,
+    },
+    description: metadataDescription,
     openGraph: {
-      title: `${page.data.title} | ${APP_NAME}`,
-      description: page.data.description,
+      title: metadataTitle,
+      description: metadataDescription,
       type: "article",
       url: canonicalUrl,
       images: [{ url: `${SITE_URL}/opengraph-image`, alt: APP_NAME }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${page.data.title} | ${APP_NAME}`,
-      description: page.data.description,
+      title: metadataTitle,
+      description: metadataDescription,
       images: [`${SITE_URL}/opengraph-image`],
     },
     alternates: {

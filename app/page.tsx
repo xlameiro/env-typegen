@@ -1,4 +1,4 @@
-import { SiteFooter } from "@/components/site-footer";
+import { MarketingFooter } from "@/components/marketing-footer";
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -8,8 +8,15 @@ import {
   NPM_URL,
   SITE_URL,
 } from "@/lib/constants";
+import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Type-safe environment contracts for TypeScript teams",
+  description:
+    "Generate TypeScript, Zod, t3-env, and declaration outputs from .env.example, then enforce runtime validation and CI drift checks across local and cloud environments.",
+};
 
 const softwareJsonLd = {
   "@context": "https://schema.org",
@@ -201,6 +208,27 @@ export default function HomePage() {
             </article>
           </section>
 
+          <section className="rounded-xl border border-border bg-card p-6 text-left">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Built for teams that need reliable environment governance
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              env-typegen is designed for teams that have moved beyond ad-hoc
+              <code>.env</code> handling and need repeatable, reviewable, and
+              typed environment contracts. Instead of relying on tribal
+              knowledge and manual checks, you can generate strongly typed
+              artifacts, validate every environment source, and enforce rules in
+              CI before changes reach production.
+            </p>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              This approach reduces deployment risk, shortens onboarding for new
+              contributors, and gives platform teams a clear governance path
+              across local files, cloud snapshots, and release pipelines. It is
+              especially effective for repositories where multiple services,
+              environments, and contributors must stay aligned over time.
+            </p>
+          </section>
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold tracking-tight">
               Frequently asked questions
@@ -222,7 +250,7 @@ export default function HomePage() {
             </div>
           </section>
         </main>
-        <SiteFooter />
+        <MarketingFooter />
       </div>
     </>
   );

@@ -6,7 +6,37 @@ import type { NextConfig } from "next";
 // Throws if a required variable is missing or malformed.
 import "./lib/env";
 
+const scriptSrc = ["'self'", "'unsafe-inline'"];
+if (process.env.NODE_ENV !== "production") {
+  scriptSrc.push("'unsafe-eval'");
+}
+
+const connectSrc =
+  process.env.NODE_ENV === "production"
+    ? "'self' https:"
+    : "'self' https: http: ws: wss:";
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src ${scriptSrc.join(" ")}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src ${connectSrc}`,
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  process.env.NODE_ENV === "production" ? "upgrade-insecure-requests" : null,
+]
+  .filter(Boolean)
+  .join("; ");
+
 const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: contentSecurityPolicy,
+  },
   {
     key: "X-DNS-Prefetch-Control",
     value: "on",

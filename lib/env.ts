@@ -1,6 +1,22 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+
+function isValidProductionAppUrl(appUrl: string): boolean {
+  const isProductionBuild = process.env.NODE_ENV === "production";
+  const isHostedBuild = process.env.VERCEL === "1" || process.env.CI === "true";
+
+  if (!isProductionBuild || !isHostedBuild) {
+    return true;
+  }
+
+  const parsedUrl = new URL(appUrl);
+  const isLocalHost = LOCAL_HOSTNAMES.has(parsedUrl.hostname);
+
+  return parsedUrl.protocol === "https:" && !isLocalHost;
+}
+
 /**
  * Type-safe environment variables validated at build time and startup.
  * Add all env vars here — never use `process.env.*` directly elsewhere.
@@ -33,6 +49,10 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z
       .url()
       .default("http://localhost:3000")
+      .refine(
+        isValidProductionAppUrl,
+        "NEXT_PUBLIC_APP_URL must be an https public URL in production (not localhost).",
+      )
       .describe(
         "Canonical app URL — used for absolute links and OpenGraph metadata",
       ),
