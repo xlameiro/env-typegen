@@ -30,6 +30,11 @@ const config: KnipConfig = {
     // Peer dep via @tailwindcss/postcss — referenced in postcss.config.mjs at runtime
     "postcss",
   ],
+  ignoreBinaries: [
+    // Intentionally used via `npx vercel` — not installed as a project dep to avoid
+    // pulling in its vulnerable transitive deps (tar, minimatch, ajv) into the lockfile
+    "vercel",
+  ],
 };
 
 export default config;

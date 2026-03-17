@@ -17,4 +17,7 @@ pnpm type-check
 echo "🔍 Checking for dead code..."
 pnpm knip
 
+echo "🔒 Running security audit..."
+pnpm audit --audit-level=moderate
+
 echo "✅ Pre-commit checks passed."

@@ -28,8 +28,8 @@
     "changeset": "pnpm --filter @xlameiro/env-typegen changeset",
     "version-packages": "pnpm --filter @xlameiro/env-typegen changeset version",
     "release": "pnpm --filter @xlameiro/env-typegen release",
-    "vercel": "vercel --prod",
-    "vercel:preview": "vercel"
+    "vercel": "npx vercel --prod",
+    "vercel:preview": "npx vercel"
   },
   "engines": {
     "node": ">=20",
@@ -99,7 +99,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "typescript-eslint": "^8.57.0",
-    "vercel": "^50.32.5",
     "vitest": "^4.1.0"
   }
 }
