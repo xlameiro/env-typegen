@@ -456,4 +456,47 @@ describe("validation command", () => {
       process.chdir(originalCwd);
     }
   });
+
+  it("should not duplicate missing .env warning in doctor output", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = path.join(dir, "env.contract.js");
+    const originalCwd = process.cwd();
+
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    try {
+      process.chdir(dir);
+      const exitCode = await runValidationCommand({
+        command: "doctor",
+        argv: ["--contract", contractPath, "--json"],
+      });
+
+      expect(exitCode).toBe(1);
+      const warningMessages = warnSpy.mock.calls
+        .map(([message]) => String(message))
+        .filter((message) => message.includes("Target file not found"));
+      const envWarnings = warningMessages.filter((message) =>
+        message.includes("Target file not found: .env — treating as empty"),
+      );
+
+      expect(envWarnings).toHaveLength(1);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
 });

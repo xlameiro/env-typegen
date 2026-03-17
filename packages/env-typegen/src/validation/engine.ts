@@ -156,9 +156,15 @@ function toIssueCode(issueType: IssueType): IssueCode {
   return "ENV_SECRET_EXPOSED";
 }
 
-function toIssueValue(value: string | undefined, debugValues: boolean): string | null {
+function toIssueValue(params: {
+  value: string | undefined;
+  debugValues: boolean;
+  isSecret: boolean;
+}): string | null {
+  const { value, debugValues, isSecret } = params;
   if (!debugValues) return null;
   if (value === undefined) return null;
+  if (isSecret) return null;
   return value;
 }
 
@@ -170,6 +176,7 @@ function createIssue(params: {
   message: string;
   value?: string;
   debugValues: boolean;
+  isSecret?: boolean;
   expected?: Expected;
   receivedType?: string;
 }): ValidationIssue {
@@ -180,7 +187,11 @@ function createIssue(params: {
     key: params.key,
     environment: params.environment,
     message: params.message,
-    value: toIssueValue(params.value, params.debugValues),
+    value: toIssueValue({
+      value: params.value,
+      debugValues: params.debugValues,
+      isSecret: params.isSecret ?? false,
+    }),
     ...(params.expected !== undefined && { expected: params.expected }),
     ...(params.receivedType !== undefined && { receivedType: params.receivedType }),
   };
@@ -288,6 +299,7 @@ function checkContractVariable(
         message,
         value,
         debugValues: options.debugValues,
+        isSecret: variable.secret === true,
         expected: variable.expected,
         receivedType: validation.receivedType,
       }),
@@ -304,6 +316,7 @@ function checkContractVariable(
         message: `Secret variable ${key} is marked as client-side.`,
         value,
         debugValues: options.debugValues,
+        isSecret: true,
         expected: variable.expected,
       }),
     );
@@ -446,6 +459,7 @@ function diffPresentEntry(key: string, entry: SourceEntry, context: DiffKeyConte
         message,
         value: entry.value,
         debugValues: options.debugValues,
+        isSecret: variable.secret === true,
         expected: variable.expected,
         receivedType: validation.receivedType,
       }),
@@ -462,6 +476,7 @@ function diffPresentEntry(key: string, entry: SourceEntry, context: DiffKeyConte
         message: `Secret variable ${key} is marked as client-side.`,
         value: entry.value,
         debugValues: options.debugValues,
+        isSecret: true,
         expected: variable.expected,
       }),
     );

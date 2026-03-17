@@ -200,6 +200,12 @@ importers:
         specifier: 0.1.8
         version: 0.1.8(@t3-oss/env-nextjs@0.13.10(typescript@5.9.3)(zod@4.3.6))(zod@4.3.6)
 
+  qa-test/env-typegen-qa/session-2026-03-19:
+    devDependencies:
+      "@xlameiro/env-typegen":
+        specifier: 0.1.9
+        version: 0.1.9(@t3-oss/env-nextjs@0.13.10(typescript@5.9.3)(zod@4.3.6))(zod@4.3.6)
+
 packages:
   "@adobe/css-tools@4.4.4":
     resolution:
@@ -3202,6 +3208,22 @@ packages:
     resolution:
       {
         integrity: sha512-G12nANJX+T7e7JDxpp0ZDPzGnYEufyYKbkKvBRSiOG0J9TZICGmPxR7iFZrLccD7i1iUPMKaTbPQeZhJjexIoA==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
+    peerDependencies:
+      "@t3-oss/env-nextjs": ">=0.10.0"
+      zod: ">=4.0.0"
+    peerDependenciesMeta:
+      "@t3-oss/env-nextjs":
+        optional: true
+      zod:
+        optional: true
+
+  "@xlameiro/env-typegen@0.1.9":
+    resolution:
+      {
+        integrity: sha512-tSyPp37nDYacJmqC/M3b3jlFKJnVM8VBCjGD7DJEeUedKW+nMk3UdGZtlVREZe7r6ZLbByTXphThTrsa7goezQ==,
       }
     engines: { node: ">=18" }
     hasBin: true
@@ -10411,6 +10433,15 @@ snapshots:
       zod: 4.3.6
 
   "@xlameiro/env-typegen@0.1.8(@t3-oss/env-nextjs@0.13.10(typescript@5.9.3)(zod@4.3.6))(zod@4.3.6)":
+    dependencies:
+      chokidar: 4.0.3
+      picocolors: 1.1.1
+      prettier: 3.8.1
+    optionalDependencies:
+      "@t3-oss/env-nextjs": 0.13.10(typescript@5.9.3)(zod@4.3.6)
+      zod: 4.3.6
+
+  "@xlameiro/env-typegen@0.1.9(@t3-oss/env-nextjs@0.13.10(typescript@5.9.3)(zod@4.3.6))(zod@4.3.6)":
     dependencies:
       chokidar: 4.0.3
       picocolors: 1.1.1

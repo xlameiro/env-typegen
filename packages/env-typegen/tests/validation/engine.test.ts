@@ -86,6 +86,32 @@ describe("validation engine", () => {
     expect(report.issues.some((issue) => issue.code === "ENV_SECRET_EXPOSED")).toBe(true);
   });
 
+  it("should not expose secret values when debugValues is true", () => {
+    const insecureContract: EnvContract = {
+      schemaVersion: 1,
+      variables: {
+        NEXT_PUBLIC_CLIENT_SECRET: {
+          expected: { type: "string" },
+          required: true,
+          clientSide: true,
+          secret: true,
+        },
+      },
+    };
+
+    const report = validateAgainstContract({
+      contract: insecureContract,
+      values: { NEXT_PUBLIC_CLIENT_SECRET: "shhh-super-secret" },
+      environment: "local",
+      strict: true,
+      debugValues: true,
+    });
+
+    const issue = report.issues.find((item) => item.code === "ENV_SECRET_EXPOSED");
+    expect(issue).toBeDefined();
+    expect(issue?.value).toBeNull();
+  });
+
   it("should detect drift and conflicts across sources", () => {
     const report = diffEnvironmentSources({
       contract,

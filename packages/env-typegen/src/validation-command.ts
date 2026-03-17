@@ -502,6 +502,7 @@ async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
   );
 
   const checkEnvironment = args.values.env?.[0] ?? ".env";
+  const isCheckEnvironmentMissing = !existsSync(path.resolve(checkEnvironment));
   let checkValues = await loadEnvSource({ filePath: checkEnvironment, allowMissing: true });
   checkValues = applySourcePlugins(
     { environment: checkEnvironment, values: checkValues },
@@ -519,6 +520,10 @@ async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
   const targets = parseTargets(args.values, context.fileConfig);
   const { existingTargets, missingTargets } = splitExistingAndMissingTargets(targets);
   for (const missingTarget of missingTargets) {
+    if (missingTarget === checkEnvironment && isCheckEnvironmentMissing) {
+      // loadEnvSource already emitted a warning for the missing check environment.
+      continue;
+    }
     warn(`Target file not found: ${missingTarget} — treating as empty`);
   }
 

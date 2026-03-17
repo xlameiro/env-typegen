@@ -1,0 +1,2 @@
+# QA fixtures intentionally malformed to test parser error paths.
+qa-test/**/cloud/invalid-snapshot.json

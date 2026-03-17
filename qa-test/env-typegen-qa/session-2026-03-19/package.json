@@ -1,0 +1,11 @@
+{
+  "name": "env-typegen-qa-session-2026-03-19",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "qa:phase1": "echo phase1"
+  },
+  "devDependencies": {
+    "@xlameiro/env-typegen": "0.1.9"
+  }
+}
