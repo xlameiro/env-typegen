@@ -6538,5 +6538,9 @@
   "github.copilot.selectedCompletionModel": "",
   //
   "github.copilot.advanced": {},
-  "chat.autopilot.enabled": true
+  "chat.autopilot.enabled": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "xabierlameiro",
+    "projectKey": "xabierlameiro_nextjs16-starter-template"
+  }
 }

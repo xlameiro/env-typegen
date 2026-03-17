@@ -1,14 +1,61 @@
+import { createHash } from "node:crypto";
+import { isIP } from "node:net";
 import { auth } from "@/auth";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { sanitizeReturnTo } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 // Shared rate limiter for authentication routes.
-// 5 attempts per minute per IP — enough for legitimate users, enough to stop brute force.
+// 5 attempts per minute per derived client key.
 // Replace with a distributed store (Upstash Redis, Vercel KV) when deploying multi-replica.
 const authRateLimiter = createRateLimiter({ max: 5, windowMs: 60_000 });
 
 const CSP_HEADER = "Content-Security-Policy";
+const AUTH_RATE_LIMIT_SCOPE = "auth-post";
+const TRUSTED_CLIENT_IP_HEADERS = [
+  "x-vercel-ip",
+  "cf-connecting-ip",
+  "x-real-ip",
+  "fly-client-ip",
+  "true-client-ip",
+  "fastly-client-ip",
+] as const;
+const RATE_LIMIT_FINGERPRINT_HEADERS = [
+  "user-agent",
+  "accept-language",
+  "sec-ch-ua",
+  "sec-ch-ua-platform",
+] as const;
+const RATE_LIMIT_FINGERPRINT_LENGTH = 32;
+
+function buildRateLimitFingerprint(headers: Headers): string {
+  const fingerprintSeed = RATE_LIMIT_FINGERPRINT_HEADERS.map(
+    (headerName) => headers.get(headerName)?.trim() ?? "",
+  ).join("|");
+
+  return createHash("sha256")
+    .update(fingerprintSeed)
+    .digest("hex")
+    .slice(0, RATE_LIMIT_FINGERPRINT_LENGTH);
+}
+
+/**
+ * Build an auth-route rate-limit key with trusted provider IPs first.
+ * Falls back to a deterministic client fingerprint when no trusted IP header is available.
+ */
+export function getAuthRateLimitKey(
+  headers: Headers,
+  pathname: string,
+): string {
+  for (const headerName of TRUSTED_CLIENT_IP_HEADERS) {
+    const ipAddress = headers.get(headerName)?.trim();
+    if (ipAddress && isIP(ipAddress) !== 0) {
+      return `${AUTH_RATE_LIMIT_SCOPE}:${pathname}:ip:${ipAddress}`;
+    }
+  }
+
+  return `${AUTH_RATE_LIMIT_SCOPE}:${pathname}:fp:${buildRateLimitFingerprint(headers)}`;
+}
 
 // Build the per-request Content-Security-Policy with the provided nonce.
 // Using a nonce eliminates 'unsafe-inline' from script-src, closing the XSS vector
@@ -60,25 +107,21 @@ export default auth((req) => {
 
   // Rate-limit unauthenticated POST requests to auth routes to mitigate brute-force attacks.
   // GET requests (page views) are exempt — brute-force attacks submit credentials (POST),
-  // not load the sign-in page. Applying rate limiting to GET requests causes false positives
-  // in CI/test environments where 2+ parallel workers make many page-view requests from the
-  // same IP (e.g. GitHub Actions runners that add x-forwarded-for for localhost traffic).
-  // Only applies when a reliable client IP is available via x-forwarded-for.
+  // not load the sign-in page.
+  // Uses route-specific keys and trusted provider headers where available.
   if (isAuthRoute && !isLoggedIn && req.method !== "GET") {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const rateLimitKey = getAuthRateLimitKey(req.headers, nextUrl.pathname);
+    const { isAllowed, retryAfterSeconds } =
+      authRateLimiter.check(rateLimitKey);
 
-    if (ip) {
-      const { isAllowed, retryAfterSeconds } = authRateLimiter.check(ip);
-
-      if (!isAllowed) {
-        return new NextResponse("Too Many Requests", {
-          status: 429,
-          headers: {
-            "Retry-After": String(retryAfterSeconds),
-            [CSP_HEADER]: csp,
-          },
-        });
-      }
+    if (!isAllowed) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: {
+          "Retry-After": String(retryAfterSeconds),
+          [CSP_HEADER]: csp,
+        },
+      });
     }
   }
 

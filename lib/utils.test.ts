@@ -111,12 +111,32 @@ describe("sanitizeReturnTo", () => {
     expect(sanitizeReturnTo("/dashboard")).toBe("/dashboard");
   });
 
+  it("should decode and keep a valid encoded relative URL", () => {
+    expect(sanitizeReturnTo("%2Fauth%2Fsign-in")).toBe("/auth/sign-in");
+  });
+
   it("should return the home route when given an absolute URL (open redirect attempt)", () => {
     expect(sanitizeReturnTo("https://evil.com/steal")).toBe("/");
   });
 
   it("should return the home route when given a protocol-relative URL (open redirect attempt)", () => {
     expect(sanitizeReturnTo("//evil.com")).toBe("/");
+  });
+
+  it("should return the home route when given a path with a backslash", () => {
+    expect(sanitizeReturnTo("/\\evil.com")).toBe("/");
+  });
+
+  it("should return the home route when given an encoded backslash path", () => {
+    expect(sanitizeReturnTo("/%5Cevil.com")).toBe("/");
+  });
+
+  it("should return the home route when decoding reveals a protocol-relative path", () => {
+    expect(sanitizeReturnTo("%2F%2Fevil.com")).toBe("/");
+  });
+
+  it("should return the home route when given malformed percent-encoding", () => {
+    expect(sanitizeReturnTo("/%E0%A4%A")).toBe("/");
   });
 
   it("should return the home route when given an empty string", () => {

@@ -47,12 +47,48 @@ export function sleep(ms: number): Promise<void> {
 
 /**
  * Sanitise a redirect path to prevent open redirect attacks (OWASP A01).
- * Only accepts relative paths that start with "/" (not "//").
+ * Only accepts safe relative paths rooted at "/".
  * Returns the home route as the safe fallback.
  */
+const RETURN_TO_DECODE_PASSES = 2;
+
+function decodeReturnToValue(url: string): string | undefined {
+  let decodedUrl = url;
+
+  for (let index = 0; index < RETURN_TO_DECODE_PASSES; index++) {
+    if (!/%[0-9A-Fa-f]{2}/.test(decodedUrl)) {
+      break;
+    }
+
+    try {
+      decodedUrl = decodeURIComponent(decodedUrl);
+    } catch {
+      // Invalid percent-encoding means the value is malformed and must be rejected.
+      return undefined;
+    }
+  }
+
+  return decodedUrl;
+}
+
 export function sanitizeReturnTo(url: string | undefined): string {
-  if (!url || !url.startsWith("/") || url.startsWith("//")) {
+  const decodedUrl = decodeReturnToValue(url ?? "")?.trim();
+
+  if (!decodedUrl) {
     return ROUTES.home;
   }
-  return url;
+
+  if (!decodedUrl.startsWith("/") || decodedUrl.startsWith("//")) {
+    return ROUTES.home;
+  }
+
+  if (decodedUrl.includes("\\")) {
+    return ROUTES.home;
+  }
+
+  if (/[\u0000-\u001F\u007F]/.test(decodedUrl)) {
+    return ROUTES.home;
+  }
+
+  return decodedUrl;
 }

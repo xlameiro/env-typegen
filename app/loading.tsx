@@ -1,6 +1,10 @@
 export default function Loading() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <main
+      id="maincontent"
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center"
+    >
       {/* <output> has implicit role="status" — semantically correct for live regions */}
       <output>
         <div
@@ -9,6 +13,6 @@ export default function Loading() {
         />
         <span className="sr-only">Loading…</span>
       </output>
-    </div>
+    </main>
   );
 }

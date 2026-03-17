@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+# Husky pre-push hook
+# Runs the quality gate before pushing — matches GitHub Actions CI checks.
+# These checks are intentionally placed here (not pre-commit) to keep commit speed fast.
+#
+# Checks performed:
+#   1. pnpm knip     — dead code detection (catches unused exports/deps, matches CI)
+#   2. pnpm test     — full unit test suite via Vitest
+#   3. pnpm audit    — npm security audit at moderate severity
+#
+# To bypass in exceptional circumstances: git push --no-verify (document the reason in the PR).
+# Note: pnpm build is left to CI only (requires env vars; takes 3-5 min).
+
+set -e
+
+echo "🧹 Running dead code detection (knip)..."
+pnpm knip
+
+echo "🧪 Running unit tests..."
+pnpm test
+
+echo "🔐 Running security audit..."
+pnpm audit --audit-level=moderate
+
+echo "✅ Pre-push checks passed. Ready to push."
