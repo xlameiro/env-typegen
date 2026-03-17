@@ -13,15 +13,25 @@ pnpm add -D @xlameiro/env-typegen
 
 ```typescript
 import {
+  // Parsing and inference
   parseEnvFile,
   parseEnvFileContent,
   inferType,
   inferTypes,
+  // Generators
   generateTypeScriptTypes,
   generateZodSchema,
   generateT3Env,
   generateDeclaration,
+  // Pipelines and validation
   runGenerate,
+  runValidationCommand,
+  // Cloud sources and plugin system
+  loadCloudSource,
+  loadPlugins,
+  applyContractPlugins,
+  applySourcePlugins,
+  applyReportPlugins,
 } from "@xlameiro/env-typegen";
 ```
 
@@ -32,7 +42,7 @@ import {
 Reads a `.env.example` file from disk and returns a `ParsedEnvFile`.
 
 ```typescript
-const parsed = await parseEnvFile(".env.example");
+const parsed = parseEnvFile(".env.example");
 ```
 
 ### `parseEnvFileContent(content, filePath?)`
@@ -105,4 +115,38 @@ await runGenerate({
   dryRun: false,
   silent: false,
 });
+```
+
+### `runValidationCommand({ command, argv })`
+
+Runs validation subcommands programmatically.
+
+```typescript
+const exitCode = await runValidationCommand({
+  command: "check",
+  argv: ["--env", ".env", "--contract", "env.contract.ts", "--json"],
+});
+```
+
+### `loadCloudSource({ provider, filePath })`
+
+Loads environment values from provider snapshot files.
+
+```typescript
+const values = await loadCloudSource({
+  provider: "aws",
+  filePath: "aws-env.json",
+});
+```
+
+### `loadPlugins({ pluginPaths, configPlugins })`
+
+Loads plugin references and lets you apply hook chains.
+
+```typescript
+const plugins = await loadPlugins({
+  pluginPaths: ["./plugins/report-plugin.mjs"],
+});
+
+const report = applyReportPlugins(baseReport, plugins);
 ```

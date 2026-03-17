@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Patch Changes
+
+- Refresh package and site documentation for the validation suite (`check`, `diff`, `doctor`), cloud snapshot sources, and plugin-based extension points. Expand public API examples to include `runValidationCommand`, `loadCloudSource`, and plugin loading helpers.
+
 ## 0.1.2
 
 ### Patch Changes

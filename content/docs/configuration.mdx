@@ -15,10 +15,14 @@ export default defineConfig({
   output: "env.generated.ts",
   generators: ["typescript", "zod"],
   format: true,
+  schemaFile: "env.contract.ts",
+  strict: true,
+  diffTargets: [".env", ".env.example", ".env.production"],
+  plugins: ["./plugins/custom-validator.mjs"],
 });
 ```
 
-## CLI flags
+## Generate command flags
 
 CLI flags override config file values when both are provided.
 
@@ -36,3 +40,30 @@ CLI flags override config file values when both are provided.
 | `--config`    | `-c`  | Path to config file                            |
 | `--version`   | `-v`  | Print version                                  |
 | `--help`      | `-h`  | Show help                                      |
+
+## Validation command flags (`check`, `diff`, `doctor`)
+
+| Flag                 | Commands      | Description                                                                          |
+| -------------------- | ------------- | ------------------------------------------------------------------------------------ |
+| `--env <path>`       | `check`, `doctor` | Environment source path to validate                                               |
+| `--targets <list>`   | `diff`, `doctor`  | Comma-separated env targets for drift analysis                                    |
+| `--contract <path>`  | all           | Contract file path (`env.contract.ts` / `.mjs` / `.js`)                           |
+| `--example <path>`   | all           | Fallback `.env.example` used when no contract file is available                    |
+| `--strict`           | all           | Validate extras as errors (default behavior)                                       |
+| `--no-strict`        | all           | Downgrade undeclared variables to warnings                                         |
+| `--json`             | all           | Emit compact machine-readable JSON report                                          |
+| `--json=pretty`      | all           | Emit pretty JSON report                                                            |
+| `--output-file <path>` | all         | Persist JSON report to file                                                        |
+| `--debug-values`     | all           | Include raw values in issues (unsafe for CI logs)                                  |
+| `--cloud-provider <name>` | all      | Add cloud snapshot source: `vercel`, `cloudflare`, `aws`                           |
+| `--cloud-file <path>` | all          | Cloud snapshot JSON file path                                                      |
+| `--plugin <path>`    | all           | Plugin module path (repeatable)                                                    |
+| `--config <path>`    | all           | Config file path                                                                   |
+| `--help`             | all           | Show command help                                                                  |
+
+## Defaults and path resolution
+
+- Strict mode is enabled by default for validation commands.
+- `diff` defaults to `.env,.env.example,.env.production` when targets are not provided.
+- When `--contract` is omitted, env-typegen auto-discovers `env.contract.ts`, `env.contract.mjs`, or `env.contract.js`.
+- All paths are resolved from your current working directory.

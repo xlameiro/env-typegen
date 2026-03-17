@@ -87,10 +87,39 @@ Use `-f` / `--format` (or `-g` / `--generator` alias):
 - `--json=pretty` outputs formatted JSON
 - `--output-file <path>` writes the JSON report to disk
 
+### Cloud snapshots
+
+Validation commands can include cloud snapshot files as additional sources:
+
+```bash
+npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
+npx env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.ts
+npx env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+```
+
+Supported providers: `vercel`, `cloudflare`, `aws`.
+
+### Plugins
+
+Use plugins to extend validation behavior:
+
+- `transformContract` — mutate the loaded contract before validation
+- `transformSource` — mutate environment values per source
+- `transformReport` — enrich final validation reports
+
+Load plugins with repeated `--plugin` flags or from `env-typegen.config.ts` (`plugins` field).
+
 ## Programmatic API
 
 ```ts
-import { runGenerate, parseEnvFile, generateTypeScriptTypes } from "@xlameiro/env-typegen";
+import {
+  runGenerate,
+  runValidationCommand,
+  parseEnvFile,
+  generateTypeScriptTypes,
+  loadCloudSource,
+  loadPlugins,
+} from "@xlameiro/env-typegen";
 
 // High-level: full pipeline
 await runGenerate({
@@ -103,6 +132,16 @@ await runGenerate({
 // Low-level: parse then generate individually
 const parsed = parseEnvFile(".env.example");
 const ts = generateTypeScriptTypes(parsed);
+
+// Run validation commands programmatically
+const exitCode = await runValidationCommand({
+  command: "check",
+  argv: ["--env", ".env", "--contract", "env.contract.ts", "--json"],
+});
+
+// Load cloud snapshots and plugins in custom integrations
+const cloudValues = await loadCloudSource({ provider: "vercel", filePath: "vercel-env.json" });
+const plugins = await loadPlugins({ pluginPaths: ["./plugins/custom.mjs"] });
 ```
 
 ## Configuration
@@ -117,8 +156,17 @@ export default defineConfig({
   output: "src/env.generated.ts",
   generators: ["typescript", "zod"],
   format: true,
+  schemaFile: "env.contract.ts",
+  strict: true,
+  diffTargets: [".env", ".env.example", ".env.production"],
+  plugins: ["./plugins/custom-validator.mjs"],
 });
 ```
+
+## Documentation
+
+- Fumadocs source in repo: [`/content/docs`](../../content/docs)
+- Package markdown docs: [`/packages/env-typegen/docs`](./docs)
 
 ## Status
 

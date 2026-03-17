@@ -1,4 +1,11 @@
 {
   "title": "env-typegen",
-  "pages": ["index", "getting-started", "configuration", "generators", "api"]
+  "pages": [
+    "index",
+    "getting-started",
+    "configuration",
+    "validation",
+    "generators",
+    "api"
+  ]
 }

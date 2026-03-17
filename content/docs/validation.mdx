@@ -1,0 +1,87 @@
+---
+title: Validation & Governance
+description: Contract-first validation commands, cloud snapshots, JSON reporting, and plugin extensibility.
+---
+
+## Commands at a glance
+
+| Command  | Purpose                                                         |
+| -------- | --------------------------------------------------------------- |
+| `check`  | Validate one environment source against a contract              |
+| `diff`   | Detect drift across multiple sources                            |
+| `doctor` | Combine `check` + `diff` and return prioritized recommendations |
+
+## Contract file
+
+By default, env-typegen auto-discovers `env.contract.ts`, `env.contract.mjs`, or `env.contract.js`.
+
+```typescript
+export default {
+  schemaVersion: 1,
+  variables: {
+    PORT: { expected: { type: "number" }, required: true, clientSide: false },
+    NEXT_PUBLIC_APP_URL: { expected: { type: "url" }, required: true, clientSide: true },
+    APP_VERSION: { expected: { type: "semver" }, required: true, clientSide: false },
+  },
+};
+```
+
+If no contract file is found, env-typegen can bootstrap from `.env.example`.
+
+## Usage examples
+
+```bash
+# Validate one source
+env-typegen check --env .env --contract env.contract.ts
+
+# Compare drift across standard targets
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Aggregate diagnostics
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
+
+## Strict mode
+
+- Strict mode is enabled by default.
+- Use `--no-strict` to downgrade undeclared variables to warnings.
+
+## JSON output for CI
+
+```bash
+# Compact JSON
+env-typegen check --env .env --json
+
+# Pretty JSON + file output
+env-typegen check --env .env --json=pretty --output-file reports/env-check.json
+```
+
+## Cloud snapshot sources
+
+Use provider snapshots as validation inputs:
+
+```bash
+env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
+env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.ts
+env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+```
+
+Supported providers: `vercel`, `cloudflare`, `aws`.
+
+## Plugins
+
+Plugins can transform contract, source values, and final report.
+
+```typescript
+export default {
+  name: "report-plugin",
+  transformReport: (report) => ({
+    ...report,
+    recommendations: [...(report.recommendations ?? []), "plugin-applied"],
+  }),
+};
+```
+
+Load them via `--plugin` flags or `plugins` in `env-typegen.config.ts`.
+
+All validation paths (`--env`, `--contract`, `--targets`, `--cloud-file`, `--output-file`) are resolved from your current working directory.

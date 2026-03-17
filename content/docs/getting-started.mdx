@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install env-typegen and generate your first typed environment file.
+description: Install env-typegen, generate typed outputs, and run your first contract-based validations.
 ---
 
 ## Installation
@@ -35,3 +35,40 @@ Automatically re-generates on every change to your `.env.example`:
 ```bash
 env-typegen -i .env.example -o env.generated.ts -f ts --watch
 ```
+
+## Create a validation contract
+
+Create `env.contract.ts` in your project root:
+
+```typescript
+export default {
+  schemaVersion: 1,
+  variables: {
+    PORT: { expected: { type: "number" }, required: true, clientSide: false },
+    NEXT_PUBLIC_APP_URL: { expected: { type: "url" }, required: true, clientSide: true },
+  },
+};
+```
+
+## Validate env files against the contract
+
+```bash
+# Validate one environment source
+env-typegen check --env .env --contract env.contract.ts
+
+# Compare drift across multiple sources
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Aggregate and prioritize diagnostics
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+```
+
+## JSON output for CI
+
+```bash
+env-typegen check --env .env --json --output-file reports/env-check.json
+```
+
+Strict mode is enabled by default for validation commands. Use `--no-strict` to downgrade undeclared variables to warnings.
+
+All command paths (`--env`, `--contract`, `--targets`, and `--output-file`) are resolved from your current working directory.

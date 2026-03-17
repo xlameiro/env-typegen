@@ -26,7 +26,50 @@ npx env-typegen -i .env.example -o src/env.schema.ts -f zod
 
 # Watch mode
 npx env-typegen -i .env.example -o src/env.generated.ts --watch
+
+# Validate one env source against a contract (strict by default)
+npx env-typegen check --env .env --contract env.contract.ts
 ```
+
+## Validation and governance
+
+The package also supports contract-first validation workflows:
+
+- `check` validates one source against a contract
+- `diff` compares multiple sources and detects drift
+- `doctor` combines validation and drift findings with recommendations
+
+```bash
+# Compare drift across common targets
+npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# Aggregated diagnostics
+npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# CI-friendly JSON output
+npx env-typegen check --env .env --json --output-file reports/env-check.json
+```
+
+### Cloud snapshots
+
+You can add cloud sources directly in validation commands:
+
+```bash
+npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
+npx env-typegen diff --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+```
+
+Supported providers: `vercel`, `cloudflare`, `aws`.
+
+### Plugins
+
+Validation commands support a plugin system for transforming:
+
+- contract (`transformContract`)
+- source values (`transformSource`)
+- final reports (`transformReport`)
+
+Load plugins with `--plugin` flags or via `plugins` in `env-typegen.config.ts`.
 
 ## Generator formats
 
@@ -70,6 +113,7 @@ app/              # Website/docs (Next.js)
 ## Documentation
 
 - Package docs and full CLI/API reference: [`packages/env-typegen/README.md`](packages/env-typegen/README.md)
+- Website docs (Fumadocs): [`content/docs/`](content/docs)
 - Contribution guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Security policy: [`SECURITY.md`](SECURITY.md)
 

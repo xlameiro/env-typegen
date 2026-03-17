@@ -1,29 +1,41 @@
 ---
 title: Overview
-description: env-typegen generates TypeScript types, Zod schemas, t3-env configs, and declaration files from your .env.example files.
+description: env-typegen generates typed env artifacts and validates environments with contract-first checks.
 ---
 
-**env-typegen** reads a `.env.example` file and auto-generates fully-typed outputs so your environment variables are never `string | undefined` again.
+**env-typegen** combines generation and governance in one tool:
+
+- Generate typed outputs from `.env.example`
+- Validate real env sources with `check`, `diff`, and `doctor`
 
 ## What it does
 
-| Input          | Output                                         |
-| -------------- | ---------------------------------------------- |
-| `.env.example` | TypeScript `type Env = { ... }`                |
-| `.env.example` | Zod v4 schema (server + client split)          |
-| `.env.example` | `@t3-oss/env-nextjs` `createEnv(...)` call     |
-| `.env.example` | Ambient `.d.ts` augmenting `NodeJS.ProcessEnv` |
+| Capability          | Result                                                                        |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `.env.example`      | TypeScript `type Env = { ... }`                                               |
+| `.env.example`      | Zod v4 schema (server + client split)                                         |
+| `.env.example`      | `@t3-oss/env-nextjs` `createEnv(...)` output                                 |
+| `.env.example`      | Ambient `.d.ts` augmenting `NodeJS.ProcessEnv`                                |
+| `check`             | Contract-first validation of one environment source                           |
+| `diff`              | Drift detection across multiple environment sources                            |
+| `doctor`            | Aggregated diagnostics with actionable recommendations                         |
+| Cloud snapshots     | Source loading from Vercel, Cloudflare, and AWS snapshot JSON files           |
+| Plugins             | Extensible hooks for contract, source, and report transformation              |
 
 ## Quick start
 
 ```bash
 pnpm add -D @xlameiro/env-typegen
 env-typegen --input .env.example --output env.generated.ts --format ts
+
+# Validate one env source against a contract (strict by default)
+env-typegen check --env .env --contract env.contract.ts
 ```
 
 ## Guides
 
 - [Getting Started](/docs/getting-started)
 - [Configuration](/docs/configuration)
+- [Validation & Governance](/docs/validation)
 - [Generators](/docs/generators)
 - [Programmatic API](/docs/api)

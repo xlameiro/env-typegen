@@ -1,6 +1,6 @@
 {
   "name": "@xlameiro/env-typegen",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Generate type-safe TypeScript definitions, Zod schemas, and t3-env config from .env.example files",
   "keywords": [
     "env",
