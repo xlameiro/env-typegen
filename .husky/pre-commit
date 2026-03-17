@@ -14,4 +14,7 @@ pnpm exec lint-staged
 echo "🔷 Running TypeScript type check..."
 pnpm type-check
 
+echo "🔍 Checking for dead code..."
+pnpm knip
+
 echo "✅ Pre-commit checks passed."
