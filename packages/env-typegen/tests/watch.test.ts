@@ -59,6 +59,18 @@ type WatcherHarness = {
 const watcherHarnesses: WatcherHarness[] = [];
 let sigintHandler: (() => void) | undefined;
 
+async function waitForDebounceWindow(): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 250);
+  });
+}
+
+async function waitForPendingPromises(): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setImmediate(resolve);
+  });
+}
+
 function createRunOptions(): RunGenerateOptions {
   return {
     input: ".env.example",
@@ -105,7 +117,6 @@ function getWatcherHarness(index: number): WatcherHarness {
 
 describe("startWatch", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     vi.clearAllMocks();
     watcherHarnesses.length = 0;
     sigintHandler = undefined;
@@ -138,7 +149,6 @@ describe("startWatch", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -187,7 +197,7 @@ describe("startWatch", () => {
     inputWatcher.emit("change", "/tmp/.env.local.example");
 
     expect(runGenerateMock).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(200);
+    await waitForDebounceWindow();
 
     expect(logMock).toHaveBeenCalledWith("/tmp/.env.local.example changed, regenerating...");
     expect(runGenerateMock).toHaveBeenCalledTimes(2);
@@ -226,7 +236,7 @@ describe("startWatch", () => {
 
     const configWatcher = getWatcherHarness(1);
     configWatcher.emit("change", "/workspace/env-typegen.config.ts");
-    await vi.advanceTimersByTimeAsync(200);
+    await waitForDebounceWindow();
 
     expect(logMock).toHaveBeenCalledWith(
       "Config file /workspace/env-typegen.config.ts changed, reloading...",
@@ -246,7 +256,7 @@ describe("startWatch", () => {
 
     const configWatcher = getWatcherHarness(1);
     configWatcher.emit("add", "/workspace/env-typegen.config.ts");
-    await vi.advanceTimersByTimeAsync(200);
+    await waitForDebounceWindow();
 
     expect(errorMock).toHaveBeenCalledWith("Failed to reload config: reload failed");
   });
@@ -256,7 +266,7 @@ describe("startWatch", () => {
 
     expect(sigintHandler).toBeTypeOf("function");
     sigintHandler?.();
-    await vi.runAllTimersAsync();
+    await waitForPendingPromises();
 
     expect(getWatcherHarness(0).closeMock).toHaveBeenCalledTimes(1);
     expect(getWatcherHarness(1).closeMock).toHaveBeenCalledTimes(1);
