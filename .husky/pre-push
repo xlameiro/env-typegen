@@ -4,14 +4,19 @@
 # These checks are intentionally placed here (not pre-commit) to keep commit speed fast.
 #
 # Checks performed:
-#   1. pnpm knip     — dead code detection (catches unused exports/deps, matches CI)
-#   2. pnpm test     — full unit test suite via Vitest
-#   3. pnpm audit    — npm security audit at moderate severity
+#   1. pnpm install --frozen-lockfile  — lockfile in sync with package.json (fails fast if stale)
+#   2. pnpm knip     — dead code detection (catches unused exports/deps, matches CI)
+#   3. pnpm test     — full unit test suite via Vitest
+#   4. pnpm audit    — npm security audit at moderate severity
 #
 # To bypass in exceptional circumstances: git push --no-verify (document the reason in the PR).
 # Note: pnpm build is left to CI only (requires env vars; takes 3-5 min).
 
 set -e
+
+echo "📦 Checking pnpm-lock.yaml is in sync with package.json..."
+pnpm install --frozen-lockfile
+echo "✅ Lockfile is up to date."
 
 echo "🧹 Running dead code detection (knip)..."
 pnpm knip
