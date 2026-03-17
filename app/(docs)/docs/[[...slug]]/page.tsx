@@ -1,13 +1,13 @@
-import { source } from "@/lib/source";
 import { APP_NAME, SITE_URL } from "@/lib/constants";
+import { source } from "@/lib/source";
 import type { InferPageType } from "fumadocs-core/source";
-import type { Metadata } from "next";
 import {
   DocsBody,
   DocsDescription,
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/layouts/docs/page";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 type PageProps = {
