@@ -11,7 +11,7 @@ This instruction exists so you **do not require the user to type** "use context7
 
 ## Next.js pre-flight requirement
 
-For **any Next.js task**, call `next-devtools-init` (next-devtools MCP tool) **before querying Context7**. This resets the AI's Next.js knowledge baseline to v16.1.6 and prevents stale API patterns from LLM training data (Next.js 12/13/14).
+For **any Next.js task**, call `next-devtools-init` (next-devtools MCP tool) **before querying Context7**. This resets the AI's Next.js knowledge baseline to v16.1.7 and prevents stale API patterns from LLM training data (Next.js 12/13/14).
 
 ### Skill selection for Next.js tasks
 

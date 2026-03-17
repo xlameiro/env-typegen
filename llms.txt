@@ -6,7 +6,7 @@ This repository is a ready-to-use foundation that combines Next.js 16 (App Route
 
 ## Tech Stack
 
-- Framework: Next.js 16.1.6 (App Router, Server Components, Turbopack default)
+- Framework: Next.js 16.1.7 (App Router, Server Components, Turbopack default)
 - Runtime: React 19
 - Language: TypeScript 5 (strict mode, no `any`)
 - Styling: Tailwind CSS v4 (CSS-first config via `@import "tailwindcss"`)

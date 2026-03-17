@@ -1,13 +1,13 @@
 ---
-description: "Best practices for building Next.js (App Router) apps with modern caching, tooling, and server/client boundaries (aligned with Next.js 16.1.6)."
+description: "Best practices for building Next.js (App Router) apps with modern caching, tooling, and server/client boundaries (aligned with Next.js 16.1.7)."
 applyTo: "**/*.tsx, **/*.ts, **/*.jsx, **/*.js, **/*.css"
 ---
 
 # Next.js Best Practices for LLMs (2026)
 
-_Last updated: March 2026 (aligned to Next.js 16.1.6)_
+_Last updated: March 2026 (aligned to Next.js 16.1.7)_
 
-> **Note**: v16.1.6 is a **backport release** — it contains bug fixes cherry-picked from canary and does not include all pending features or changes available in canary builds. Do not adopt undocumented canary features without explicit evaluation against this version.
+> **Note**: v16.1.7 is a **backport security release** — it patches five CVEs (see Security section in `copilot-instructions.md`) and does not include all pending features/changes on canary. Do not adopt undocumented canary features without explicit evaluation against this version.
 
 This document summarizes the latest, authoritative best practices for building, structuring, and maintaining Next.js applications. It is intended for use by LLMs and developers to ensure code quality, maintainability, and scalability.
 
@@ -437,5 +437,23 @@ export default function CatchAll() {
 > `router.back()` without prior history (user opened modal URL directly) navigates to `browser:blank`. Guard against this with `window.history.length > 1` if needed. See Pattern 5 in `.agents/skills/nextjs-app-router-patterns/SKILL.md` for the full implementation.
 
 See `.agents/skills/nextjs-app-router-patterns/SKILL.md` (Pattern 4 and Pattern 5) for complete, copy-paste-ready code examples.
+
+## 13. Next.js 16.1.7 Security Deltas
+
+Five CVEs were patched in Next.js 16.1.7 (March 2026). The table below is the authoritative action checklist — apply immediately when upgrading.
+
+| CVE            | Severity       | Area                                                                                      | Mitigation                                                                                                   | `next.config.ts` change?  |
+| -------------- | -------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| CVE-2026-27977 | LOW (dev-only) | `allowedDevOrigins` — HMR WebSocket accepted `Origin: null`                               | Upgrade to 16.1.7; never add `'null'` to `allowedDevOrigins`                                                 | No                        |
+| CVE-2026-27978 | MODERATE       | `serverActions.allowedOrigins` — `Origin: null` bypassed CSRF check                       | Upgrade to 16.1.7; never add `'null'` to `allowedOrigins`                                                    | No                        |
+| CVE-2026-27979 | MODERATE       | `maxPostponedStateSize` — crafted `next-resume` header caused DoS via unbounded buffering | Upgrade to 16.1.7; tune `experimental.maxPostponedStateSize` if `MaxPostponedStateSizeExceeded` is seen      | Optional tuning only      |
+| CVE-2026-27980 | MODERATE       | `next/image` disk cache — no size cap enabled disk-exhaustion attacks                     | Upgrade to 16.1.7; set `images.maximumDiskCacheSize` explicitly for high-traffic apps (default: 50% of disk) | Optional for high-traffic |
+| CVE-2026-29057 | MODERATE       | HTTP request smuggling in rewrites via chunked `DELETE`/`OPTIONS`                         | Upgrade to 16.1.7; no config change required — fixed in vendored HTTP library                                | No                        |
+
+**Hard rules derived from these CVEs:**
+
+- Never add `'null'` to `allowedDevOrigins` or `experimental.serverActions.allowedOrigins`
+- Keep `next` on the latest `16.x` minor — security fixes are not backported to older minors
+- For high-traffic `next/image` apps: explicitly set `images.maximumDiskCacheSize` to a known bound rather than relying on the 50%-of-disk default
 
 ## Learnings

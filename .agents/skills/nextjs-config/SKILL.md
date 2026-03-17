@@ -509,22 +509,32 @@ images: {
 }
 ```
 
-| Option                   | Type              | Default                                  | Description                                                      |
-| ------------------------ | ----------------- | ---------------------------------------- | ---------------------------------------------------------------- |
-| `remotePatterns`         | `RemotePattern[]` | `[]`                                     | Allowlisted remote image sources                                 |
-| `localPatterns`          | `LocalPattern[]`  | —                                        | Restrict local image paths                                       |
-| `deviceSizes`            | `number[]`        | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images                                |
-| `imageSizes`             | `number[]`        | `[32,48,64,96,128,256,384]`              | Sizes for partial-width images (16px removed in v16.1.6)         |
-| `formats`                | `string[]`        | `['image/avif', 'image/webp']`           | Accepted format order                                            |
-| `minimumCacheTTL`        | `number`          | `14400`                                  | Seconds to cache optimized images                                |
-| `dangerouslyAllowSVG`    | `boolean`         | `false`                                  | Allow SVG optimization (XSS risk)                                |
-| `contentSecurityPolicy`  | `string`          | —                                        | CSP for SVG responses                                            |
-| `contentDispositionType` | `string`          | `'inline'`                               | Content-Disposition header                                       |
-| `unoptimized`            | `boolean`         | `false`                                  | Bypass optimization pipeline                                     |
-| `loader`                 | `string`          | `'default'`                              | Custom image loader                                              |
-| `loaderFile`             | `string`          | —                                        | Path to custom loader (when `loader: 'custom'`)                  |
-| `qualities`              | `number[]`        | —                                        | Restrict allowed quality values                                  |
-| `maximumRedirects`       | `number`          | `3`                                      | Max image redirects before error (new in v16.1.6; was unlimited) |
+| Option                   | Type               | Default                                  | Description                                                                   |
+| ------------------------ | ------------------ | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| `remotePatterns`         | `RemotePattern[]`  | `[]`                                     | Allowlisted remote image sources                                              |
+| `localPatterns`          | `LocalPattern[]`   | —                                        | Restrict local image paths                                                    |
+| `deviceSizes`            | `number[]`         | `[640,750,828,1080,1200,1920,2048,3840]` | Breakpoints for full-width images                                             |
+| `imageSizes`             | `number[]`         | `[32,48,64,96,128,256,384]`              | Sizes for partial-width images (16px removed in v16.1.6)                      |
+| `formats`                | `string[]`         | `['image/avif', 'image/webp']`           | Accepted format order                                                         |
+| `minimumCacheTTL`        | `number`           | `14400`                                  | Seconds to cache optimized images                                             |
+| `dangerouslyAllowSVG`    | `boolean`          | `false`                                  | Allow SVG optimization (XSS risk)                                             |
+| `contentSecurityPolicy`  | `string`           | —                                        | CSP for SVG responses                                                         |
+| `contentDispositionType` | `string`           | `'inline'`                               | Content-Disposition header                                                    |
+| `unoptimized`            | `boolean`          | `false`                                  | Bypass optimization pipeline                                                  |
+| `loader`                 | `string`           | `'default'`                              | Custom image loader                                                           |
+| `loaderFile`             | `string`           | —                                        | Path to custom loader (when `loader: 'custom'`)                               |
+| `qualities`              | `number[]`         | —                                        | Restrict allowed quality values                                               |
+| `maximumRedirects`       | `number`           | `3`                                      | Max image redirects before error (new in v16.1.6; was unlimited)              |
+| `maximumDiskCacheSize`   | `number \| string` | `'50%'` (50% of disk)                    | Max disk space for the optimized-image cache (new in v16.1.7, CVE-2026-27980) |
+
+> **`maximumDiskCacheSize` (new in v16.1.7 — CVE-2026-27980 MODERATE)**: Prior to 16.1.7, `next/image` cached optimized images to disk without an upper bound. An attacker could exhaust server disk space by requesting images with many unique query-string combinations. In 16.1.7, disk cache usage is capped at **50% of total disk space** by default with LRU eviction when the cap is reached. Set to `0` to disable disk caching entirely. Accepts byte counts (`104857600`) or human-readable strings (`'100mb'`, `'2gb'`).
+>
+> ```ts
+> images: {
+>   maximumDiskCacheSize: '2gb',  // hard cap at 2 GB (overrides the 50%-of-disk default)
+>   // maximumDiskCacheSize: 0,   // disable disk cache (serve only from CDN / memory)
+> }
+> ```
 
 ---
 
@@ -671,6 +681,8 @@ const nextConfig: NextConfig = {
 
 > Increase this limit if you see `MaxPostponedStateSizeExceeded` errors in production for pages with large dynamic payloads. The limit applies per request. Accepted values follow the `SizeLimit` format (`'50mb'`, `104857600`, etc.).
 
+> **Security (16.1.7 — CVE-2026-27979 MODERATE)**: Prior to 16.1.7, `maxPostponedStateSize` was not enforced on all resume paths in non-minimal deployments. A crafted `next-resume` header could trigger unbounded Resume Data Cache buffering, leading to a Denial-of-Service condition. In 16.1.7 the limit is enforced consistently across all execution paths. If you see increased `MaxPostponedStateSizeExceeded` responses after upgrading, tune this value rather than removing the limit — do **not** set it to `Infinity`.
+
 ---
 
 ### `experimental.authInterrupts`
@@ -752,7 +764,7 @@ Part of the `next experimental-test` command workflow. `testProxy` routes all `f
 ```ts
 experimental: {
   testProxy: true,                   // default: false (undefined)
-  defaultTestRunner: 'playwright',   // only supported value as of Next.js 16.1.6
+  defaultTestRunner: 'playwright',   // only supported value as of Next.js 16.1.7
 }
 ```
 
@@ -817,6 +829,8 @@ experimental: {
   },
 }
 ```
+
+> **Security warning (CVE-2026-27978 — MODERATE)**: Never add `'null'` to `allowedOrigins`. Prior to 16.1.7, a Server Action request with `Origin: null` (sent from sandboxed iframes or `data:` URIs) bypassed the CSRF origin check even when `'null'` was not in `allowedOrigins`. In 16.1.7, `Origin: null` is treated as an explicit cross-origin value and is **blocked** unless explicitly allowlisted — which you should never do. If you manage a reverse proxy that strips the `Origin` header, set the header explicitly on the proxy rather than allowlisting `null`. Upgrade to 16.1.7 immediately if you use Server Actions in a publicly accessible app.
 
 ### `experimental.browserDebugInfoInTerminal` (Next.js 16.1)
 
@@ -2214,6 +2228,8 @@ allowedDevOrigins: [
 ```
 
 > By default, `next dev` only accepts requests from `localhost` and the loopback address. Add ngrok tunnels, inner-network device IPs, or remote dev hostnames here so the browser preview works correctly from non-localhost origins.
+
+> **Security (16.1.7 — CVE-2026-27977 LOW, dev-only)**: Prior to 16.1.7, the HMR WebSocket accepted connections with `Origin: null` (sandboxed `<iframe>`, `data:` URIs, some Electron windows) even when `allowedDevOrigins` did not include `'null'`. In 16.1.7, `Origin: null` is explicitly blocked. This is a development-only issue (rated LOW) — it does not affect production. Never add `'null'` to this list.
 
 ---
 

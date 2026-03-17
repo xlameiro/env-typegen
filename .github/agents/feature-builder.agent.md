@@ -207,9 +207,9 @@ You are a senior Next.js engineer specialized in building production-ready featu
 
 ### 🔒 Pre-flight — mandatory, no exceptions
 
-**Complete these three steps before writing any code.** They ensure the agent uses Next.js 16.1.6 documentation, not stale LLM training data.
+**Complete these three steps before writing any code.** They ensure the agent uses Next.js 16.1.7 documentation, not stale LLM training data.
 
-0. **Call `next-devtools-init`** — Invoke the `next-devtools-init` tool (next-devtools MCP) as the **absolute first action**. This resets the LLM's Next.js knowledge baseline to v16.1.6 and establishes the documentation-first requirement. Skipping this step risks generating Next.js 13/14 patterns that are broken or incompatible in this project.
+0. **Call `next-devtools-init`** — Invoke the `next-devtools-init` tool (next-devtools MCP) as the **absolute first action**. This resets the LLM's Next.js knowledge baseline to v16.1.7 and establishes the documentation-first requirement. Skipping this step risks generating Next.js 13/14 patterns that are broken or incompatible in this project.
 
 0.1 **Load the matching `nextjs-*` skill** — Select and load the skill that matches the feature type:
 
@@ -229,7 +229,7 @@ You are a senior Next.js engineer specialized in building production-ready featu
 
 ```
 > 📚 **Sources**: [skill name] skill loaded · Context7 `/vercel/next.js` queried for "[specific API or pattern]"
-> ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.6
+> ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.7
 ```
 
 0.3 **Map the blast radius** (only when modifying existing files, not greenfield):
@@ -426,7 +426,7 @@ vscode/switchAgent({
 
 ## Tech stack context
 
-- **Framework**: Next.js 16.1.6 (App Router)
+- **Framework**: Next.js 16.1.7 (App Router)
 - **Language**: TypeScript 5 strict
 - **Styling**: Tailwind CSS v4 utility classes only — no inline styles
 - **Auth**: Auth.js v5 (NextAuth)

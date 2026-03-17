@@ -323,6 +323,17 @@ maximumRedirects: 5; // increase for edge cases with multi-hop CDN redirects
 
 > **v16.1.6 breaking change**: The default changed from unlimited to `3`. If you rely on image URLs that redirect more than 3 times, explicitly set a higher value.
 
+### `maximumDiskCacheSize` (new in v16.1.7 — CVE-2026-27980)
+
+```ts
+maximumDiskCacheSize: "50%"; // default — 50% of total disk space
+maximumDiskCacheSize: "2gb"; // hard cap at 2 GB
+maximumDiskCacheSize: 0; // disable the disk cache entirely
+// Accepts byte counts or size strings: '100mb', '1gb', 104857600
+```
+
+> **v16.1.7 new option (security)**: Prior to 16.1.7, `next/image` cached optimized variants to disk with no size limit, allowing disk-exhaustion attacks. Now capped at 50% of disk with LRU eviction. Set to `0` to serve images only from CDN or memory. CVSS rated MODERATE (CVE-2026-27980, GHSA-3x4c-7xq6-9pq8).
+
 ---
 
 ## `turbopack` — Full Reference
@@ -439,6 +450,25 @@ experimental: {
 ```
 
 > Server Actions are stable in Next.js 14+. The `serverActions` config block only controls these two options.
+
+> **Security warning (CVE-2026-27978 — MODERATE, fixed in 16.1.7)**: Never add `'null'` to `allowedOrigins`. Prior to 16.1.7, `Origin: null` (sent by sandboxed iframes or `data:` URIs) bypassed CSRF origin validation even when absent from `allowedOrigins`. In 16.1.7 this origin value is treated as an explicit cross-origin token and blocked unless explicitly allowlisted — which you should never do. If a reverse proxy drops the `Origin` header set it explicitly at the proxy layer instead.
+
+---
+
+## `experimental.maxPostponedStateSize`
+
+```ts
+experimental: {
+  maxPostponedStateSize: '100mb', // default: '100mb'
+}
+// Accepted: SizeLimit strings ('50mb', '2gb') or byte counts (104857600)
+// Applies per-request — limits the total size of the Resume Data Cache (RDC) body
+// used for PPR resume requests (cacheComponents: true).
+```
+
+> Increase this limit if you see `MaxPostponedStateSizeExceeded` errors in production for pages with many dynamic segments using `use cache`. Decrease it to protect against DoS on memory-constrained deployments. Do **not** set to `Infinity`.
+
+> **Security (16.1.7 — CVE-2026-27979 MODERATE)**: Prior to 16.1.7, this limit was not enforced on all resume paths. A crafted `next-resume` header could trigger unbounded buffering, causing a Denial-of-Service condition. In 16.1.7 the limit is applied consistently across all execution paths. If `MaxPostponedStateSizeExceeded` errors increase after upgrading to 16.1.7, tune this value upward — do not remove the limit.
 
 ---
 

@@ -177,11 +177,11 @@ Use this agent before implementation when the task:
 
 ## 🔒 Pre-flight — mandatory, no exceptions
 
-**Complete these three steps before producing any plan.** They ensure the plan references Next.js 16.1.6 APIs and patterns, not stale LLM training data. A plan built on wrong API assumptions will create contradictions the Feature Builder must resolve later.
+**Complete these three steps before producing any plan.** They ensure the plan references Next.js 16.1.7 APIs and patterns, not stale LLM training data. A plan built on wrong API assumptions will create contradictions the Feature Builder must resolve later.
 
 ### Pre-flight 1 — Call `next-devtools-init`
 
-Invoke the `next-devtools-init` tool (next-devtools MCP) as the **absolute first action**. This resets the LLM's Next.js knowledge baseline to v16.1.6. Skipping this step risks generating plans that recommend Next.js 13/14 patterns incompatible with this project.
+Invoke the `next-devtools-init` tool (next-devtools MCP) as the **absolute first action**. This resets the LLM's Next.js knowledge baseline to v16.1.7. Skipping this step risks generating plans that recommend Next.js 13/14 patterns incompatible with this project.
 
 ### Pre-flight 2 — Load the matching `nextjs-*` skill
 
@@ -205,7 +205,7 @@ Output this block **at the top of every plan** so the Feature Builder knows whic
 
 ```
 > 📚 **Sources**: [skill name] skill loaded · Context7 `/vercel/next.js` queried for "[specific API or pattern]"
-> ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.6
+> ✅ next-devtools-init called — LLM knowledge reset to Next.js 16.1.7
 ```
 
 > **Why this matters for the handoff**: The Feature Builder runs the same pre-flight independently. If the Planner skips it, the two agents may resolve the same API question differently (e.g., `middleware.ts` vs `proxy.ts`, `export const dynamic` vs `use cache`). The Documentation Declaration makes the source explicit so the Feature Builder can detect and correct any divergence before writing code.
@@ -279,13 +279,13 @@ Emit this table before the plan body:
 ## Migration Analysis
 
 **Source repo:** [owner/repo] at [branch/sha]
-**Target:** This template — Next.js 16.1.6, App Router, TypeScript strict, Tailwind v4
+**Target:** This template — Next.js 16.1.7, App Router, TypeScript strict, Tailwind v4
 
 ### Stack Diff
 
 | Dimension       | Source                           | Target (this template)                | Action          |
 | --------------- | -------------------------------- | ------------------------------------- | --------------- |
-| Framework       | [e.g. Next.js 13 Pages Router]   | Next.js 16.1.6 App Router             | Rewrite routing |
+| Framework       | [e.g. Next.js 13 Pages Router]   | Next.js 16.1.7 App Router             | Rewrite routing |
 | Auth            | [e.g. NextAuth v4 middleware.ts] | Auth.js v5, proxy.ts                  | Migrate         |
 | Styling         | [e.g. CSS Modules]               | Tailwind CSS v4                       | Rewrite styles  |
 | State           | [e.g. Redux]                     | Zustand + nuqs                        | Replace         |
@@ -656,5 +656,5 @@ List any ambiguities that must be resolved before implementation starts.
 
 End every planning session with exactly one of these markers:
 
-- `## PLAN COMPLETE ✅` — Documentation Declaration emitted; all required plan sections present; grounded in Next.js 16.1.6 documentation
+- `## PLAN COMPLETE ✅` — Documentation Declaration emitted; all required plan sections present; grounded in Next.js 16.1.7 documentation
 - `## PLAN BLOCKED` — blocked by ambiguous requirements or missing context; state exactly what is needed to continue

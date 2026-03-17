@@ -1,9 +1,9 @@
 ---
-description: "MDX and Markdown rendering in Next.js 16.1.6 App Router — setup, patterns, caching, and styling conventions."
+description: "MDX and Markdown rendering in Next.js 16.1.7 App Router — setup, patterns, caching, and styling conventions."
 applyTo: "content/**, posts/**, **/*.mdx, **/*.md, mdx-components.tsx, mdx-components.js"
 ---
 
-# MDX & Markdown Rendering — Next.js 16.1.6
+# MDX & Markdown Rendering — Next.js 16.1.7
 
 > **Scope**: This file covers **rendering** Markdown/MDX inside a Next.js app (blog, docs, landing pages). For formatting rules when writing `.md` documentation files, see `.github/instructions/markdown.instructions.md`.
 

@@ -6,7 +6,7 @@ A production-ready Next.js 16 starter with TypeScript 5 strict, React 19, Tailwi
 
 | Layer           | Choice                           |
 | --------------- | -------------------------------- |
-| Framework       | Next.js 16.1.6 (App Router)      |
+| Framework       | Next.js 16.1.7 (App Router)      |
 | Runtime         | React 19                         |
 | Language        | TypeScript 5 strict mode         |
 | Styling         | Tailwind CSS v4                  |

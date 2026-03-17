@@ -6,7 +6,7 @@ This is a professional Next.js 16 starter template. Use it as the foundation for
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.1.6 (App Router)
+- **Framework**: Next.js 16.1.7 (App Router)
 - **Runtime**: React 19
 - **Language**: TypeScript 5 (strict mode) — TypeScript 6.0 RC is available (`typescript@rc`); see Knowledge Reminders § TypeScript 5.x
 - **Styling**: Tailwind CSS v4
@@ -858,6 +858,12 @@ className={cn(buttonVariants({ variant, size }), className)}
 - **Built-in Bundle Analyzer (experimental, Turbopack)**: Next.js 16.1 ships its own bundle analyzer that integrates with Turbopack — filters by route, traces full import chains across server/client boundaries. Access it by running `pnpm build` and following the output link. This is separate from `pnpm analyze` (`@next/bundle-analyzer` + webpack) which is still the stable option for production audits.
 - **`browserDebugInfoInTerminal`**: This project's `next.config.ts` has `experimental.browserDebugInfoInTerminal` enabled. It forwards browser-side runtime errors, client warnings, and async errors to the terminal — making them visible to AI agents that can only see the terminal, not the browser. See the Next.js "agentic future" blog post for context.
 - **Security (December 2025)**: Two critical RSC vulnerabilities (CVE-2025-66478 + Dec 11 advisory) were patched in `next@16.1.6`. Always stay on the latest Next.js minor release — security patches are not backported to older minors. Run `pnpm info next dist-tags` to verify you are on `latest`.
+- **Security (March 2026)**: Five security advisories were fixed in `next@16.1.7`. Upgrade immediately from any 16.x version. Per-CVE details:
+  - **CVE-2026-27977 (LOW, dev-only)** — HMR WebSocket accepted `Origin: null` (sandboxed iframes, `data:` URIs). Fixed: dev server now blocks `null` origin by default. No `next.config.ts` action needed; never add `'null'` to `allowedDevOrigins`.
+  - **CVE-2026-27978 (MODERATE)** — Server Actions CSRF: `Origin: null` bypassed the `allowedOrigins` check. Fixed: `null` is now treated as explicit cross-origin and blocked. Never add `'null'` to `experimental.serverActions.allowedOrigins`.
+  - **CVE-2026-27979 (MODERATE)** — Unbounded PPR resume buffering via crafted `next-resume` header caused DoS. Fixed: `maxPostponedStateSize` is now enforced on all resume paths. Tune `experimental.maxPostponedStateSize` if you see `MaxPostponedStateSizeExceeded` errors post-upgrade.
+  - **CVE-2026-27980 (MODERATE)** — `next/image` disk cache had no size limit, enabling disk-exhaustion attacks. Fixed: new `images.maximumDiskCacheSize` option (default: 50% of disk, LRU eviction). Consider explicitly setting this in `next.config.ts` for high-traffic apps.
+  - **CVE-2026-29057 (MODERATE)** — HTTP request smuggling in rewrites via chunked `DELETE`/`OPTIONS`. Fixed in vendored HTTP library — no `next.config.ts` action required.
 
 ### TypeScript 5.x
 
