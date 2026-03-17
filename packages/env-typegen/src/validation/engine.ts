@@ -33,8 +33,12 @@ type BuildDoctorReportOptions = {
   diffReport: ValidationReport;
 };
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/;
+// Dots are excluded from each domain-segment class so that the literal \.
+// separators are unambiguous, eliminating super-linear backtracking.
+const EMAIL_RE = /^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$/;
+// Dots are excluded from inside [\w.-] groups: only the literal \. separator
+// carries dot semantics, so there is no backtracking ambiguity (ReDoS-safe).
+const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/;
 
 function detectReceivedType(value: string): string {
   const normalized = value.trim();
@@ -58,74 +62,88 @@ function detectReceivedType(value: string): string {
   return "string";
 }
 
+function validateNumber(
+  expected: Extract<Expected, { type: "number" }>,
+  normalized: string,
+  receivedType: string,
+): ValidateValueResult {
+  const parsed = Number(normalized);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  }
+  if (expected.min !== undefined && parsed < expected.min) {
+    return { isValid: false, receivedType, issueType: "invalid_value" };
+  }
+  if (expected.max !== undefined && parsed > expected.max) {
+    return { isValid: false, receivedType, issueType: "invalid_value" };
+  }
+  return { isValid: true, receivedType };
+}
+
+function validateBoolean(normalized: string, receivedType: string): ValidateValueResult {
+  if (!["true", "false", "1", "0", "yes", "no"].includes(normalized.toLowerCase())) {
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  }
+  return { isValid: true, receivedType };
+}
+
+function validateEnum(
+  expected: Extract<Expected, { type: "enum" }>,
+  normalized: string,
+  receivedType: string,
+): ValidateValueResult {
+  if (!expected.values.includes(normalized)) {
+    return { isValid: false, receivedType, issueType: "invalid_value" };
+  }
+  return { isValid: true, receivedType };
+}
+
+function validateUrl(normalized: string, receivedType: string): ValidateValueResult {
+  try {
+    const value = new URL(normalized);
+    if (value.protocol.length === 0)
+      return { isValid: false, receivedType, issueType: "invalid_type" };
+    return { isValid: true, receivedType };
+  } catch {
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  }
+}
+
+function validateEmail(normalized: string, receivedType: string): ValidateValueResult {
+  if (!EMAIL_RE.test(normalized))
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  return { isValid: true, receivedType };
+}
+
+function validateJson(normalized: string, receivedType: string): ValidateValueResult {
+  try {
+    const parsed: unknown = JSON.parse(normalized);
+    if (typeof parsed === "object" && parsed !== null) return { isValid: true, receivedType };
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  } catch {
+    return { isValid: false, receivedType, issueType: "invalid_type" };
+  }
+}
+
+function validateSemver(normalized: string, receivedType: string): ValidateValueResult {
+  if (!SEMVER_RE.test(normalized))
+    return { isValid: false, receivedType, issueType: "invalid_value" };
+  return { isValid: true, receivedType };
+}
+
 function validateValueAgainstExpected(expected: Expected, rawValue: string): ValidateValueResult {
   const normalized = rawValue.trim();
   const receivedType = detectReceivedType(normalized);
 
-  if (expected.type === "unknown") return { isValid: true, receivedType };
-  if (expected.type === "string") return { isValid: true, receivedType };
-
-  if (expected.type === "number") {
-    const parsed = Number(normalized);
-    if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    }
-    if (expected.min !== undefined && parsed < expected.min) {
-      return { isValid: false, receivedType, issueType: "invalid_value" };
-    }
-    if (expected.max !== undefined && parsed > expected.max) {
-      return { isValid: false, receivedType, issueType: "invalid_value" };
-    }
+  if (expected.type === "unknown" || expected.type === "string")
     return { isValid: true, receivedType };
-  }
-
-  if (expected.type === "boolean") {
-    if (!["true", "false", "1", "0", "yes", "no"].includes(normalized.toLowerCase())) {
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    }
-    return { isValid: true, receivedType };
-  }
-
-  if (expected.type === "enum") {
-    if (!expected.values.includes(normalized)) {
-      return { isValid: false, receivedType, issueType: "invalid_value" };
-    }
-    return { isValid: true, receivedType };
-  }
-
-  if (expected.type === "url") {
-    try {
-      const value = new URL(normalized);
-      if (value.protocol.length === 0)
-        return { isValid: false, receivedType, issueType: "invalid_type" };
-      return { isValid: true, receivedType };
-    } catch {
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    }
-  }
-
-  if (expected.type === "email") {
-    if (!EMAIL_RE.test(normalized))
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    return { isValid: true, receivedType };
-  }
-
-  if (expected.type === "json") {
-    try {
-      const parsed: unknown = JSON.parse(normalized);
-      if (typeof parsed === "object" && parsed !== null) return { isValid: true, receivedType };
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    } catch {
-      return { isValid: false, receivedType, issueType: "invalid_type" };
-    }
-  }
-
-  if (expected.type === "semver") {
-    if (!SEMVER_RE.test(normalized))
-      return { isValid: false, receivedType, issueType: "invalid_value" };
-    return { isValid: true, receivedType };
-  }
-
+  if (expected.type === "number") return validateNumber(expected, normalized, receivedType);
+  if (expected.type === "boolean") return validateBoolean(normalized, receivedType);
+  if (expected.type === "enum") return validateEnum(expected, normalized, receivedType);
+  if (expected.type === "url") return validateUrl(normalized, receivedType);
+  if (expected.type === "email") return validateEmail(normalized, receivedType);
+  if (expected.type === "json") return validateJson(normalized, receivedType);
+  if (expected.type === "semver") return validateSemver(normalized, receivedType);
   return { isValid: true, receivedType };
 }
 
@@ -221,65 +239,80 @@ function isClientSecret(variable: EnvContractVariable, key: string): boolean {
   return variable.secret === true && (variable.clientSide || key.startsWith("NEXT_PUBLIC_"));
 }
 
+type ContractCheckContext = {
+  options: ValidateAgainstContractOptions;
+  issues: ValidationIssue[];
+};
+
+function checkContractVariable(
+  key: string,
+  variable: EnvContractVariable,
+  context: ContractCheckContext,
+): void {
+  const { options, issues } = context;
+  const value = options.values[key];
+  const hasValue = value !== undefined && value.trim().length > 0;
+
+  if (variable.required && !hasValue) {
+    issues.push(
+      createIssue({
+        type: "missing",
+        severity: "error",
+        key,
+        environment: options.environment,
+        message: `Required variable ${key} is missing.`,
+        debugValues: options.debugValues,
+        expected: variable.expected,
+      }),
+    );
+    return;
+  }
+
+  if (!hasValue) return;
+
+  const validation = validateValueAgainstExpected(variable.expected, value);
+  if (!validation.isValid) {
+    const message =
+      validation.issueType === "invalid_type"
+        ? `Variable ${key} has invalid type.`
+        : `Variable ${key} has invalid value.`;
+    issues.push(
+      createIssue({
+        type: validation.issueType,
+        severity: "error",
+        key,
+        environment: options.environment,
+        message,
+        value,
+        debugValues: options.debugValues,
+        expected: variable.expected,
+        receivedType: validation.receivedType,
+      }),
+    );
+  }
+
+  if (isClientSecret(variable, key)) {
+    issues.push(
+      createIssue({
+        type: "secret_exposed",
+        severity: "error",
+        key,
+        environment: options.environment,
+        message: `Secret variable ${key} is marked as client-side.`,
+        value,
+        debugValues: options.debugValues,
+        expected: variable.expected,
+      }),
+    );
+  }
+}
+
 export function validateAgainstContract(options: ValidateAgainstContractOptions): ValidationReport {
   const issues: ValidationIssue[] = [];
   const contractKeys = new Set(Object.keys(options.contract.variables));
 
   for (const [key, variable] of Object.entries(options.contract.variables)) {
-    const value = options.values[key];
-    const hasValue = value !== undefined && value.trim().length > 0;
-
-    if (variable.required && !hasValue) {
-      issues.push(
-        createIssue({
-          type: "missing",
-          severity: "error",
-          key,
-          environment: options.environment,
-          message: `Required variable ${key} is missing.`,
-          debugValues: options.debugValues,
-          expected: variable.expected,
-        }),
-      );
-      continue;
-    }
-
-    if (!hasValue) continue;
-
-    const validation = validateValueAgainstExpected(variable.expected, value);
-    if (!validation.isValid) {
-      issues.push(
-        createIssue({
-          type: validation.issueType,
-          severity: "error",
-          key,
-          environment: options.environment,
-          message:
-            validation.issueType === "invalid_type"
-              ? `Variable ${key} has invalid type.`
-              : `Variable ${key} has invalid value.`,
-          value,
-          debugValues: options.debugValues,
-          expected: variable.expected,
-          receivedType: validation.receivedType,
-        }),
-      );
-    }
-
-    if (isClientSecret(variable, key)) {
-      issues.push(
-        createIssue({
-          type: "secret_exposed",
-          severity: "error",
-          key,
-          environment: options.environment,
-          message: `Secret variable ${key} is marked as client-side.`,
-          value,
-          debugValues: options.debugValues,
-          expected: variable.expected,
-        }),
-      );
-    }
+    checkContractVariable(key, variable, { options, issues });
   }
 
   for (const [key, value] of Object.entries(options.values)) {
@@ -314,6 +347,114 @@ function collectUnionKeys(
   return union;
 }
 
+type SourceEntry = { sourceName: string; value: string | undefined };
+
+type DiffKeyContext = {
+  variable: EnvContractVariable | undefined;
+  options: DiffEnvironmentSourcesOptions;
+  issues: ValidationIssue[];
+};
+
+function diffMissingEntries(key: string, missing: SourceEntry[], context: DiffKeyContext): void {
+  const { variable, options, issues } = context;
+  for (const entry of missing) {
+    issues.push(
+      createIssue({
+        type: "missing",
+        severity: "error",
+        key,
+        environment: entry.sourceName,
+        message: `Variable ${key} is missing in ${entry.sourceName}.`,
+        debugValues: options.debugValues,
+        ...(variable !== undefined && { expected: variable.expected }),
+      }),
+    );
+  }
+}
+
+function diffTypeConflicts(key: string, present: SourceEntry[], context: DiffKeyContext): void {
+  const { variable, options, issues } = context;
+  const typeBySource = new Map<string, string>();
+  for (const entry of present) {
+    typeBySource.set(entry.sourceName, detectReceivedType(entry.value ?? ""));
+  }
+  if (new Set(typeBySource.values()).size <= 1) return;
+  for (const [sourceName, detectedType] of typeBySource.entries()) {
+    issues.push(
+      createIssue({
+        type: "conflict",
+        severity: "error",
+        key,
+        environment: sourceName,
+        message: `Variable ${key} has conflicting inferred type across environments.`,
+        debugValues: options.debugValues,
+        receivedType: detectedType,
+        ...(options.sources[sourceName]?.[key] !== undefined && {
+          value: options.sources[sourceName]?.[key],
+        }),
+        ...(variable !== undefined && { expected: variable.expected }),
+      }),
+    );
+  }
+}
+
+function diffPresentEntry(key: string, entry: SourceEntry, context: DiffKeyContext): void {
+  const { variable, options, issues } = context;
+  if (entry.value === undefined) return;
+
+  if (variable === undefined) {
+    const severity: IssueSeverity = options.strict ? "error" : "warning";
+    issues.push(
+      createIssue({
+        type: "extra",
+        severity,
+        key,
+        environment: entry.sourceName,
+        message: `Variable ${key} is not defined in the contract.`,
+        value: entry.value,
+        debugValues: options.debugValues,
+      }),
+    );
+    return;
+  }
+
+  const validation = validateValueAgainstExpected(variable.expected, entry.value);
+  if (!validation.isValid) {
+    const message =
+      validation.issueType === "invalid_type"
+        ? `Variable ${key} has invalid type in ${entry.sourceName}.`
+        : `Variable ${key} has invalid value in ${entry.sourceName}.`;
+    issues.push(
+      createIssue({
+        type: validation.issueType,
+        severity: "error",
+        key,
+        environment: entry.sourceName,
+        message,
+        value: entry.value,
+        debugValues: options.debugValues,
+        expected: variable.expected,
+        receivedType: validation.receivedType,
+      }),
+    );
+  }
+
+  if (isClientSecret(variable, key)) {
+    issues.push(
+      createIssue({
+        type: "secret_exposed",
+        severity: "error",
+        key,
+        environment: entry.sourceName,
+        message: `Secret variable ${key} is marked as client-side.`,
+        value: entry.value,
+        debugValues: options.debugValues,
+        expected: variable.expected,
+      }),
+    );
+  }
+}
+
 export function diffEnvironmentSources(options: DiffEnvironmentSourcesOptions): ValidationReport {
   const issues: ValidationIssue[] = [];
   const sourceNames = Object.keys(options.sources);
@@ -321,7 +462,7 @@ export function diffEnvironmentSources(options: DiffEnvironmentSourcesOptions): 
 
   for (const key of unionKeys) {
     const variable = options.contract.variables[key];
-    const valuesBySource = sourceNames.map((sourceName) => ({
+    const valuesBySource: SourceEntry[] = sourceNames.map((sourceName) => ({
       sourceName,
       value: options.sources[sourceName]?.[key],
     }));
@@ -349,100 +490,13 @@ export function diffEnvironmentSources(options: DiffEnvironmentSourcesOptions): 
       continue;
     }
 
+    const ctx: DiffKeyContext = { variable, options, issues };
     if (present.length > 0) {
-      for (const entry of missing) {
-        issues.push(
-          createIssue({
-            type: "missing",
-            severity: "error",
-            key,
-            environment: entry.sourceName,
-            message: `Variable ${key} is missing in ${entry.sourceName}.`,
-            debugValues: options.debugValues,
-            ...(variable !== undefined && { expected: variable.expected }),
-          }),
-        );
-      }
+      diffMissingEntries(key, missing, ctx);
     }
-
-    const typeBySource = new Map<string, string>();
+    diffTypeConflicts(key, present, ctx);
     for (const entry of present) {
-      const detected = detectReceivedType(entry.value ?? "");
-      typeBySource.set(entry.sourceName, detected);
-    }
-    if (new Set(typeBySource.values()).size > 1) {
-      for (const [sourceName, detectedType] of typeBySource.entries()) {
-        issues.push(
-          createIssue({
-            type: "conflict",
-            severity: "error",
-            key,
-            environment: sourceName,
-            message: `Variable ${key} has conflicting inferred type across environments.`,
-            debugValues: options.debugValues,
-            receivedType: detectedType,
-            ...(options.sources[sourceName]?.[key] !== undefined && {
-              value: options.sources[sourceName]?.[key],
-            }),
-            ...(variable !== undefined && { expected: variable.expected }),
-          }),
-        );
-      }
-    }
-
-    for (const entry of present) {
-      if (entry.value === undefined) continue;
-
-      if (variable === undefined) {
-        const severity: IssueSeverity = options.strict ? "error" : "warning";
-        issues.push(
-          createIssue({
-            type: "extra",
-            severity,
-            key,
-            environment: entry.sourceName,
-            message: `Variable ${key} is not defined in the contract.`,
-            value: entry.value,
-            debugValues: options.debugValues,
-          }),
-        );
-        continue;
-      }
-
-      const validation = validateValueAgainstExpected(variable.expected, entry.value);
-      if (!validation.isValid) {
-        issues.push(
-          createIssue({
-            type: validation.issueType,
-            severity: "error",
-            key,
-            environment: entry.sourceName,
-            message:
-              validation.issueType === "invalid_type"
-                ? `Variable ${key} has invalid type in ${entry.sourceName}.`
-                : `Variable ${key} has invalid value in ${entry.sourceName}.`,
-            value: entry.value,
-            debugValues: options.debugValues,
-            expected: variable.expected,
-            receivedType: validation.receivedType,
-          }),
-        );
-      }
-
-      if (isClientSecret(variable, key)) {
-        issues.push(
-          createIssue({
-            type: "secret_exposed",
-            severity: "error",
-            key,
-            environment: entry.sourceName,
-            message: `Secret variable ${key} is marked as client-side.`,
-            value: entry.value,
-            debugValues: options.debugValues,
-            expected: variable.expected,
-          }),
-        );
-      }
+      diffPresentEntry(key, entry, ctx);
     }
   }
 

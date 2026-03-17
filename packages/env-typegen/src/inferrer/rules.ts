@@ -65,7 +65,9 @@ export const inferenceRules: readonly InferenceRule[] = [
   {
     id: "P8_numeric_literal",
     priority: 8,
-    match: (_key: string, value: string) => /^\d+(\.\d+)?$/.test(value),
+    // Non-capturing group with \d keeps the dot/digit boundary unambiguous,
+    // eliminating super-linear backtracking (ReDoS-safe).
+    match: (_key: string, value: string) => /^\d+(?:\.\d+)?$/.test(value),
     type: "number",
   },
   {
@@ -83,7 +85,9 @@ export const inferenceRules: readonly InferenceRule[] = [
   {
     id: "P11_email_literal",
     priority: 11,
-    match: (_key: string, value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value),
+    // Dots are excluded from each domain-segment character class so that the
+    // literal \. separators are unambiguous, preventing super-linear backtracking.
+    match: (_key: string, value: string) => /^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$/.test(value),
     type: "email",
   },
   {
