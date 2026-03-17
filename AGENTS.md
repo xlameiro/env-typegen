@@ -322,6 +322,8 @@ These features in VS Code >= 1.110 significantly improve the agent's ability to 
 
 > **Default for this project**: use **Autopilot** for all feature work. Switch to **Default Approvals** whenever you are touching AWS resources, database schema, or environment secrets. Use **Sandbox** when the agent will execute code from untrusted sources.
 
+> **Claude Code v2.1.77+**: In Sandbox mode, `allowRead` lets you grant targeted read access to specific workspace paths (e.g. `package.json`, `.github/copilot-instructions.md`) without disabling the sandbox or allowing writes and network calls — useful when a sandboxed agent needs to read config files. Add paths via `claude settings sandbox allowRead`.
+
 > Both features are available in VS Code 1.111 Stable. Check `configure chat → diagnostics` if either is not behaving as expected. Enable Autopilot via the `chat.autopilot.enabled` setting or from the Chat input → **default approvals** dropdown.
 
 **Auto-commit hook (opt-in)** — When an agent session stops, you can automatically commit all pending changes to prevent losing generated work. A ready-made script lives at `.github/hooks/scripts/session-stop-autocommit.sh`. To activate, add the following entry to `.github/hooks/hooks.json`:
@@ -731,7 +733,7 @@ tools:
         - npmjs.com
 ```
 
-> **Security note**: these constraints are structurally enforced — not prompt instructions the agent could reason its way around. Always declare `safe-outputs` before enabling any workflow that can write to the repository or open PRs. See `security-and-owasp.instructions.md` for the broader principle of least-privilege.
+> **Security note**: these constraints are structurally enforced — not prompt instructions the agent could reason its way around. The runtime evaluates `safe-outputs` and `tools` allowlists _before_ the agent loop executes, acting as a compiler-layer firewall the agent cannot reason or prompt its way through. See the [GitHub Agentic Workflows security architecture](https://github.blog/ai-and-ml/generative-ai/under-the-hood-security-architecture-of-github-agentic-workflows/) for the full threat model. Always declare `safe-outputs` before enabling any workflow that can write to the repository or open PRs. See `security-and-owasp.instructions.md` for the broader principle of least-privilege.
 
 ### Good candidates for Agentic Workflows in this project
 

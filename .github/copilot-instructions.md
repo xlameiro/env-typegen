@@ -970,6 +970,8 @@ differenceInDays(start, end); // number (positive or negative)
 
 > Switch to **Default Approvals** whenever the task involves AWS resources, database migrations, or secret rotation — never let Autopilot touch infra unattended.
 
+> **Claude Code v2.1.77+**: In Sandbox mode, `allowRead` lets you grant targeted read access to specific workspace paths (e.g. `package.json`, `.github/copilot-instructions.md`) without disabling the sandbox or allowing writes and network calls — useful when a sandboxed agent needs to read config files. Add paths via `claude settings sandbox allowRead`.
+
 **Recommended model assignments** (set via `Settings → Copilot → model preferences`):
 
 | Task / Agent mode                   | Recommended model                             | Why                                                                                 |
