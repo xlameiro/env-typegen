@@ -9,7 +9,10 @@ on:
     # Run every Monday at 08:00 UTC
     - cron: "0 8 * * 1"
 
-permissions: {}
+permissions:
+  actions: read
+  contents: read
+  security-events: write
 
 concurrency:
   # Same pattern as ci.yml: group by target branch so rapid pushes/PRs
@@ -22,10 +25,6 @@ jobs:
   analyze:
     name: Analyze JavaScript / TypeScript
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
 
     steps:
       - name: Checkout repository

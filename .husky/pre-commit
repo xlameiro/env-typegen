@@ -1,23 +1,22 @@
 #!/usr/bin/env sh
 # Husky pre-commit hook
-# Runs lint-staged (ESLint + Prettier) on staged files only.
-# Full quality gate (type-check + tests + build) runs in CI.
+# 1. lint-staged  — autofix (ESLint --fix + Prettier) staged files only
+# 2. pnpm lint    — full project ESLint scan (matches CI; catches errors in unstaged files)
+# 3. pnpm type-check — full TypeScript check
+# Full tests + build run in the pre-push hook and in CI.
 
 set -e
 
 echo "🔐 Scanning staged changes for secrets..."
 sh .github/hooks/scripts/git-secret-scan.sh
 
-echo "🔍 Running lint-staged on staged files..."
+echo "🔍 Running lint-staged on staged files (autofix)..."
 pnpm exec lint-staged
+
+echo "🔷 Running full ESLint check (matches CI — catches unstaged file errors)..."
+pnpm lint
 
 echo "🔷 Running TypeScript type check..."
 pnpm type-check
-
-echo "🔍 Checking for dead code..."
-pnpm knip
-
-echo "🔒 Running security audit..."
-pnpm audit --audit-level=moderate
 
 echo "✅ Pre-commit checks passed."

@@ -1,11 +1,17 @@
 /**
  * setup-env.mjs
  *
- * Creates .env.local from .env.example if it does not already exist.
+ * Creates .env.local from .env.example with a generated AUTH_SECRET.
  * Runs automatically via the "postinstall" npm lifecycle hook.
  * Can also be run manually: pnpm setup
+ *
+ * Safe guards:
+ *   - Skips in CI environments (CI=true)
+ *   - Skips if .env.local already exists (never overwrites)
+ *   - Skips if .env.example is missing (stripped clones)
  */
-import { copyFileSync, existsSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 if (process.env.CI) {
   console.log("CI detected — skipping .env.local setup.");
@@ -13,7 +19,6 @@ if (process.env.CI) {
 }
 
 const target = ".env.local";
-
 if (existsSync(target)) {
   console.log(".env.local already exists — skipping setup.");
   process.exit(0);
@@ -24,5 +29,11 @@ if (!existsSync(".env.example")) {
   process.exit(0);
 }
 
-copyFileSync(".env.example", target);
-console.log("✓ .env.local created from .env.example.");
+const template = readFileSync(".env.example", "utf8");
+const secret = randomBytes(32).toString("base64");
+const output = template.replace("your-auth-secret-here", secret);
+writeFileSync(target, output, { mode: 0o600 });
+console.log("✓ .env.local created with a generated AUTH_SECRET.");
+console.log(
+  "  Fill in OAuth credentials in .env.local if your project uses authentication.",
+);
