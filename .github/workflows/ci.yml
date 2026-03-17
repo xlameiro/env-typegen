@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate docs source
+        run: pnpm generate
+
       - name: Security audit
         run: pnpm audit --audit-level=moderate
 
@@ -130,13 +133,19 @@ jobs:
       - name: Type-check env-typegen
         run: pnpm --filter @xlameiro/env-typegen type-check
 
+      - name: Test env-typegen (Node 18)
+        if: matrix.node == 18
+        run: pnpm --filter @xlameiro/env-typegen test
+
       - name: Test env-typegen with coverage
+        if: matrix.node != 18
         run: pnpm --filter @xlameiro/env-typegen test:coverage
 
       - name: Build env-typegen
         run: pnpm --filter @xlameiro/env-typegen build
 
       - name: Upload coverage to Codecov
+        if: matrix.node != 18
         uses: codecov/codecov-action@v5
         with:
           files: packages/env-typegen/coverage/lcov.info
