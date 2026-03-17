@@ -5,7 +5,7 @@ description: Configure env-typegen with reusable presets, command overrides, and
 
 ## Config file
 
-Create `env-typegen.config.ts` at your project root:
+Create `env-typegen.config.mjs` at your project root:
 
 ```typescript
 import { defineConfig } from "@xlameiro/env-typegen";
@@ -15,12 +15,15 @@ export default defineConfig({
   output: "env.generated.ts",
   generators: ["typescript", "zod"],
   format: true,
-  schemaFile: "env.contract.ts",
+  schemaFile: "env.contract.mjs",
   strict: true,
   diffTargets: [".env", ".env.example", ".env.production"],
   plugins: ["./plugins/custom-validator.mjs"],
 });
 ```
+
+For direct Node.js runtime execution, prefer `.mjs` or `.js` config files.
+TypeScript config files (`.ts`) require a runtime loader such as `tsx` or `ts-node`.
 
 ## Practical presets
 
@@ -39,7 +42,7 @@ export default defineConfig({
 
 ```typescript
 export default defineConfig({
-  schemaFile: "env.contract.ts",
+  schemaFile: "env.contract.mjs",
   strict: true,
   diffTargets: [".env", ".env.staging", ".env.production"],
 });
@@ -51,7 +54,7 @@ export default defineConfig({
 export default defineConfig({
   input: "apps/web/.env.example",
   output: "apps/web/src/env.generated.ts",
-  schemaFile: "config/env.contract.ts",
+  schemaFile: "config/env.contract.mjs",
   diffTargets: ["apps/web/.env", "apps/api/.env", "config/.env.production"],
 });
 ```
@@ -62,14 +65,14 @@ CLI flags override config file values when both are provided.
 
 | Flag          | Alias | Description                                    |
 | ------------- | ----- | ---------------------------------------------- |
-| `--input`     | `-i`  | Path to `.env.example` file                    |
+| `--input`     | `-i`  | Path to `.env.example` file(s). Repeatable     |
 | `--output`    | `-o`  | Output file path                               |
 | `--format`    | `-f`  | Generator(s): `ts`, `zod`, `t3`, `declaration` |
 | `--generator` | `-g`  | Alias for `--format`                           |
 | `--stdout`    |       | Write output to stdout instead of a file       |
 | `--dry-run`   |       | Preview output without writing files           |
 | `--no-format` |       | Skip Prettier formatting of output             |
-| `--silent`    | `-s`  | Suppress all console output                    |
+| `--silent`    | `-s`  | Suppress success logs                          |
 | `--watch`     | `-w`  | Re-generate on file changes                    |
 | `--config`    | `-c`  | Path to config file                            |
 | `--version`   | `-v`  | Print version                                  |
@@ -77,23 +80,62 @@ CLI flags override config file values when both are provided.
 
 ## Validation command flags (`check`, `diff`, `doctor`)
 
-| Flag                 | Commands      | Description                                                                          |
-| -------------------- | ------------- | ------------------------------------------------------------------------------------ |
-| `--env <path>`       | `check`, `doctor` | Environment source path to validate                                               |
-| `--targets <list>`   | `diff`, `doctor`  | Comma-separated env targets for drift analysis                                    |
-| `--contract <path>`  | all           | Contract file path (`env.contract.ts` / `.mjs` / `.js`)                           |
-| `--example <path>`   | all           | Fallback `.env.example` used when no contract file is available                    |
-| `--strict`           | all           | Validate extras as errors (default behavior)                                       |
-| `--no-strict`        | all           | Downgrade undeclared variables to warnings                                         |
-| `--json`             | all           | Emit compact machine-readable JSON report                                          |
-| `--json=pretty`      | all           | Emit pretty JSON report                                                            |
-| `--output-file <path>` | all         | Persist JSON report to file                                                        |
-| `--debug-values`     | all           | Include raw values in issues (unsafe for CI logs)                                  |
-| `--cloud-provider <name>` | all      | Add cloud snapshot source: `vercel`, `cloudflare`, `aws`                           |
-| `--cloud-file <path>` | all          | Cloud snapshot JSON file path                                                      |
-| `--plugin <path>`    | all           | Plugin module path (repeatable)                                                    |
-| `--config <path>`    | all           | Config file path                                                                   |
-| `--help`             | all           | Show command help                                                                  |
+| Flag                      | Commands          | Description                                                          |
+| ------------------------- | ----------------- | -------------------------------------------------------------------- |
+| `--env <path>`            | `check`, `doctor` | Environment source path to validate                                  |
+| `--targets <list>`        | `diff`, `doctor`  | Comma-separated env targets for drift analysis                       |
+| `--contract <path>`       | all               | Contract file path (`env.contract.mjs` / `.js` / `.ts`)              |
+| `--example <path>`        | all               | Fallback `.env.example` used when no contract file is available      |
+| `--strict`                | all               | Validate extras as errors (default behavior)                         |
+| `--no-strict`             | all               | Downgrade undeclared variables to warnings                           |
+| `--json`                  | all               | Emit compact machine-readable JSON report                            |
+| `--json=pretty`           | all               | Emit pretty JSON report                                              |
+| `--output-file <path>`    | all               | Persist JSON report to file                                          |
+| `--debug-values`          | all               | Include raw values in issues (unsafe for CI logs)                    |
+| `--cloud-provider <name>` | all               | Add cloud snapshot source: `vercel`, `cloudflare`, `aws`             |
+| `--cloud-file <path>`     | all               | Cloud snapshot JSON file path                                        |
+| `--plugin <path>`         | all               | Plugin module path (repeatable). Module must export a `name` string. |
+| `--config <path>`         | all               | Config file path                                                     |
+| `--help`                  | all               | Show command help                                                    |
+
+## Plugin contract
+
+Plugins are plain ESM modules with a default export matching the `EnvTypegenPlugin` shape:
+
+```typescript
+export default {
+  name: "my-plugin", // required
+
+  transformSource({ environment, values }) {
+    // optional — mutate or replace per-environment values before validation
+    return values;
+  },
+
+  transformContract(contract) {
+    // optional — mutate or replace the loaded contract before validation
+    return contract;
+  },
+
+  transformReport(report) {
+    // optional — post-process the validation report
+    return report;
+  },
+};
+```
+
+> The `name` field is **required**. Plugins without it are rejected at startup with a descriptive error.
+
+Register plugins via CLI or config file:
+
+```bash
+env-typegen check --env .env --contract env.contract.mjs --plugin ./plugins/my-plugin.mjs
+```
+
+```typescript
+export default defineConfig({
+  plugins: ["./plugins/my-plugin.mjs"],
+});
+```
 
 ## Precedence model
 
@@ -105,7 +147,7 @@ CLI flags override config file values when both are provided.
 
 - Strict mode is enabled by default for validation commands.
 - `diff` defaults to `.env,.env.example,.env.production` when targets are not provided.
-- When `--contract` is omitted, env-typegen auto-discovers `env.contract.ts`, `env.contract.mjs`, or `env.contract.js`.
+- When `--contract` is omitted, env-typegen auto-discovers `env.contract.mjs`, `env.contract.js`, or `env.contract.ts`.
 - All paths are resolved from your current working directory.
 
 ## FAQ

@@ -29,6 +29,8 @@ const config: KnipConfig = {
     "tailwindcss",
     // Peer dep via @tailwindcss/postcss — referenced in postcss.config.mjs at runtime
     "postcss",
+    // Used in qa-test/env-typegen.config.mjs (QA fixtures) — outside knip's project scope
+    "@xlameiro/env-typegen",
   ],
   ignoreBinaries: [
     // Intentionally used via `npx vercel` — not installed as a project dep to avoid

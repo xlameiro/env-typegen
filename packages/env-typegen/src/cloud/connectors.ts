@@ -87,7 +87,10 @@ export async function loadCloudSource(
     raw = await readFile(resolvedPath, "utf8");
   } catch (err) {
     if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
-      throw new Error(`File not found: ${options.filePath}`);
+      const displayPath = path.isAbsolute(options.filePath)
+        ? options.filePath
+        : `${options.filePath} (resolved: ${resolvedPath})`;
+      throw new Error(`File not found: ${displayPath}`);
     }
     throw err;
   }

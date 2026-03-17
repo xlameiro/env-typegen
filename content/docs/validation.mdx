@@ -10,23 +10,31 @@ Validation commands let you enforce contracts before deployment.
 
 ## Command decision guide
 
-| Command | Best when | Output style |
-| --- | --- | --- |
-| `check` | You want to validate one source against a contract | Pass/fail findings for one source |
-| `diff` | You need parity across multiple sources | Drift report across targets |
-| `doctor` | You want one consolidated diagnostic report | Combined findings + recommendations |
+| Command  | Best when                                          | Output style                        |
+| -------- | -------------------------------------------------- | ----------------------------------- |
+| `check`  | You want to validate one source against a contract | Pass/fail findings for one source   |
+| `diff`   | You need parity across multiple sources            | Drift report across targets         |
+| `doctor` | You want one consolidated diagnostic report        | Combined findings + recommendations |
 
 ## Contract file
 
-By default, env-typegen auto-discovers `env.contract.ts`, `env.contract.mjs`, or `env.contract.js`.
+By default, env-typegen auto-discovers `env.contract.mjs`, `env.contract.js`, or `env.contract.ts`.
 
 ```typescript
 export default {
   schemaVersion: 1,
   variables: {
     PORT: { expected: { type: "number" }, required: true, clientSide: false },
-    NEXT_PUBLIC_APP_URL: { expected: { type: "url" }, required: true, clientSide: true },
-    APP_VERSION: { expected: { type: "semver" }, required: true, clientSide: false },
+    NEXT_PUBLIC_APP_URL: {
+      expected: { type: "url" },
+      required: true,
+      clientSide: true,
+    },
+    APP_VERSION: {
+      expected: { type: "semver" },
+      required: true,
+      clientSide: false,
+    },
   },
 };
 ```
@@ -37,23 +45,23 @@ If no contract file is found, env-typegen can bootstrap from `.env.example`.
 
 ```bash
 # Validate one source
-env-typegen check --env .env --contract env.contract.ts
+env-typegen check --env .env --contract env.contract.mjs
 
 # Compare drift across standard targets
-env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.mjs
 
 # Aggregate diagnostics
-env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.mjs
 ```
 
 ## CI pipeline pattern
 
 ```bash
 # Pull request check
-env-typegen check --env .env --contract env.contract.ts --json --output-file reports/env-check.json
+env-typegen check --env .env --contract env.contract.mjs --json --output-file reports/env-check.json
 
 # Release gate drift scan
-env-typegen diff --targets .env,.env.staging,.env.production --contract env.contract.ts --json=pretty --output-file reports/env-drift.json
+env-typegen diff --targets .env,.env.staging,.env.production --contract env.contract.mjs --json=pretty --output-file reports/env-drift.json
 ```
 
 ## Strict mode
@@ -76,9 +84,9 @@ env-typegen check --env .env --json=pretty --output-file reports/env-check.json
 Use provider snapshots as validation inputs:
 
 ```bash
-env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
-env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.ts
-env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.mjs
+env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.mjs
+env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.mjs
 ```
 
 Supported providers: `vercel`, `cloudflare`, `aws`.
@@ -100,6 +108,8 @@ export default {
 Load them via `--plugin` flags or `plugins` in `env-typegen.config.ts`.
 
 All validation paths (`--env`, `--contract`, `--targets`, `--cloud-file`, `--output-file`) are resolved from your current working directory.
+For direct Node.js runtime execution, prefer `.mjs` or `.js` contract files.
+TypeScript contract files (`.ts`) require a runtime loader such as `tsx` or `ts-node`.
 
 ## FAQ
 

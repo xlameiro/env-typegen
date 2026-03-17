@@ -404,4 +404,38 @@ describe("runCli", () => {
     expect(output).toContain("Exit codes:");
     expect(output).toContain("status: ok or warn");
   });
+
+  // F1: generate subcommand alias regression test
+  it("should accept 'generate' as an explicit subcommand alias", async () => {
+    const inputPath = path.join(dir, ".env.example");
+    await writeFile(inputPath, "PORT=3000\n");
+    const outputPath = path.join(dir, "out-generate.ts");
+
+    // "generate" must NOT trigger "Unexpected argument" — it is an alias for the default mode.
+    await runCli([
+      "generate",
+      "-i",
+      inputPath,
+      "-o",
+      outputPath,
+      "--no-format",
+      "-f",
+      "typescript",
+    ]);
+
+    const content = await readFile(outputPath, "utf8");
+    expect(content).toContain("PORT");
+  });
+
+  it("should pass flags that follow 'generate' through to the generate pipeline", async () => {
+    const inputPath = path.join(dir, ".env.example");
+    await writeFile(inputPath, "API_KEY=secret\n");
+    const outputPath = path.join(dir, "out-gen-flags.ts");
+
+    await runCli(["generate", "-i", inputPath, "-o", outputPath, "--no-format", "-f", "zod"]);
+
+    const content = await readFile(outputPath, "utf8");
+    expect(content).toContain("z.string");
+    expect(content).toContain("API_KEY");
+  });
 });

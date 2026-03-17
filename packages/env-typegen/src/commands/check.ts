@@ -110,6 +110,13 @@ export async function runCheck(opts: RunCheckOptions): Promise<ReportStatus> {
   const contract = await resolveContract(opts.contract, opts.cwd);
   const parsed = parseEnvFile(opts.input);
 
+  // Surface duplicate-key warnings detected during parsing.
+  if (parsed.warnings !== undefined) {
+    for (const w of parsed.warnings) {
+      warn(`[${w.code}] ${w.message}`);
+    }
+  }
+
   const validatorOpts: ValidateContractOptions = {};
   if (opts.environment !== undefined) validatorOpts.environment = opts.environment;
   if (opts.strict !== undefined) validatorOpts.strict = opts.strict;

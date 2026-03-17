@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { readEnvFile, writeOutput } from "../../src/utils/file.js";
 
 describe("readEnvFile", () => {
@@ -30,6 +30,14 @@ describe("readEnvFile", () => {
 
   it("should throw a user-friendly 'File not found' error when the file does not exist", async () => {
     await expect(readEnvFile("/nonexistent/path/.env.missing")).rejects.toThrow("File not found:");
+  });
+
+  it("should include the resolved absolute path in the error when a relative path is not found", async () => {
+    const relativePath = ".env.nonexistent-typegen-test";
+    const resolved = path.resolve(relativePath);
+    await expect(readEnvFile(relativePath)).rejects.toThrow(
+      `File not found: ${relativePath} (resolved: ${resolved})`,
+    );
   });
 });
 

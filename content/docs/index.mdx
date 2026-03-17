@@ -12,25 +12,25 @@ env-typegen combines code generation and governance in one workflow:
 
 ## Why teams adopt env-typegen
 
-| Problem | How env-typegen helps |
-| --- | --- |
-| Manual env typing is repetitive | Generates TypeScript, Zod, t3-env, and declaration outputs |
-| Runtime config drifts silently | Validates sources with `check`, `diff`, and `doctor` |
-| CI pipelines need machine-readable signals | Emits compact or pretty JSON reports |
-| Multi-platform env parity is hard | Supports cloud snapshots from Vercel, Cloudflare, and AWS |
+| Problem                                    | How env-typegen helps                                      |
+| ------------------------------------------ | ---------------------------------------------------------- |
+| Manual env typing is repetitive            | Generates TypeScript, Zod, t3-env, and declaration outputs |
+| Runtime config drifts silently             | Validates sources with `check`, `diff`, and `doctor`       |
+| CI pipelines need machine-readable signals | Emits compact or pretty JSON reports                       |
+| Multi-platform env parity is hard          | Supports cloud snapshots from Vercel, Cloudflare, and AWS  |
 
 ## Capability map
 
-| Input | Output or action |
-| --- | --- |
-| `.env.example` | TypeScript env types |
-| `.env.example` | Zod v4 schemas (server/client split) |
-| `.env.example` | `@t3-oss/env-nextjs` `createEnv(...)` config |
-| `.env.example` | Ambient `.d.ts` for `NodeJS.ProcessEnv` |
-| Contract + source (`check`) | Compliance report for one environment |
-| Contract + targets (`diff`) | Drift report across multiple sources |
-| `check` + `diff` (`doctor`) | Prioritized diagnostics and recommendations |
-| Optional plugins | Contract, source, and report transformation hooks |
+| Input                       | Output or action                                  |
+| --------------------------- | ------------------------------------------------- |
+| `.env.example`              | TypeScript env types                              |
+| `.env.example`              | Zod v4 schemas (server/client split)              |
+| `.env.example`              | `@t3-oss/env-nextjs` `createEnv(...)` config      |
+| `.env.example`              | Ambient `.d.ts` for `NodeJS.ProcessEnv`           |
+| Contract + source (`check`) | Compliance report for one environment             |
+| Contract + targets (`diff`) | Drift report across multiple sources              |
+| `check` + `diff` (`doctor`) | Prioritized diagnostics and recommendations       |
+| Optional plugins            | Contract, source, and report transformation hooks |
 
 ## Quick start
 
@@ -39,18 +39,18 @@ pnpm add -D @xlameiro/env-typegen
 env-typegen --input .env.example --output env.generated.ts --format ts
 
 # Validate one env source against a contract (strict by default)
-env-typegen check --env .env --contract env.contract.ts
+env-typegen check --env .env --contract env.contract.mjs
 ```
 
 ## Choose your path
 
-| Goal | Start here |
-| --- | --- |
-| Generate typed outputs quickly | [Getting Started](/docs/getting-started) |
-| Enforce env governance in CI | [Validation & Governance](/docs/validation) |
-| Tune CLI behavior and defaults | [Configuration](/docs/configuration) |
-| Pick the right output format | [Generators](/docs/generators) |
-| Integrate with custom scripts | [Programmatic API](/docs/api) |
+| Goal                           | Start here                                  |
+| ------------------------------ | ------------------------------------------- |
+| Generate typed outputs quickly | [Getting Started](/docs/getting-started)    |
+| Enforce env governance in CI   | [Validation & Governance](/docs/validation) |
+| Tune CLI behavior and defaults | [Configuration](/docs/configuration)        |
+| Pick the right output format   | [Generators](/docs/generators)              |
+| Integrate with custom scripts  | [Programmatic API](/docs/api)               |
 
 ## Common use cases
 

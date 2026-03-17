@@ -9,7 +9,7 @@ import { parseEnvFileContent } from "./parser/env-parser.js";
 import type { ParsedEnvFile } from "./parser/types.js";
 import { readEnvFile, writeOutput } from "./utils/file.js";
 import { formatOutput } from "./utils/format.js";
-import { success } from "./utils/logger.js";
+import { success, warn } from "./utils/logger.js";
 
 /** Options accepted by the runGenerate pipeline. */
 export type RunGenerateOptions = {
@@ -50,11 +50,21 @@ function deriveOutputPath(base: string, generator: GeneratorName, isSingle: bool
  * each file produces a distinct set of outputs. The input's basename (without
  * extension) is used as the stem; directory and extension come from the
  * user-supplied `output` option.
+ *
+ * Dotfiles (e.g. `.env.example`, `.env.extra`) share the same stem under
+ * `path.basename(x, extname(x))` because both strip to `.env`, causing output
+ * collision. When the basename starts with `.`, we use the full name minus the
+ * leading dot, with internal dots replaced by dashes, as the stem:
+ *   `.env.example` → `env-example`
+ *   `.env.extra`   → `env-extra`
  */
 function deriveOutputBaseForInput(output: string, inputPath: string): string {
   const dir = path.dirname(output);
   const ext = path.extname(output);
-  const stem = path.basename(inputPath, path.extname(inputPath));
+  const rawBasename = path.basename(inputPath);
+  const stem = rawBasename.startsWith(".")
+    ? rawBasename.slice(1).replaceAll(".", "-")
+    : path.basename(inputPath, path.extname(inputPath));
   return path.join(dir, `${stem}${ext}`);
 }
 
@@ -107,6 +117,17 @@ async function persistOutput(params: {
 }
 
 /**
+ * Emit any parse-time warnings (e.g. `ENV_DUPLICATE_KEY`) via the warn logger.
+ * Extracted from `runGenerate` to reduce its cognitive complexity.
+ */
+function emitParserWarnings(parsed: ParsedEnvFile): void {
+  if (parsed.warnings === undefined) return;
+  for (const w of parsed.warnings) {
+    warn(`[${w.code}] ${w.message}`);
+  }
+}
+
+/**
  * Reads the input file(s), runs the requested generators, optionally formats each
  * output, and writes the results to disk.
  *
@@ -135,6 +156,9 @@ export async function runGenerate(options: RunGenerateOptions): Promise<void> {
       inputPath,
       inferenceRules === undefined ? undefined : { inferenceRules },
     );
+
+    // Surface duplicate-key warnings detected during parsing.
+    emitParserWarnings(parsed);
 
     for (const generator of generators) {
       let generated = buildOutput(generator, parsed);

@@ -139,7 +139,10 @@ async function loadExplicitConfig(
   userPath: string,
 ): Promise<EnvTypegenConfig | undefined> {
   if (!existsSync(configPath)) {
-    throw new Error(`Config file not found: ${userPath}`);
+    const displayPath = path.isAbsolute(userPath)
+      ? userPath
+      : `${userPath} (resolved: ${configPath})`;
+    throw new Error(`Config file not found: ${displayPath}`);
   }
   const configDir = path.dirname(configPath);
   const mod = (await import(pathToFileURL(configPath).href)) as {
@@ -150,6 +153,12 @@ async function loadExplicitConfig(
 }
 
 export async function runCli(argv: string[] = process.argv.slice(2)): Promise<void> {
+  // "generate" is the implicit default subcommand — accept it explicitly as an alias
+  // so `env-typegen generate -i ...` behaves the same as `env-typegen -i ...`.
+  if (argv[0] === "generate") {
+    argv = argv.slice(1);
+  }
+
   const maybeSubcommand = argv[0];
   if (maybeSubcommand !== undefined && VALIDATION_SUBCOMMANDS.has(maybeSubcommand)) {
     await runValidationSubcommand(maybeSubcommand as ValidationSubcommand, argv.slice(1));

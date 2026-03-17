@@ -12,7 +12,10 @@ export async function readEnvFile(filePath: string): Promise<string> {
     return await readFile(resolved, "utf8");
   } catch (err) {
     if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
-      throw new Error(`File not found: ${filePath}`);
+      const displayPath = path.isAbsolute(filePath)
+        ? filePath
+        : `${filePath} (resolved: ${resolved})`;
+      throw new Error(`File not found: ${displayPath}`);
     }
     throw err;
   }

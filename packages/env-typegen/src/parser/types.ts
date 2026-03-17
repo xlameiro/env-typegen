@@ -64,6 +64,22 @@ export type ParsedEnvVar = {
 };
 
 /**
+ * A non-fatal issue detected during parsing (e.g. a duplicate key).
+ * Collected in {@link ParsedEnvFile.warnings} when the parser encounters
+ * degenerate-but-valid input.
+ */
+export type ParsedEnvWarning = {
+  /** Machine-readable code for programmatic handling. */
+  code: "ENV_DUPLICATE_KEY";
+  /** Human-readable description of the issue. */
+  message: string;
+  /** 1-based line number of the earlier (discarded) occurrence. */
+  line: number;
+  /** The duplicated variable name. */
+  key: string;
+};
+
+/**
  * The complete result of parsing a single .env.example file.
  * Passed to generators to produce TypeScript / Zod / t3-env output.
  */
@@ -76,4 +92,10 @@ export type ParsedEnvFile = {
 
   /** Unique group names found in the file, in order of appearance */
   groups: string[];
+
+  /**
+   * Non-fatal issues detected during parsing (e.g. duplicate keys).
+   * Undefined when no issues were found so the field is omitted in clean parses.
+   */
+  warnings?: ParsedEnvWarning[];
 };

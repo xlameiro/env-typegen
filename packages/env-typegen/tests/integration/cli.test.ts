@@ -132,4 +132,32 @@ describe("cli integration", () => {
     expect(content1).toContain("DATABASE_URL");
     expect(content2).toContain("REDIS_URL");
   });
+
+  // F2: dotfile collision regression test
+  it("should produce distinct output files for dotfile inputs with the same .env prefix", async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "env-typegen-int-test-"));
+    // Both inputs are dotfiles sharing the ".env" stem — the old code would
+    // derive the same stem (".env") for both, causing the second to overwrite first.
+    const input1 = path.join(dir, ".env.example");
+    const input2 = path.join(dir, ".env.extra");
+    const outputPath = path.join(dir, "out.ts");
+
+    await writeFile(input1, "DATABASE_URL=postgres://localhost/db\n", "utf8");
+    await writeFile(input2, "REDIS_URL=redis://localhost\n", "utf8");
+
+    runBuiltCli(
+      ["--input", input1, "--input", input2, "--output", outputPath, "--generator", "typescript"],
+      PACKAGE_ROOT,
+    );
+
+    // .env.example → env-example.ts ; .env.extra → env-extra.ts
+    const content1 = await readFile(path.join(dir, "env-example.ts"), "utf8");
+    const content2 = await readFile(path.join(dir, "env-extra.ts"), "utf8");
+
+    expect(content1).toContain("DATABASE_URL");
+    expect(content2).toContain("REDIS_URL");
+    // Ensure neither file contains the other's content (no overwrite)
+    expect(content1).not.toContain("REDIS_URL");
+    expect(content2).not.toContain("DATABASE_URL");
+  });
 });

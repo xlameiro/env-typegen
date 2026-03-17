@@ -28,7 +28,7 @@ When multiple formats are specified, each generator writes a separate file:
 - `env.generated.typescript.ts`
 - `env.generated.zod.ts`
 - `env.generated.t3.ts`
-- `env.generated.d.ts`
+- `env.generated.declaration.d.ts`
 
 ## 3) Enable watch mode during local development
 
@@ -40,14 +40,18 @@ env-typegen -i .env.example -o env.generated.ts -f ts --watch
 
 ## 4) Create a validation contract
 
-Create `env.contract.ts` in your project root:
+Create `env.contract.mjs` in your project root:
 
 ```typescript
 export default {
   schemaVersion: 1,
   variables: {
     PORT: { expected: { type: "number" }, required: true, clientSide: false },
-    NEXT_PUBLIC_APP_URL: { expected: { type: "url" }, required: true, clientSide: true },
+    NEXT_PUBLIC_APP_URL: {
+      expected: { type: "url" },
+      required: true,
+      clientSide: true,
+    },
   },
 };
 ```
@@ -56,13 +60,13 @@ export default {
 
 ```bash
 # Validate one environment source
-env-typegen check --env .env --contract env.contract.ts
+env-typegen check --env .env --contract env.contract.mjs
 
 # Compare drift across multiple sources
-env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.mjs
 
 # Aggregate and prioritize diagnostics
-env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.mjs
 ```
 
 ## 6) Export JSON output for CI pipelines
@@ -70,6 +74,9 @@ env-typegen doctor --env .env --targets .env,.env.example,.env.production --cont
 ```bash
 env-typegen check --env .env --json --output-file reports/env-check.json
 ```
+
+For direct Node.js runtime execution, prefer `.mjs` or `.js` for contract files.
+TypeScript contract files (`.ts`) require a runtime loader such as `tsx` or `ts-node`.
 
 Strict mode is enabled by default for validation commands. Use `--no-strict` to downgrade undeclared variables to warnings.
 

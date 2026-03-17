@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import type { InferenceRule } from "../inferrer/rules.js";
 import { inferType } from "../inferrer/type-inferrer.js";
 import { parseCommentBlock } from "./comment-parser.js";
-import type { ParsedEnvFile, ParsedEnvVar } from "./types.js";
+import type { ParsedEnvFile, ParsedEnvVar, ParsedEnvWarning } from "./types.js";
 
 export { inferType } from "../inferrer/type-inferrer.js";
 
@@ -84,6 +84,39 @@ function buildParsedVar(
 }
 
 /**
+ * Deduplicate parsed variables with last-wins semantics (mirrors dotenv
+ * behaviour). Returns both the deduplicated list and any
+ * `ENV_DUPLICATE_KEY` warnings for callers to surface to the user.
+ *
+ * Extracted from `parseEnvFileContent` to reduce its cognitive complexity.
+ */
+function deduplicateVars(vars: ParsedEnvVar[]): {
+  deduped: ParsedEnvVar[];
+  warnings: ParsedEnvWarning[];
+} {
+  const seenKeys = new Set<string>();
+  const deduped: ParsedEnvVar[] = [];
+  const warnings: ParsedEnvWarning[] = [];
+  for (let i = vars.length - 1; i >= 0; i--) {
+    const variable = vars[i];
+    if (variable === undefined) continue;
+    if (seenKeys.has(variable.key)) {
+      // This earlier occurrence is discarded (last-wins) — emit a warning.
+      warnings.push({
+        code: "ENV_DUPLICATE_KEY",
+        message: `Duplicate key "${variable.key}" at line ${variable.lineNumber} — last occurrence wins.`,
+        line: variable.lineNumber,
+        key: variable.key,
+      });
+    } else {
+      seenKeys.add(variable.key);
+      deduped.unshift(variable);
+    }
+  }
+  return { deduped, warnings };
+}
+
+/**
  * Parse the string content of a `.env.example` file into a `ParsedEnvFile`.
  *
  * Exposed separately from `parseEnvFile` to enable unit testing without
@@ -154,17 +187,15 @@ export function parseEnvFileContent(
 
   // BUG-06: deduplicate keys — last-wins mirrors dotenv behaviour and prevents
   // "Duplicate identifier" TypeScript errors in generated output.
-  const seenKeys = new Set<string>();
-  const deduped: ParsedEnvVar[] = [];
-  for (let i = vars.length - 1; i >= 0; i--) {
-    const variable = vars[i];
-    if (variable !== undefined && !seenKeys.has(variable.key)) {
-      seenKeys.add(variable.key);
-      deduped.unshift(variable);
-    }
-  }
+  // See deduplicateVars() for ENV_DUPLICATE_KEY warning collection.
+  const { deduped, warnings } = deduplicateVars(vars);
 
-  return { filePath, vars: deduped, groups };
+  return {
+    filePath,
+    vars: deduped,
+    groups,
+    ...(warnings.length > 0 && { warnings }),
+  };
 }
 
 /**

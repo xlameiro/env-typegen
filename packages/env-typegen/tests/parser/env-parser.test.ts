@@ -297,3 +297,48 @@ describe("BUG-06 — duplicate key deduplication (last-wins)", () => {
     expect(result.vars[0]?.rawValue).toBe("third");
   });
 });
+
+// ---------------------------------------------------------------------------
+// F4 — ENV_DUPLICATE_KEY warnings
+// ---------------------------------------------------------------------------
+
+describe("parseEnvFileContent — ENV_DUPLICATE_KEY warnings", () => {
+  it("should emit a warning for each duplicated key", () => {
+    const result = parseEnvFileContent(
+      "PORT=3000\nDATABASE_URL=postgres://\nPORT=4000\n",
+      "test.env",
+    );
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings?.[0]?.code).toBe("ENV_DUPLICATE_KEY");
+    expect(result.warnings?.[0]?.key).toBe("PORT");
+  });
+
+  it("should include the earlier (discarded) line number in the warning", () => {
+    // PORT appears at line 1 (discarded) and line 3 (kept).
+    const result = parseEnvFileContent("PORT=3000\nFOO=bar\nPORT=4000\n", "test.env");
+    expect(result.warnings?.[0]?.line).toBe(1);
+  });
+
+  it("should emit one warning per extra occurrence (key appears three times → two warnings)", () => {
+    const result = parseEnvFileContent("K=1\nK=2\nK=3\n", "test.env");
+    expect(result.warnings).toHaveLength(2);
+    expect(result.warnings?.every((w) => w.code === "ENV_DUPLICATE_KEY")).toBe(true);
+    expect(result.warnings?.every((w) => w.key === "K")).toBe(true);
+  });
+
+  it("should keep the last occurrence (last-wins) when a warning is emitted", () => {
+    const result = parseEnvFileContent("PORT=3000\nPORT=4000\n", "test.env");
+    const portVar = result.vars.find((v) => v.key === "PORT");
+    expect(portVar?.rawValue).toBe("4000");
+  });
+
+  it("should return no warnings when all keys are unique", () => {
+    const result = parseEnvFileContent("PORT=3000\nDATABASE_URL=postgres://\n", "test.env");
+    expect(result.warnings).toBeUndefined();
+  });
+
+  it("should include a descriptive message mentioning the key name in the warning", () => {
+    const result = parseEnvFileContent("MY_KEY=a\nMY_KEY=b\n", "test.env");
+    expect(result.warnings?.[0]?.message).toContain("MY_KEY");
+  });
+});

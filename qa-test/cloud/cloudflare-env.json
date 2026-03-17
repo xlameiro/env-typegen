@@ -1,0 +1,4 @@
+{
+  "NEXT_PUBLIC_APP_URL": "https://cloudflare.example.com",
+  "NODE_ENV": "production"
+}

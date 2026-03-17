@@ -171,7 +171,10 @@ async function loadCommandConfig(
 
   const resolvedPath = path.resolve(configPath);
   if (!existsSync(resolvedPath)) {
-    throw new Error(`Config file not found: ${configPath}`);
+    const displayPath = path.isAbsolute(configPath)
+      ? configPath
+      : `${configPath} (resolved: ${resolvedPath})`;
+    throw new Error(`Config file not found: ${displayPath}`);
   }
   const configDir = path.dirname(resolvedPath);
   const moduleValue = (await import(pathToFileURL(resolvedPath).href)) as LoadCommandConfigModule;
