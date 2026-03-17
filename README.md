@@ -2,8 +2,13 @@
 
 Generate typed environment artifacts and enforce environment contracts from one source of truth.
 
+> If this project helps your team prevent config drift, consider starring the repository.
+
 [![npm version](https://img.shields.io/npm/v/@xlameiro/env-typegen)](https://www.npmjs.com/package/@xlameiro/env-typegen)
+[![npm downloads](https://img.shields.io/npm/dm/@xlameiro/env-typegen)](https://www.npmjs.com/package/@xlameiro/env-typegen)
 [![CI](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml/badge.svg)](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/xlameiro/env-typegen?style=social)](https://github.com/xlameiro/env-typegen/stargazers)
+[![Maintainer](https://img.shields.io/badge/maintainer-xlameiro-0ea5e9)](https://github.com/xlameiro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Why env-typegen
@@ -43,6 +48,17 @@ npx env-typegen -i .env.example -o src/env.generated.ts
 
 # Validate one env source against a contract
 npx env-typegen check --env .env --contract env.contract.ts
+```
+
+## Quick adoption path
+
+1. Generate `ts` + `zod` outputs from `.env.example`.
+2. Add `check` in CI as your first contract gate.
+3. Add `diff` and `doctor` when multiple environments are involved.
+
+```bash
+npx env-typegen -i .env.example -o src/env.generated.ts -f ts -f zod
+npx env-typegen check --env .env --contract env.contract.ts --json --output-file reports/env-check.json
 ```
 
 ## Governance workflow commands
@@ -86,6 +102,24 @@ npx env-typegen check --env .env --json --output-file reports/env-check.json
 
 - [`llms.txt`](llms.txt): concise capability and navigation index for LLM crawlers
 - [`llms-full.txt`](llms-full.txt): expanded, task-oriented map for agentic consumers
+
+## Trust signals
+
+- Maintained by [@xlameiro](https://github.com/xlameiro)
+- CI status is public in [`ci.yml`](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml)
+- Security disclosure process in [`SECURITY.md`](SECURITY.md)
+- Contribution workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+## KPI tracking (stars growth)
+
+Track these weekly and ship one improvement action per metric trend.
+
+| Metric                                           | Why it matters                                                    | Target direction                          | Collection source/tool                                             |
+| ------------------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| Repo unique visitors                             | Shows top-of-funnel visibility from posts, shares, and docs links | Increase week over week                   | GitHub Insights → Traffic                                          |
+| Star conversion rate (`stars ÷ unique visitors`) | Shows if your README/value proposition turns visits into stars    | Increase (aim 2–5% as an early benchmark) | GitHub Insights traffic + stars count (manual calc or spreadsheet) |
+| Organic docs clicks                              | Shows SEO reach for problem-intent queries                        | Increase month over month                 | Google Search Console (queries/pages)                              |
+| Core Web Vitals pass rate (LCP/INP/CLS)          | Better performance improves retention and search ranking          | Increase pass rate; decrease LCP/INP/CLS  | Search Console CWV + Lighthouse CI/PageSpeed Insights              |
 
 ## Contributing
 

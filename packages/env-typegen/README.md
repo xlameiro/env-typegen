@@ -1,9 +1,14 @@
 # env-typegen
 
 > From `.env.example` to typed outputs and contract-based environment governance.
+>
+> If this package saves debugging time for your team, consider starring the repository.
 
 [![npm version](https://badge.fury.io/js/%40xlameiro%2Fenv-typegen.svg)](https://npmjs.com/package/@xlameiro/env-typegen)
+[![npm downloads](https://img.shields.io/npm/dm/@xlameiro/env-typegen)](https://npmjs.com/package/@xlameiro/env-typegen)
 [![CI](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml/badge.svg)](https://github.com/xlameiro/env-typegen/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/xlameiro/env-typegen?style=social)](https://github.com/xlameiro/env-typegen/stargazers)
+[![Maintainer](https://img.shields.io/badge/maintainer-xlameiro-0ea5e9)](https://github.com/xlameiro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## What this package does
@@ -133,6 +138,13 @@ Start with `check`. Add `diff` or `doctor` as your pipeline maturity grows.
 - Website docs source: [`/content/docs`](../../content/docs)
 - Package docs index: [`/packages/env-typegen/docs`](./docs)
 - Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
+
+## Trust signals
+
+- Maintained by [@xlameiro](https://github.com/xlameiro)
+- Security policy: [`SECURITY.md`](../../SECURITY.md)
+- Contribution guide: [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+- Published releases: [npm package page](https://www.npmjs.com/package/@xlameiro/env-typegen)
 
 ## Status
 

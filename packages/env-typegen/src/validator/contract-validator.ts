@@ -92,7 +92,10 @@ function checkInvalidType(
       break;
     }
     case "boolean": {
-      if (value !== "true" && value !== "false") {
+      // BUG-05: align allowlist with validation/engine.ts — both validators must accept
+      // the same boolean representations to avoid inconsistent check results.
+      const lower = value.toLowerCase();
+      if (!["true", "false", "1", "0", "yes", "no"].includes(lower)) {
         return {
           code: "ENV_INVALID_TYPE",
           key: variable.key,
@@ -299,10 +302,14 @@ export function validateContract(
 
   // ---------------------------------------------------------------------------
   // Check 1: ENV_MISSING — required contract vars absent from the env file
+  //           or present with an empty value (BUG-04: KEY= should be treated
+  //           the same as a missing key for required variables).
   // ---------------------------------------------------------------------------
   for (const entry of contract.vars) {
     if (!entry.required) continue;
-    if (parsedByKey.has(entry.name)) continue;
+    const existing = parsedByKey.get(entry.name);
+    // Present with a non-empty value → satisfied
+    if (existing !== undefined && existing.rawValue !== "") continue;
 
     issues.push({
       code: "ENV_MISSING",

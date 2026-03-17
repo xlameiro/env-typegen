@@ -14,10 +14,13 @@ describe("CONTRACT_FILE_NAMES", () => {
     expect(CONTRACT_FILE_NAMES).toHaveLength(3);
   });
 
-  it("should list filenames in TypeScript-first search order", () => {
-    expect(CONTRACT_FILE_NAMES[0]).toBe("env.contract.ts");
-    expect(CONTRACT_FILE_NAMES[1]).toBe("env.contract.mjs");
-    expect(CONTRACT_FILE_NAMES[2]).toBe("env.contract.js");
+  it("should list filenames in ESM-first search order (BUG-01: .mjs/.js before .ts)", () => {
+    // .ts files cannot be dynamically imported by Node.js at runtime without a loader.
+    // Searching .mjs first avoids a confusing ERR_UNKNOWN_FILE_EXTENSION failure
+    // when both .ts and .mjs files coexist in the same directory.
+    expect(CONTRACT_FILE_NAMES[0]).toBe("env.contract.mjs");
+    expect(CONTRACT_FILE_NAMES[1]).toBe("env.contract.js");
+    expect(CONTRACT_FILE_NAMES[2]).toBe("env.contract.ts");
   });
 });
 
@@ -50,5 +53,30 @@ describe("loadContract", () => {
   it("should return undefined for a non-existent directory", async () => {
     const result = await loadContract(path.join(tmpdir(), "__env_typegen_nonexistent__"));
     expect(result).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUG-01 — .ts contract files must throw an actionable error
+// ---------------------------------------------------------------------------
+
+describe("BUG-01 — .ts contract file produces an actionable error", () => {
+  it("should throw an error with a .mjs migration suggestion when only env.contract.ts exists", async () => {
+    // Pre-fix: Node.js threw ERR_UNKNOWN_FILE_EXTENSION with no guidance.
+    // Post-fix: env-typegen throws a human-readable error before calling import().
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const dir = await mkdtemp(path.join(tmpdir(), "env-typegen-bug01-"));
+    // Write a minimal .ts contract so existsSync() returns true for it.
+    await writeFile(path.join(dir, "env.contract.ts"), "export default { vars: [] };\n", "utf8");
+
+    await expect(loadContract(dir)).rejects.toThrow(/Rename it to.*\.mjs/);
+  });
+
+  it("should include the original .ts file path in the error message", async () => {
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const dir = await mkdtemp(path.join(tmpdir(), "env-typegen-bug01-path-"));
+    await writeFile(path.join(dir, "env.contract.ts"), "export default { vars: [] };\n", "utf8");
+
+    await expect(loadContract(dir)).rejects.toThrow(/env\.contract\.ts/);
   });
 });

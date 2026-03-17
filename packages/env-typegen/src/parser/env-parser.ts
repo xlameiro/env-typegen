@@ -152,7 +152,19 @@ export function parseEnvFileContent(
     commentBlock = [];
   }
 
-  return { filePath, vars, groups };
+  // BUG-06: deduplicate keys — last-wins mirrors dotenv behaviour and prevents
+  // "Duplicate identifier" TypeScript errors in generated output.
+  const seenKeys = new Set<string>();
+  const deduped: ParsedEnvVar[] = [];
+  for (let i = vars.length - 1; i >= 0; i--) {
+    const variable = vars[i];
+    if (variable !== undefined && !seenKeys.has(variable.key)) {
+      seenKeys.add(variable.key);
+      deduped.unshift(variable);
+    }
+  }
+
+  return { filePath, vars: deduped, groups };
 }
 
 /**

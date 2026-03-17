@@ -76,11 +76,14 @@ describe("runGenerate", () => {
 
   it("should write a declaration file to the output path", async () => {
     const input = await makeInput("API_URL=https://api.example.com\n");
-    const output = path.join(dir, "env.generated.d.ts");
+    // BUG-03: when a .ts base path is passed with the declaration generator in single-format
+    // mode, the extension is coerced to .d.ts so TypeScript treats it as an ambient declaration.
+    const outputBase = path.join(dir, "env.generated.ts");
+    const expectedOutput = path.join(dir, "env.generated.d.ts");
 
-    await runGenerate(opts({ input, output, generators: ["declaration"] }));
+    await runGenerate(opts({ input, output: outputBase, generators: ["declaration"] }));
 
-    const content = await readFile(output, "utf8");
+    const content = await readFile(expectedOutput, "utf8");
     expect(content).toContain("API_URL");
     expect(content).toContain("ProcessEnv");
   });

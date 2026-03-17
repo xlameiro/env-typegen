@@ -79,7 +79,10 @@ export const inferenceRules: readonly InferenceRule[] = [
   {
     id: "P10_url_scheme",
     priority: 10,
-    match: (_key: string, value: string) => /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value),
+    // BUG-02: comma-separated URL lists (e.g. ALLOWED_ORIGINS) must NOT be inferred as
+    // a single URL — they don't pass z.string().url() or new URL() validation at runtime.
+    match: (_key: string, value: string) =>
+      !value.includes(",") && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value),
     type: "url",
   },
   {

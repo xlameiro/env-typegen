@@ -6,12 +6,15 @@ import type { EnvContract } from "./schema-model.js";
 
 /**
  * Contract file names searched in order when calling {@link loadContract}.
- * Mirrors the search strategy used by `loadConfig` in `config.ts`.
+ * BUG-01: .mjs and .js are searched before .ts — TypeScript files cannot be
+ * loaded by Node.js import() at runtime without a loader like tsx or ts-node.
+ * Discovering a .mjs file first prevents a confusing ERR_UNKNOWN_FILE_EXTENSION
+ * failure when both .ts and .mjs files coexist in the same directory.
  */
 export const CONTRACT_FILE_NAMES = [
-  "env.contract.ts",
   "env.contract.mjs",
   "env.contract.js",
+  "env.contract.ts",
 ] as const;
 
 /**
@@ -62,6 +65,15 @@ export async function loadContract(cwd: string = process.cwd()): Promise<EnvCont
   for (const name of CONTRACT_FILE_NAMES) {
     const filePath = path.resolve(cwd, name);
     if (existsSync(filePath)) {
+      // BUG-01: .ts files cannot be imported by Node.js at runtime without tsx / ts-node.
+      // Produce an actionable error instead of the raw ERR_UNKNOWN_FILE_EXTENSION crash.
+      if (filePath.endsWith(".ts")) {
+        throw new Error(
+          `Contract file ${filePath} is a TypeScript file and cannot be loaded at runtime by Node.js.\n` +
+            `Rename it to ${filePath.replace(/\.ts$/, ".mjs")} and use ESM syntax (export default ...), ` +
+            `or run via \`tsx\` / \`ts-node\` as a loader.`,
+        );
+      }
       const fileUrl = pathToFileURL(filePath).href;
       const mod = (await import(fileUrl)) as { default?: EnvContract };
       return mod.default;

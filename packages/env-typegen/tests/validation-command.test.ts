@@ -11,7 +11,9 @@ async function createTempDir(prefix: string): Promise<string> {
 }
 
 async function createContractFile(dir: string): Promise<string> {
-  const filePath = path.join(dir, "env.contract.ts");
+  // BUG-01: use .mjs extension — .ts files cannot be dynamically imported by Node.js
+  // at runtime without a loader, so tests that write contract fixtures must use .mjs.
+  const filePath = path.join(dir, "env.contract.mjs");
   await writeFile(
     filePath,
     [

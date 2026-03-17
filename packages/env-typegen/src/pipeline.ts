@@ -26,7 +26,16 @@ export type RunGenerateOptions = {
 
 /** Derive the output file path for a generator when multiple generators are in use. */
 function deriveOutputPath(base: string, generator: GeneratorName, isSingle: boolean): string {
-  if (isSingle) return base;
+  if (isSingle) {
+    // BUG-03: declaration generator must always produce a .d.ts file so TypeScript
+    // and IDEs recognise it as an ambient declaration, even in single-format mode.
+    if (generator === "declaration" && !base.endsWith(".d.ts")) {
+      const ext = path.extname(base);
+      const noExt = ext.length > 0 ? base.slice(0, -ext.length) : base;
+      return `${noExt}.d.ts`;
+    }
+    return base;
+  }
   const ext = path.extname(base);
   const noExt = ext.length > 0 ? base.slice(0, -ext.length) : base;
   // The declaration generator produces ambient TypeScript declarations (.d.ts).

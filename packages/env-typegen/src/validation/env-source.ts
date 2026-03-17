@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { warn } from "../utils/logger.js";
+
 type LoadEnvSourceOptions = {
   filePath: string;
   allowMissing?: boolean;
@@ -48,6 +50,9 @@ export async function loadEnvSource(
       "code" in error_ &&
       error_.code === "ENOENT"
     ) {
+      // UX-02: warn explicitly so users know the file is absent instead of silently
+      // treating a typo'd path as an empty environment.
+      warn(`Target file not found: ${options.filePath} — treating as empty`);
       return {};
     }
     throw error_;

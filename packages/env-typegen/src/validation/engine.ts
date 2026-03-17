@@ -251,10 +251,10 @@ function checkContractVariable(
 ): void {
   const { options, issues } = context;
   const value = options.values[key];
-  // A key that is entirely absent from the file → undefined → truly missing.
-  // A key present with an empty value (KEY=) → "" → present but empty; must NOT
-  // be reported as ENV_MISSING because the user deliberately declared the key.
-  const hasValue = value !== undefined;
+  // BUG-04: for required variables, an empty string value (KEY=) is treated the
+  // same as a completely absent key — both should produce ENV_MISSING.
+  // For optional variables, an empty value (KEY=) is intentional and valid.
+  const hasValue = value !== undefined && (value !== "" || !variable.required);
 
   if (variable.required && !hasValue) {
     issues.push(
@@ -381,7 +381,17 @@ function diffTypeConflicts(key: string, present: SourceEntry[], context: DiffKey
   for (const entry of present) {
     typeBySource.set(entry.sourceName, detectReceivedType(entry.value ?? ""));
   }
-  if (new Set(typeBySource.values()).size <= 1) return;
+  // BUG-07: exclude "unknown" (empty-value entries) when evaluating type diversity.
+  // An empty value means "not set" and is already covered by ENV_MISSING issues.
+  // Comparing "unknown" against real types produces misleading ENV_CONFLICT messages
+  // where both expected and received appear as the same type (e.g. expected=string
+  // received=string) because the conflict is between an empty env and a non-empty
+  // one, not between two genuinely different types.
+  const knownTypes = new Set<string>();
+  for (const t of typeBySource.values()) {
+    if (t !== "unknown") knownTypes.add(t);
+  }
+  if (knownTypes.size <= 1) return;
   for (const [sourceName, detectedType] of typeBySource.entries()) {
     issues.push(
       createIssue({

@@ -19,7 +19,9 @@ type ContractModule = {
 };
 
 const SECRET_KEY_RE = /(SECRET|TOKEN|PASSWORD|PRIVATE|API_KEY|ACCESS_KEY|CLIENT_SECRET)/i;
-const CONTRACT_FILE_NAMES = ["env.contract.ts", "env.contract.mjs", "env.contract.js"] as const;
+// BUG-01: search .mjs / .js before .ts — TypeScript files cannot be dynamically
+// imported by Node.js at runtime without a loader (tsx / ts-node).
+const CONTRACT_FILE_NAMES = ["env.contract.mjs", "env.contract.js", "env.contract.ts"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -161,6 +163,15 @@ export async function loadValidationContract(
     contractPath === undefined ? discoveredContractPath : path.resolve(cwd, contractPath);
 
   if (resolvedContractPath !== undefined && existsSync(resolvedContractPath)) {
+    // BUG-01: .ts files cannot be dynamically imported by Node.js without a loader.
+    // Detect early and emit an actionable message pointing to the .mjs alternative.
+    if (resolvedContractPath.endsWith(".ts")) {
+      throw new Error(
+        `Contract file ${resolvedContractPath} is a TypeScript file and cannot be loaded at runtime by Node.js.\n` +
+          `Rename it to ${resolvedContractPath.replace(/\.ts$/, ".mjs")} and use ESM syntax (export default ...), ` +
+          `or run via \`tsx\` / \`ts-node\` as a loader.`,
+      );
+    }
     const moduleUrl = pathToFileURL(resolvedContractPath).href;
     const moduleValue = (await import(moduleUrl)) as ContractModule;
     const candidate = moduleValue.default ?? moduleValue.contract;

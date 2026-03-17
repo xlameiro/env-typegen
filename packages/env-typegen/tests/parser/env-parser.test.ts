@@ -261,3 +261,39 @@ describe("parseEnvFile — reads fixture files from disk", () => {
     expect(flagsVar?.isClientSide).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// BUG-06 — duplicate keys must be deduplicated with last-wins semantics
+// ---------------------------------------------------------------------------
+
+describe("BUG-06 — duplicate key deduplication (last-wins)", () => {
+  it("should keep only the last occurrence when a key appears twice", () => {
+    const content = "PORT=3000\nPORT=4000\n";
+    const result = parseEnvFileContent(content, "/test.env");
+    expect(result.vars).toHaveLength(1);
+    expect(result.vars[0]?.rawValue).toBe("4000");
+  });
+
+  it("should preserve the order of first occurrence when deduplicating", () => {
+    // HOST comes first, PORT is duplicated (last value wins), DEBUG comes last.
+    const content = "HOST=localhost\nPORT=3000\nPORT=4000\nDEBUG=false\n";
+    const result = parseEnvFileContent(content, "/test.env");
+    const keys = result.vars.map((v) => v.key);
+    expect(keys).toEqual(["HOST", "PORT", "DEBUG"]);
+    expect(result.vars.find((v) => v.key === "PORT")?.rawValue).toBe("4000");
+  });
+
+  it("should not modify the result when all keys are unique (non-regression)", () => {
+    const content = "A=1\nB=2\nC=3\n";
+    const result = parseEnvFileContent(content, "/test.env");
+    expect(result.vars).toHaveLength(3);
+    expect(result.vars.map((v) => v.key)).toEqual(["A", "B", "C"]);
+  });
+
+  it("should handle a key that is repeated three or more times", () => {
+    const content = "KEY=first\nKEY=second\nKEY=third\n";
+    const result = parseEnvFileContent(content, "/test.env");
+    expect(result.vars).toHaveLength(1);
+    expect(result.vars[0]?.rawValue).toBe("third");
+  });
+});

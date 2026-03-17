@@ -50,3 +50,28 @@ describe("inferType (key-based)", () => {
     expect(inferType("API_PORT", "true")).toBe("number");
   });
 });
+
+// ---------------------------------------------------------------------------
+// BUG-02 — comma-separated URL values must not be inferred as url
+// ---------------------------------------------------------------------------
+
+describe("BUG-02 — comma-separated URLs must not be inferred as url type", () => {
+  it("should infer string for a comma-separated list of URLs", () => {
+    // Pre-fix: the URL regex matched the leading scheme fragment and returned "url".
+    // Values like ALLOWED_ORIGINS=https://a.com,https://b.com are CORS allowlists
+    // that should be treated as plain strings, not URL types.
+    expect(inferType("ALLOWED_ORIGINS", "https://example.com,https://www.example.com")).toBe(
+      "string",
+    );
+  });
+
+  it("should still infer url for a single valid URL value (non-regression)", () => {
+    expect(inferType("HOMEPAGE_URL_VALUE", "https://example.com")).toBe("url");
+  });
+
+  it("should infer string for comma-separated values with mixed schemes", () => {
+    expect(inferType("CORS_ORIGINS", "http://localhost:3000,https://app.example.com")).toBe(
+      "string",
+    );
+  });
+});

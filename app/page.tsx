@@ -13,9 +13,9 @@ import type { Route } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Type-safe environment contracts for TypeScript teams",
+  title: "Type-safe env contracts and CI drift checks",
   description:
-    "Generate TypeScript, Zod, t3-env, and declaration outputs from .env.example, then enforce runtime validation and CI drift checks across local and cloud environments.",
+    "Generate TypeScript, Zod, t3-env, and declaration outputs from .env.example, then validate environments with contract checks, drift detection, and CI reports.",
 };
 
 const softwareJsonLd = {

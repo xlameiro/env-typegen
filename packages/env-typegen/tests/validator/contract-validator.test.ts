@@ -143,8 +143,10 @@ describe("ENV_INVALID_TYPE", () => {
     });
   });
 
-  it("should report ENV_INVALID_TYPE when a string is expected to be a boolean", () => {
-    const parsed = makeFile([{ key: "FEATURE_FLAG", rawValue: "yes" }]);
+  it("should report ENV_INVALID_TYPE when a value is not a recognised boolean (BUG-05)", () => {
+    // After BUG-05 fix the allowlist is [true, false, 1, 0, yes, no] — matching engine.ts.
+    // "maybe" is not in the allowlist and must still produce ENV_INVALID_TYPE.
+    const parsed = makeFile([{ key: "FEATURE_FLAG", rawValue: "maybe" }]);
     const contract = makeContract([
       { name: "FEATURE_FLAG", expectedType: "boolean", required: true },
     ]);
@@ -457,4 +459,81 @@ describe("environment option", () => {
 
     expect(result.issues[0]).toMatchObject({ environment: "local" });
   });
+});
+
+// ---------------------------------------------------------------------------
+// BUG-04 — empty required vars must produce ENV_MISSING (contract-validator path)
+// ---------------------------------------------------------------------------
+
+describe("BUG-04 — empty required variables must produce ENV_MISSING", () => {
+  it("should report ENV_MISSING when a required var is present but empty", () => {
+    // Pre-fix: parsedByKey.has(name) returned true for KEY=, so ENV_MISSING was skipped.
+    // Post-fix: the check also requires rawValue to be non-empty for required vars.
+    const parsed = makeFile([{ key: "DATABASE_URL", rawValue: "" }]);
+    const contract = makeContract([{ name: "DATABASE_URL", expectedType: "url", required: true }]);
+
+    const result = validateContract(parsed, contract);
+
+    const missingIssues = result.issues.filter(
+      (i) => i.code === "ENV_MISSING" && i.key === "DATABASE_URL",
+    );
+    expect(missingIssues).toHaveLength(1);
+    expect(missingIssues[0]).toMatchObject({
+      code: "ENV_MISSING",
+      key: "DATABASE_URL",
+      severity: "error",
+    });
+  });
+
+  it("should NOT report ENV_MISSING when an optional var is present but empty", () => {
+    // Optional vars may legitimately be empty — only required vars must have a value.
+    const parsed = makeFile([{ key: "OPTIONAL_KEY", rawValue: "" }]);
+    const contract = makeContract([
+      { name: "OPTIONAL_KEY", expectedType: "string", required: false },
+    ]);
+
+    const result = validateContract(parsed, contract);
+
+    const missingIssues = result.issues.filter(
+      (i) => i.code === "ENV_MISSING" && i.key === "OPTIONAL_KEY",
+    );
+    expect(missingIssues).toHaveLength(0);
+  });
+
+  it("should NOT report ENV_MISSING when a required var has a non-empty value (non-regression)", () => {
+    const parsed = makeFile([{ key: "DATABASE_URL", rawValue: "postgres://localhost/db" }]);
+    const contract = makeContract([{ name: "DATABASE_URL", expectedType: "url", required: true }]);
+
+    const result = validateContract(parsed, contract);
+
+    expect(result.issues.filter((i) => i.code === "ENV_MISSING")).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUG-05 — boolean allowlist in contract-validator must match engine.ts
+// ---------------------------------------------------------------------------
+
+describe("BUG-05 — boolean allowlist aligned with validation engine", () => {
+  const booleanContract = makeContract([
+    { name: "FEATURE_FLAG", expectedType: "boolean", required: true },
+  ]);
+
+  it.each(["true", "false", "1", "0", "yes", "no", "True", "TRUE", "False", "YES", "NO"])(
+    "should accept '%s' as a valid boolean value",
+    (value) => {
+      const parsed = makeFile([{ key: "FEATURE_FLAG", rawValue: value }]);
+      const result = validateContract(parsed, booleanContract);
+      expect(result.issues.filter((i) => i.code === "ENV_INVALID_TYPE")).toHaveLength(0);
+    },
+  );
+
+  it.each(["maybe", "on", "off", "enabled"])(
+    "should reject '%s' as an invalid boolean value",
+    (value) => {
+      const parsed = makeFile([{ key: "FEATURE_FLAG", rawValue: value }]);
+      const result = validateContract(parsed, booleanContract);
+      expect(result.issues.filter((i) => i.code === "ENV_INVALID_TYPE")).toHaveLength(1);
+    },
+  );
 });
