@@ -28,8 +28,8 @@ describe("readEnvFile", () => {
     await rm(tempDir, { recursive: true });
   });
 
-  it("should reject with an error when the file does not exist", async () => {
-    await expect(readEnvFile("/nonexistent/path/.env.missing")).rejects.toThrow();
+  it("should throw a user-friendly 'File not found' error when the file does not exist", async () => {
+    await expect(readEnvFile("/nonexistent/path/.env.missing")).rejects.toThrow("File not found:");
   });
 });
 

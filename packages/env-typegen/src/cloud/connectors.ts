@@ -82,7 +82,15 @@ export async function loadCloudSource(
   options: CloudConnectorLoadOptions,
 ): Promise<Record<string, string>> {
   const resolvedPath = path.resolve(options.filePath);
-  const raw = await readFile(resolvedPath, "utf8");
+  let raw: string;
+  try {
+    raw = await readFile(resolvedPath, "utf8");
+  } catch (err) {
+    if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new Error(`File not found: ${options.filePath}`);
+    }
+    throw err;
+  }
   const parsed: unknown = JSON.parse(raw);
   return parseProviderPayload(options.provider, parsed);
 }

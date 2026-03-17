@@ -77,4 +77,12 @@ describe("cloud connectors", () => {
     const values = await loadCloudSource({ provider: "aws", filePath });
     expect(values.RAW_KEY).toBe("");
   });
+
+  it("should throw a user-friendly 'File not found' error when the cloud file does not exist", async () => {
+    // D3: raw ENOENT must be wrapped with a user-friendly message that shows
+    // the user-supplied path, not an internal node_modules path.
+    await expect(
+      loadCloudSource({ provider: "vercel", filePath: "nonexistent-cloud.json" }),
+    ).rejects.toThrow("File not found:");
+  });
 });

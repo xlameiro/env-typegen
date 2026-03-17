@@ -1,5 +1,5 @@
 // CLI entry point — shebang (#!/usr/bin/env node) is injected by tsup banner config.
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -133,6 +133,22 @@ async function runValidationSubcommand(
   }
 }
 
+/** Resolve the config file at an explicit user-supplied path, with an existence check. */
+async function loadExplicitConfig(
+  configPath: string,
+  userPath: string,
+): Promise<EnvTypegenConfig | undefined> {
+  if (!existsSync(configPath)) {
+    throw new Error(`Config file not found: ${userPath}`);
+  }
+  const configDir = path.dirname(configPath);
+  const mod = (await import(pathToFileURL(configPath).href)) as {
+    default?: EnvTypegenConfig;
+  };
+  const rawConfig = mod.default;
+  return rawConfig ? applyConfigPaths(rawConfig, configDir) : undefined;
+}
+
 export async function runCli(argv: string[] = process.argv.slice(2)): Promise<void> {
   const maybeSubcommand = argv[0];
   if (maybeSubcommand !== undefined && VALIDATION_SUBCOMMANDS.has(maybeSubcommand)) {
@@ -173,17 +189,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   if (values.config === undefined) {
     fileConfig = await loadConfig(process.cwd());
   } else {
-    const configPath = path.resolve(values.config);
-    const configDir = path.dirname(configPath);
-    const mod = (await import(pathToFileURL(configPath).href)) as {
-      default?: EnvTypegenConfig;
-    };
-    const rawConfig = mod.default;
-    // Resolve input/output paths relative to the config file's directory so that
-    // configs in subdirectories (e.g. config/env-typegen.config.mjs) work correctly.
-    if (rawConfig) {
-      fileConfig = applyConfigPaths(rawConfig, configDir);
-    }
+    fileConfig = await loadExplicitConfig(path.resolve(values.config), values.config);
   }
 
   // Merge: CLI flags take precedence over config file values

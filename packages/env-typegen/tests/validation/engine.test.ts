@@ -132,4 +132,75 @@ describe("validation engine", () => {
     expect(doctor.recommendations?.length).toBeGreaterThan(0);
     expect(doctor.status).toBe("fail");
   });
+
+  describe("D2 — empty values (KEY=) must not be treated as missing", () => {
+    it("should NOT report ENV_MISSING when a key is present with an empty value in validateAgainstContract", () => {
+      // KEY= is present in the file but has an empty value — this is NOT the same as a missing key.
+      // Before the fix, empty string was treated identically to an absent key → false ENV_MISSING.
+      const report = validateAgainstContract({
+        contract,
+        values: {
+          DATABASE_URL: "", // present but empty (KEY=)
+          PORT: "3000",
+          NEXT_PUBLIC_API_URL: "https://api.example.com",
+        },
+        environment: "local",
+        strict: true,
+        debugValues: false,
+      });
+
+      const missingIssues = report.issues.filter((issue) => issue.code === "ENV_MISSING");
+      expect(missingIssues).toHaveLength(0);
+    });
+
+    it("should NOT report ENV_MISSING when a key is present with an empty value in diffEnvironmentSources", () => {
+      const report = diffEnvironmentSources({
+        contract,
+        strict: true,
+        debugValues: false,
+        sources: {
+          ".env": {
+            DATABASE_URL: "https://db.example.com",
+            PORT: "3000",
+            NEXT_PUBLIC_API_URL: "https://api.example.com",
+          },
+          ".env.example": {
+            DATABASE_URL: "", // KEY= in .env.example — present but empty
+            PORT: "3000",
+            NEXT_PUBLIC_API_URL: "https://api.example.com",
+          },
+        },
+      });
+
+      const missingIssues = report.issues.filter(
+        (issue) => issue.code === "ENV_MISSING" && issue.key === "DATABASE_URL",
+      );
+      expect(missingIssues).toHaveLength(0);
+    });
+
+    it("should still report ENV_MISSING when a key is completely absent from a source", () => {
+      // Entirely absent key (not in the file at all) must still be ENV_MISSING.
+      const report = diffEnvironmentSources({
+        contract,
+        strict: true,
+        debugValues: false,
+        sources: {
+          ".env": {
+            DATABASE_URL: "https://db.example.com",
+            PORT: "3000",
+            NEXT_PUBLIC_API_URL: "https://api.example.com",
+          },
+          ".env.example": {
+            PORT: "3000",
+            // DATABASE_URL not present at all → truly missing
+          },
+        },
+      });
+
+      const missingIssues = report.issues.filter(
+        (issue) => issue.code === "ENV_MISSING" && issue.key === "DATABASE_URL",
+      );
+      expect(missingIssues.length).toBeGreaterThan(0);
+    });
+  });
 });

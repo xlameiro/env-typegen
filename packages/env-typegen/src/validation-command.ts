@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
@@ -169,6 +170,9 @@ async function loadCommandConfig(
   }
 
   const resolvedPath = path.resolve(configPath);
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Config file not found: ${configPath}`);
+  }
   const configDir = path.dirname(resolvedPath);
   const moduleValue = (await import(pathToFileURL(resolvedPath).href)) as LoadCommandConfigModule;
   if (moduleValue.default === undefined) return undefined;

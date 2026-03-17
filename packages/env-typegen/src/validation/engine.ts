@@ -251,7 +251,10 @@ function checkContractVariable(
 ): void {
   const { options, issues } = context;
   const value = options.values[key];
-  const hasValue = value !== undefined && value.trim().length > 0;
+  // A key that is entirely absent from the file → undefined → truly missing.
+  // A key present with an empty value (KEY=) → "" → present but empty; must NOT
+  // be reported as ENV_MISSING because the user deliberately declared the key.
+  const hasValue = value !== undefined;
 
   if (variable.required && !hasValue) {
     issues.push(
@@ -466,12 +469,10 @@ export function diffEnvironmentSources(options: DiffEnvironmentSourcesOptions): 
       sourceName,
       value: options.sources[sourceName]?.[key],
     }));
-    const present = valuesBySource.filter(
-      (entry) => entry.value !== undefined && entry.value !== "",
-    );
-    const missing = valuesBySource.filter(
-      (entry) => entry.value === undefined || entry.value === "",
-    );
+    // Presence is determined by key existence in the file, not value content.
+    // A key with an empty value (KEY=) is "present" — not missing.
+    const present = valuesBySource.filter((entry) => entry.value !== undefined);
+    const missing = valuesBySource.filter((entry) => entry.value === undefined);
 
     if (present.length === 0 && variable?.required === true) {
       for (const entry of missing) {

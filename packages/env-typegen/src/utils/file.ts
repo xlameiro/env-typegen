@@ -3,10 +3,19 @@ import path from "node:path";
 
 /**
  * Reads a .env file from `filePath` and returns its full text content.
- * Rejects with a Node.js filesystem error if the file does not exist.
+ * Throws a user-friendly error when the file does not exist (instead of exposing
+ * the raw `ENOENT: no such file or directory, open '/internal/path'` Node message).
  */
 export async function readEnvFile(filePath: string): Promise<string> {
-  return readFile(path.resolve(filePath), "utf8");
+  const resolved = path.resolve(filePath);
+  try {
+    return await readFile(resolved, "utf8");
+  } catch (err) {
+    if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new Error(`File not found: ${filePath}`);
+    }
+    throw err;
+  }
 }
 
 /**
