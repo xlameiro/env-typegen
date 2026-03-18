@@ -2,6 +2,27 @@ import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
   workspaces: {
+    "packages/env-typegen": {
+      entry: [
+        // Primary public API and CLI.
+        "src/index.ts",
+        "src/cli.ts",
+        // Sub-module public API — adapters, sync, trust, fleet, policy, etc.
+        // are intentionally public; consumers can import these directly as
+        // named or default imports for tree-shaking and advanced usage.
+        "src/adapters/**/*.ts",
+        "src/fleet/**/*.ts",
+        "src/multi-repo/**/*.ts",
+        "src/ops/**/*.ts",
+        "src/policy/**/*.ts",
+        "src/reporting/**/*.ts",
+        "src/sync/**/*.ts",
+        "src/templates/**/*.ts",
+        "src/trust/**/*.ts",
+        "src/config.ts",
+      ],
+      project: ["src/**/*.ts", "tests/**/*.ts"],
+    },
     ".": {
       entry: [
         "app/**/{page,layout,loading,error,not-found,global-error,icon,template,default,route}.{ts,tsx}",
@@ -37,6 +58,10 @@ const config: KnipConfig = {
     // pulling in its vulnerable transitive deps (tar, minimatch, ajv) into the lockfile
     "vercel",
   ],
+  // Adapter files intentionally export the same value as both named and
+  // default export to support `import adapter` and `import { adapter }` consumer
+  // patterns — suppress the duplicate-export check project-wide.
+  exclude: ["duplicates"],
 };
 
 export default config;
