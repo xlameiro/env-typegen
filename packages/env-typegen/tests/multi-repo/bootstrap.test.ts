@@ -20,6 +20,12 @@ describe("multi-repo bootstrap", () => {
     expect(plan.summary.total).toBe(2);
     expect(plan.summary.enforce).toBe(1);
     expect(plan.summary.apply).toBe(1);
+    expect(plan.targets[0]?.template).toBe("library");
+    expect(plan.targets[0]?.enforcementLevel).toBe("standard");
+    expect(plan.targets[0]?.policyChannel).toBe("dev");
+    expect(plan.targets[1]?.template).toBe("web-app");
+    expect(plan.targets[1]?.enforcementLevel).toBe("strict");
+    expect(plan.targets[1]?.policyChannel).toBe("prod");
     expect(plan.targets[0]?.verifyCommand).toContain("env-typegen verify");
     expect(plan.targets[1]?.conformanceCommand).toContain(
       "qa-test/env-typegen-conformance-smoke.mjs",

@@ -7,7 +7,14 @@ import type { ExecutionBudget } from "./ops/execution-budget.js";
 import type { IncidentState, IncidentStatus } from "./ops/incident-state.js";
 import type { SloPolicy } from "./ops/slo-policy.js";
 import type { PluginReference } from "./plugins.js";
+import type { PolicyDistributionChannel, PolicyDistributionSink } from "./policy/policy-channel.js";
 import type { EnvTypegenPolicyConfig } from "./policy/policy-model.js";
+import type {
+  FleetEnforcementLevel,
+  FleetPolicyChannel,
+  GovernanceTemplateId,
+} from "./templates/governance-template.js";
+import type { ExternalTrustRootConfig } from "./trust/external-trust-root.js";
 
 export type { InferenceRule } from "./inferrer/rules.js";
 export type { PluginReference } from "./plugins.js";
@@ -71,6 +78,28 @@ export type EnvTypegenPolicyPackTrustConfig = {
   allowedSigners?: string[];
   /** Enforce signature expiration checks when true. */
   enforceExpiry?: boolean;
+  /** Optional external trust root source for provider-scoped keyring material. */
+  externalTrustRoot?: ExternalTrustRootConfig;
+};
+
+/** Policy distribution settings for channel-based publication and promotion. */
+export type EnvTypegenPolicyDistributionConfig = {
+  /** Default channel used when command/runtime does not provide one explicitly. */
+  channel?: PolicyDistributionChannel;
+  /** Publication sink strategy. */
+  sink?: PolicyDistributionSink;
+  /** Base destination path/identifier for distribution artifacts. */
+  destination?: string;
+};
+
+/** Template defaults for multi-repo bootstrap and staged governance rollout. */
+export type EnvTypegenTemplatesConfig = {
+  /** Default template used when a fleet manifest entry omits `template`. */
+  defaultTemplate?: GovernanceTemplateId;
+  /** Optional default enforcement level for template-resolved entries. */
+  defaultEnforcementLevel?: FleetEnforcementLevel;
+  /** Optional default policy distribution channel for template-resolved entries. */
+  defaultPolicyChannel?: FleetPolicyChannel;
 };
 
 /** Generator identifiers supported by env-typegen. */
@@ -177,6 +206,12 @@ export type EnvTypegenConfig = {
 
   /** Policy pack trust/signature validation controls. */
   policyPackTrust?: EnvTypegenPolicyPackTrustConfig;
+
+  /** Policy distribution settings for channel-aware governance rollout. */
+  policyDistribution?: EnvTypegenPolicyDistributionConfig;
+
+  /** Template defaults used for multi-repo bootstrap orchestration. */
+  templates?: EnvTypegenTemplatesConfig;
 
   /** Write controls for sync-apply runtime behavior. */
   writePolicy?: EnvTypegenWritePolicyConfig;

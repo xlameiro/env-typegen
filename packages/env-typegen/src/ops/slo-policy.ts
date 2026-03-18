@@ -31,6 +31,8 @@ export type SloEvaluation = {
   };
 };
 
+export type SloGateAction = "advance" | "freeze" | "rollback";
+
 function normalizeRate(value: number | undefined): number | undefined {
   if (value === undefined || !Number.isFinite(value)) {
     return undefined;
@@ -126,12 +128,20 @@ export function evaluateSloPolicy(params: {
 
   const hasSoftDegradeSignal =
     params.policy.degradeOnAnyFailure === true && params.snapshot.failed > 0;
-  const status: SloStatus =
-    violations.length > 0 ? "breach" : hasSoftDegradeSignal ? "degraded" : "healthy";
+  let status: SloStatus = "healthy";
+  if (violations.length > 0) {
+    status = "breach";
+  } else if (hasSoftDegradeSignal) {
+    status = "degraded";
+  }
 
   const degradeMultiplier = normalizeThrottleMultiplier(params.policy.throttleMultiplierOnDegrade);
-  const throttleFactor =
-    status === "healthy" ? 1 : status === "degraded" ? degradeMultiplier : 0.25;
+  let throttleFactor = 1;
+  if (status === "degraded") {
+    throttleFactor = degradeMultiplier;
+  } else if (status === "breach") {
+    throttleFactor = 0.25;
+  }
 
   return {
     status,
@@ -145,4 +155,22 @@ export function evaluateSloPolicy(params: {
       successRate: rates.successRate,
     },
   };
+}
+
+export function resolveSloGateAction(
+  evaluation: Pick<SloEvaluation, "status" | "allowPromotion"> | undefined,
+): SloGateAction {
+  if (evaluation === undefined) {
+    return "advance";
+  }
+
+  if (evaluation.status === "breach" || evaluation.allowPromotion === false) {
+    return "rollback";
+  }
+
+  if (evaluation.status === "degraded") {
+    return "freeze";
+  }
+
+  return "advance";
 }

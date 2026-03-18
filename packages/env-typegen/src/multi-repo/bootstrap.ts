@@ -1,6 +1,12 @@
 import path from "node:path";
 
 import {
+  type FleetEnforcementLevel,
+  type FleetPolicyChannel,
+  type GovernanceTemplateId,
+} from "../templates/governance-template.js";
+import { resolveGovernanceTemplate } from "../templates/template-resolver.js";
+import {
   loadRepoManifest,
   type FleetGovernanceStage,
   type FleetRepoManifest,
@@ -14,6 +20,9 @@ export type FleetBootstrapTarget = {
   provider: string;
   environment: string;
   stage: FleetGovernanceStage;
+  template: GovernanceTemplateId;
+  enforcementLevel: FleetEnforcementLevel;
+  policyChannel: FleetPolicyChannel;
   verifyCommand: string;
   conformanceCommand: string;
 };
@@ -40,13 +49,27 @@ function defaultConformanceCommand(entry: FleetRepoManifestEntry): string {
 }
 
 function toTarget(entry: FleetRepoManifestEntry): FleetBootstrapTarget {
+  const overlay = {
+    stage: entry.stage,
+    ...(entry.enforcementLevel === undefined ? {} : { enforcementLevel: entry.enforcementLevel }),
+    ...(entry.policyChannel === undefined ? {} : { policyChannel: entry.policyChannel }),
+  };
+
+  const resolvedTemplate = resolveGovernanceTemplate({
+    template: entry.template ?? "web-app",
+    overlay,
+  });
+
   return {
     id: entry.id,
     repository: entry.repository,
     root: entry.root,
     provider: entry.provider,
     environment: entry.environment,
-    stage: entry.stage,
+    stage: resolvedTemplate.stage,
+    template: resolvedTemplate.template,
+    enforcementLevel: resolvedTemplate.enforcementLevel,
+    policyChannel: resolvedTemplate.policyChannel,
     verifyCommand: entry.verifyCommand ?? defaultVerifyCommand(entry),
     conformanceCommand: entry.conformanceCommand ?? defaultConformanceCommand(entry),
   };

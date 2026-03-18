@@ -1,0 +1,13 @@
+{
+  "id": "web-app",
+  "version": 1,
+  "defaults": {
+    "stage": "enforce",
+    "enforcementLevel": "strict",
+    "policyChannel": "stage"
+  },
+  "metadata": {
+    "profile": "application",
+    "owner": "platform"
+  }
+}

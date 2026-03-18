@@ -1,3 +1,4 @@
+import type { FleetRolloutDecision } from "../fleet/rollout-controller.js";
 import type { ApplyMode } from "../sync/apply-engine.js";
 
 export type GovernancePromotionStage = "advisory" | "enforce" | "apply";
@@ -25,6 +26,10 @@ export type GovernanceSummary = {
     throttleFactor: number;
     allowPromotion: boolean;
   };
+  rollout?: Pick<
+    FleetRolloutDecision,
+    "cohort" | "nextCohort" | "action" | "reason" | "trace" | "sloGate" | "canProceed"
+  >;
   evidence?: {
     schemaVersion: 1;
     bundleId: string;
@@ -70,6 +75,10 @@ export function buildGovernanceSummary(params: {
     throttleFactor: number;
     allowPromotion: boolean;
   };
+  rollout?: Pick<
+    FleetRolloutDecision,
+    "cohort" | "nextCohort" | "action" | "reason" | "trace" | "sloGate" | "canProceed"
+  >;
   evidence?: {
     schemaVersion: 1;
     bundleId: string;
@@ -104,6 +113,7 @@ export function buildGovernanceSummary(params: {
     ...(params.operationalReadiness === undefined
       ? {}
       : { operationalReadiness: params.operationalReadiness }),
+    ...(params.rollout === undefined ? {} : { rollout: params.rollout }),
     ...(params.evidence === undefined ? {} : { evidence: params.evidence }),
     generatedAt: new Date().toISOString(),
   };

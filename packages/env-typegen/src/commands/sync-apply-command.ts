@@ -9,6 +9,7 @@ import type { EnvMap } from "../adapters/types.js";
 import type { AuditEvent } from "../audit/audit-event.js";
 import { writeAuditEvents } from "../audit/audit-writer.js";
 import { loadConfig, type EnvTypegenConfig, type EnvTypegenWritePolicyConfig } from "../config.js";
+import { evaluateFleetRollout } from "../fleet/rollout-controller.js";
 import {
   runBoundedOrchestration,
   type OrchestrationResult,
@@ -653,6 +654,7 @@ async function executeSyncApplyUnsafe(
       changeSetHash,
       evidenceBundleId,
       lifecycleEvents,
+      strategy,
       ...(writePolicy.auditLogPath === undefined ? {} : { auditLogPath: writePolicy.auditLogPath }),
     });
   }
@@ -801,6 +803,7 @@ async function handleBlockedApply(params: {
   changeSetHash: string;
   evidenceBundleId: string;
   lifecycleEvents: AuditEvent[];
+  strategy: OrchestrationStrategy;
   auditLogPath?: string;
 }): Promise<number> {
   const blockedEvent = buildAuditEvent({
@@ -817,6 +820,25 @@ async function handleBlockedApply(params: {
     message: "Sync apply blocked by policy/guardrails.",
   });
   const baseAuditEvents = [...params.lifecycleEvents, blockedEvent];
+  const rollout = evaluateFleetRollout({
+    stage: resolvePromotionStage({
+      mode: params.mode,
+      policyDecision: params.policy.decision,
+    }),
+    strategy: params.strategy,
+    orchestration: {
+      aborted: true,
+      rejected: 1,
+    },
+    ...(params.policy.decision === "block"
+      ? {
+          sloEvaluation: {
+            status: "breach" as const,
+            allowPromotion: false,
+          },
+        }
+      : {}),
+  });
   const governanceSummaryBase = buildGovernanceSummary({
     provider: params.providerName,
     environment: params.environment,
@@ -824,6 +846,7 @@ async function handleBlockedApply(params: {
     policyDecision: params.policy.decision,
     guardAllowed: params.guardResult.allowed,
     auditEvents: baseAuditEvents.length,
+    rollout,
   });
   const evidenceBundle = buildEvidenceBundle({
     provider: params.providerName,
@@ -849,6 +872,7 @@ async function handleBlockedApply(params: {
     policyDecision: params.policy.decision,
     guardAllowed: params.guardResult.allowed,
     auditEvents: auditEvents.length,
+    rollout,
     evidence: {
       schemaVersion: evidenceBundle.schemaVersion,
       bundleId: evidenceBundle.bundleId,
@@ -963,6 +987,23 @@ async function handleAllowedApply(params: {
               : "Execution was skipped by orchestration policy.",
         });
 
+  const rollout = evaluateFleetRollout({
+    stage: promotionStage,
+    strategy: params.strategy,
+    orchestration: {
+      aborted: orchestration.summary.aborted,
+      rejected: orchestration.summary.rejected,
+    },
+    ...(applyResult.budget.slo === undefined
+      ? {}
+      : {
+          sloEvaluation: {
+            status: applyResult.budget.slo.status,
+            allowPromotion: applyResult.budget.slo.allowPromotion,
+          },
+        }),
+  });
+
   const hasFailures = applyResult.summary.failed > 0;
   const completedEvent = buildAuditEvent({
     event: hasFailures ? "sync-apply.apply-failed" : "sync-apply.completed",
@@ -1001,6 +1042,7 @@ async function handleAllowedApply(params: {
     guardAllowed: params.guardResult.allowed,
     auditEvents: baseAuditEvents.length,
     applySummary: applyResult.summary,
+    rollout,
   });
   const evidenceBundle = buildEvidenceBundle({
     provider: params.providerName,
@@ -1040,6 +1082,7 @@ async function handleAllowedApply(params: {
     guardAllowed: params.guardResult.allowed,
     auditEvents: auditEvents.length,
     applySummary: applyResult.summary,
+    rollout,
     evidence: {
       schemaVersion: evidenceBundle.schemaVersion,
       bundleId: evidenceBundle.bundleId,

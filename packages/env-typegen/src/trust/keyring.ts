@@ -169,3 +169,24 @@ export function lookupKeyringEntry(params: {
     key,
   };
 }
+
+export function mergePolicyPackKeyrings(params: {
+  primary: PolicyPackKeyring;
+  secondary: PolicyPackKeyring;
+}): PolicyPackKeyring {
+  const mergedByKeyId = new Map<string, KeyringEntry>();
+
+  for (const entry of params.secondary.keys) {
+    mergedByKeyId.set(entry.keyId, entry);
+  }
+
+  for (const entry of params.primary.keys) {
+    // Primary keyring has precedence for deterministic local override behavior.
+    mergedByKeyId.set(entry.keyId, entry);
+  }
+
+  return {
+    version: 1,
+    keys: Array.from(mergedByKeyId.values()),
+  };
+}

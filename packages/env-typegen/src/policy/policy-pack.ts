@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
+import { isPolicyDistributionChannel, type PolicyDistributionChannel } from "./policy-channel.js";
 import type {
   EnvTypegenPolicyConfig,
   EnvTypegenPolicyDefaults,
@@ -23,6 +24,9 @@ export type PolicyPackFile = {
   id: string;
   version: number;
   layer: PolicyPackLayer;
+  distribution?: {
+    channel?: PolicyDistributionChannel;
+  };
   trust?: PolicyPackTrustEnvelope;
   policy: {
     mode?: EnvTypegenPolicyConfig["mode"];
@@ -33,6 +37,30 @@ export type PolicyPackFile = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parsePolicyPackDistribution(
+  value: unknown,
+  source: string,
+): PolicyPackFile["distribution"] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    throw new TypeError(`Invalid policy pack at ${source}: "distribution" must be an object.`);
+  }
+
+  const channel = value.channel;
+  if (channel !== undefined && !isPolicyDistributionChannel(channel)) {
+    throw new TypeError(
+      `Invalid policy pack at ${source}: "distribution.channel" must be one of: dev, stage, prod.`,
+    );
+  }
+
+  return {
+    ...(channel === undefined ? {} : { channel }),
+  };
 }
 
 function asPolicyPackLayer(value: unknown): PolicyPackLayer | undefined {
@@ -143,6 +171,7 @@ export function parsePolicyPack(content: string, source: string): PolicyPackFile
   }
 
   const trust = parsePolicyPackTrust(parsed.trust, source);
+  const distribution = parsePolicyPackDistribution(parsed.distribution, source);
 
   const policy: PolicyPackFile["policy"] = {
     ...(parsed.policy.mode === "read-only" || parsed.policy.mode === "advisory"
@@ -156,6 +185,7 @@ export function parsePolicyPack(content: string, source: string): PolicyPackFile
     id: parsed.id,
     version: parsed.version,
     layer,
+    ...(distribution === undefined ? {} : { distribution }),
     ...(trust === undefined ? {} : { trust }),
     policy,
   };

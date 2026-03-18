@@ -1,8 +1,9 @@
-import { readFile } from "node:fs/promises";
 import type { PolicyPackLockEntryProvenance } from "../policy/policy-pack-lock.js";
 import type { PolicyPackTrustEnvelope } from "../policy/policy-pack.js";
 import { verifyPolicyPackTrustEnvelope } from "./crypto-verifier.js";
-import { parsePolicyPackKeyring, type PolicyPackKeyring } from "./keyring.js";
+import type { ExternalTrustRootConfig } from "./external-trust-root.js";
+import type { PolicyPackKeyring } from "./keyring.js";
+import { resolveTrustRootKeyring, type TrustRootRegistryConfig } from "./trust-root-registry.js";
 
 export type PolicyPackTrustMode = "strict" | "tolerant";
 
@@ -15,6 +16,7 @@ export type PolicyPackTrustConfig = {
   enforcement?: TrustEnforcementMode;
   keyringPath?: string;
   keyring?: PolicyPackKeyring;
+  externalTrustRoot?: ExternalTrustRootConfig;
 };
 
 export type PolicyPackSignatureValidation = {
@@ -53,16 +55,19 @@ function isExpired(expiresAt: string, now: Date): boolean {
 async function resolveKeyring(
   config: PolicyPackTrustConfig | undefined,
 ): Promise<PolicyPackKeyring | undefined> {
-  if (config?.keyring !== undefined) {
-    return config.keyring;
+  if (config === undefined) {
+    return undefined;
   }
 
-  if (config?.keyringPath !== undefined) {
-    const content = await readFile(config.keyringPath, "utf8");
-    return parsePolicyPackKeyring(content, config.keyringPath);
-  }
+  const trustRootConfig: TrustRootRegistryConfig = {
+    ...(config.keyring === undefined ? {} : { keyring: config.keyring }),
+    ...(config.keyringPath === undefined ? {} : { keyringPath: config.keyringPath }),
+    ...(config.externalTrustRoot === undefined
+      ? {}
+      : { externalTrustRoot: config.externalTrustRoot }),
+  };
 
-  return undefined;
+  return resolveTrustRootKeyring(trustRootConfig);
 }
 
 function appendLockProvenanceReasons(params: {

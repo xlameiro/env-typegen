@@ -1,6 +1,15 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import {
+  isFleetEnforcementLevel,
+  isFleetPolicyChannel,
+  isGovernanceTemplateId,
+  type FleetEnforcementLevel,
+  type FleetPolicyChannel,
+  type GovernanceTemplateId,
+} from "../templates/governance-template.js";
+
 export type FleetGovernanceStage = "advisory-enforce" | "enforce" | "apply";
 
 export type FleetRepoManifestEntry = {
@@ -10,6 +19,9 @@ export type FleetRepoManifestEntry = {
   provider: string;
   environment: string;
   stage: FleetGovernanceStage;
+  template?: GovernanceTemplateId;
+  enforcementLevel?: FleetEnforcementLevel;
+  policyChannel?: FleetPolicyChannel;
   verifyCommand?: string;
   conformanceCommand?: string;
 };
@@ -65,6 +77,56 @@ function parseOptionalStringField(params: {
   return value;
 }
 
+function parseOptionalTemplateField(params: {
+  source: Record<string, unknown>;
+  itemLabel: string;
+}): GovernanceTemplateId | undefined {
+  const value = params.source.template;
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isGovernanceTemplateId(value)) {
+    throw new Error(`${params.itemLabel}.template must be one of: web-app, library.`);
+  }
+
+  return value;
+}
+
+function parseOptionalEnforcementLevelField(params: {
+  source: Record<string, unknown>;
+  itemLabel: string;
+}): FleetEnforcementLevel | undefined {
+  const value = params.source.enforcementLevel;
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isFleetEnforcementLevel(value)) {
+    throw new Error(
+      `${params.itemLabel}.enforcementLevel must be one of: advisory, standard, strict.`,
+    );
+  }
+
+  return value;
+}
+
+function parseOptionalPolicyChannelField(params: {
+  source: Record<string, unknown>;
+  itemLabel: string;
+}): FleetPolicyChannel | undefined {
+  const value = params.source.policyChannel;
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isFleetPolicyChannel(value)) {
+    throw new Error(`${params.itemLabel}.policyChannel must be one of: dev, stage, prod.`);
+  }
+
+  return value;
+}
+
 function parseManifestEntry(entry: unknown, index: number): FleetRepoManifestEntry {
   if (!isRecord(entry)) {
     throw new Error(`fleet[${index}] must be an object.`);
@@ -82,6 +144,9 @@ function parseManifestEntry(entry: unknown, index: number): FleetRepoManifestEnt
     field: "conformanceCommand",
     itemLabel,
   });
+  const template = parseOptionalTemplateField({ source: entry, itemLabel });
+  const enforcementLevel = parseOptionalEnforcementLevelField({ source: entry, itemLabel });
+  const policyChannel = parseOptionalPolicyChannelField({ source: entry, itemLabel });
 
   return {
     id: readStringField({ source: entry, field: "id", itemLabel }),
@@ -90,6 +155,9 @@ function parseManifestEntry(entry: unknown, index: number): FleetRepoManifestEnt
     provider: readStringField({ source: entry, field: "provider", itemLabel }),
     environment: readStringField({ source: entry, field: "environment", itemLabel }),
     stage: parseStage(entry.stage, itemLabel),
+    ...(template === undefined ? {} : { template }),
+    ...(enforcementLevel === undefined ? {} : { enforcementLevel }),
+    ...(policyChannel === undefined ? {} : { policyChannel }),
     ...(verifyCommand === undefined ? {} : { verifyCommand }),
     ...(conformanceCommand === undefined ? {} : { conformanceCommand }),
   };

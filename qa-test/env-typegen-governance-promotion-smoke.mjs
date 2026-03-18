@@ -178,6 +178,166 @@ async function runEvidenceProbe() {
   }
 }
 
+async function runCohortRolloutProbe() {
+  const cliEntrypoint = path.join(
+    repositoryRoot,
+    "packages/env-typegen/dist/cli.js",
+  );
+  const workingDirectory = await mkdtemp(
+    path.join(tmpdir(), "env-cohort-smoke-"),
+  );
+
+  try {
+    const envPath = path.join(workingDirectory, ".env");
+    const contractPath = path.join(workingDirectory, "env.contract.mjs");
+    const adapterPath = path.join(workingDirectory, "cohort-adapter.mjs");
+    const configPath = path.join(workingDirectory, "env-typegen.config.mjs");
+
+    await writeFile(
+      envPath,
+      "API_URL=https://example.com\nPORT=3000\n",
+      "utf8",
+    );
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    API_URL: { expected: { type: "url" }, required: true, clientSide: false },',
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      adapterPath,
+      [
+        "export default {",
+        '  name: "cohort-adapter",',
+        '  pull: async () => ({ values: { API_URL: "https://example.com", PORT: "3000" } }),',
+        "  push: async () => undefined,",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      configPath,
+      [
+        "export default {",
+        "  input: '.env.example',",
+        "  providers: {",
+        `    smoke: { adapter: ${JSON.stringify(adapterPath)} },`,
+        "  },",
+        "  writePolicy: {",
+        "    enableApply: true,",
+        "    requirePreflight: false,",
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const plan = await runCommand(
+      "node",
+      [
+        cliEntrypoint,
+        "plan",
+        "--env",
+        envPath,
+        "--targets",
+        envPath,
+        "--contract",
+        contractPath,
+        "--json",
+      ],
+      repositoryRoot,
+    );
+    const preview = await runCommand(
+      "node",
+      [
+        cliEntrypoint,
+        "sync-preview",
+        "smoke",
+        "--config",
+        configPath,
+        "--env-file",
+        envPath,
+        "--json",
+      ],
+      repositoryRoot,
+    );
+    const apply = await runCommand(
+      "node",
+      [
+        cliEntrypoint,
+        "sync-apply",
+        "smoke",
+        "--config",
+        configPath,
+        "--env-file",
+        envPath,
+        "--apply",
+        "--confirmation-token",
+        "cohort-smoke-token",
+        "--json",
+      ],
+      repositoryRoot,
+    );
+
+    if (plan.exitCode !== 0 || preview.exitCode !== 0 || apply.exitCode !== 0) {
+      return {
+        step: "cohort rollout probe",
+        status: "fail",
+        details:
+          "plan/preview/apply command failed during cohort rollout probe",
+      };
+    }
+
+    const planPayload = JSON.parse(plan.stdout.trim());
+    const previewPayload = JSON.parse(preview.stdout.trim());
+    const applyPayload = JSON.parse(apply.stdout.trim());
+
+    const planRollout = planPayload.rollout;
+    const previewRollout = previewPayload.rollout;
+    const applyRollout = applyPayload.governanceSummary?.rollout;
+
+    const planPass =
+      planRollout?.cohort === "ramp" &&
+      planRollout?.action === "advance" &&
+      planRollout?.canProceed === true;
+    const previewPass =
+      previewRollout?.cohort === "ramp" &&
+      previewRollout?.action === "advance" &&
+      previewRollout?.canProceed === true;
+    const applyPass =
+      applyRollout?.cohort === "global" &&
+      applyRollout?.action === "advance" &&
+      applyRollout?.canProceed === true;
+
+    const passed = planPass && previewPass && applyPass;
+
+    return {
+      step: "cohort rollout probe",
+      status: passed ? "pass" : "fail",
+      details: passed
+        ? "cohort rollout assertions passed for plan/preview/apply"
+        : "cohort rollout assertions failed",
+      report: {
+        planRollout,
+        previewRollout,
+        applyRollout,
+      },
+    };
+  } finally {
+    await rm(workingDirectory, { recursive: true, force: true });
+  }
+}
+
 async function main() {
   const governanceSmokePath = path.join(
     scriptDirectory,
@@ -225,13 +385,6 @@ async function main() {
   );
   const dryRunReport = await readJsonReport(applyReportPath);
 
-  const applyResult = await runCommand(
-    "node",
-    [applySmokePath, "--mode=apply"],
-    repositoryRoot,
-  );
-  const applyReport = await readJsonReport(applyReportPath);
-
   const results = [
     toStepResult({
       label: "conformance smoke",
@@ -248,12 +401,8 @@ async function main() {
       commandResult: dryRunResult,
       report: dryRunReport,
     }),
-    toStepResult({
-      label: "apply smoke",
-      commandResult: applyResult,
-      report: applyReport,
-    }),
     await runEvidenceProbe(),
+    await runCohortRolloutProbe(),
   ];
 
   const failed = results.filter((result) => result.status === "fail").length;
@@ -275,6 +424,9 @@ async function main() {
         evidenceIntegrityPassed:
           results.find((result) => result.step === "evidence probe")?.status ===
           "pass",
+        cohortRolloutPassed:
+          results.find((result) => result.step === "cohort rollout probe")
+            ?.status === "pass",
         conformancePassed:
           results.find((result) => result.step === "conformance smoke")
             ?.status === "pass",

@@ -51,6 +51,23 @@ describe("policy packs", () => {
     expect(parsed.policy.rules?.[0]?.id).toBe("base-allow-extra");
   });
 
+  it("should parse policy distribution channel metadata", () => {
+    const content = JSON.stringify({
+      id: "channel-aware",
+      version: 1,
+      layer: "base",
+      distribution: {
+        channel: "stage",
+      },
+      policy: {
+        rules: [],
+      },
+    });
+
+    const parsed = parsePolicyPack(content, "channel-aware.policy.json");
+    expect(parsed.distribution?.channel).toBe("stage");
+  });
+
   it("should compose base -> overlay -> inline precedence", async () => {
     const resolvedPolicy = await resolvePolicyWithPacks({
       policy: {
@@ -249,5 +266,50 @@ describe("policy packs", () => {
     });
 
     expect(resolvedPolicy.rules?.[0]?.id).toBe("base-allow-extra");
+  });
+
+  it("should fail when policy pack channel does not match expected channel", async () => {
+    const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), "env-typegen-policy-channel-"));
+    const channelPackPath = path.join(temporaryDirectory, "channel-mismatch.policy.json");
+
+    await writeFile(
+      channelPackPath,
+      JSON.stringify(
+        {
+          id: "channel-mismatch",
+          version: 1,
+          layer: "base",
+          distribution: {
+            channel: "dev",
+          },
+          policy: {
+            rules: [
+              {
+                id: "allow-all",
+                match: {
+                  issueTypes: ["extra"],
+                },
+                decision: "allow",
+                reason: "test",
+              },
+            ],
+          },
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+
+    await expect(
+      resolvePolicyWithPacks({
+        policy: {
+          packs: {
+            base: [channelPackPath],
+          },
+        },
+        channel: "prod",
+      }),
+    ).rejects.toThrowError(/targets channel dev, expected prod/u);
   });
 });

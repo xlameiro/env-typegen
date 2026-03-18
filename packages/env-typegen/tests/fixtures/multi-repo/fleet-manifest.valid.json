@@ -7,7 +7,8 @@
       "root": "services/catalog",
       "provider": "awsSsm",
       "environment": "production",
-      "stage": "enforce"
+      "stage": "enforce",
+      "template": "library"
     },
     {
       "id": "checkout",
@@ -16,6 +17,9 @@
       "provider": "awsSecretsManager",
       "environment": "production",
       "stage": "apply",
+      "template": "web-app",
+      "enforcementLevel": "strict",
+      "policyChannel": "prod",
       "verifyCommand": "env-typegen verify --env .env --contract env.contract.mjs --json=pretty --output-file reports/env-verify.checkout.json",
       "conformanceCommand": "node qa-test/env-typegen-conformance-smoke.mjs --repo checkout"
     }

@@ -191,6 +191,28 @@ export { buildCiReport, formatCiReport } from "./reporting/ci-reporter.js";
 export type { FormatCiReportOptions } from "./reporting/ci-reporter.js";
 
 /**
+ * Policy distribution utilities.
+ *
+ * @public
+ */
+export {
+  canPromotePolicyChannel,
+  isPolicyDistributionChannel,
+  isPolicyDistributionSink,
+} from "./policy/policy-channel.js";
+export type {
+  PolicyChannelPromotion,
+  PolicyDistributionChannel,
+  PolicyDistributionSink,
+} from "./policy/policy-channel.js";
+export { assertPolicyPackPromotion, publishPolicyPack } from "./policy/policy-pack-publisher.js";
+export type {
+  PolicyPackPublicationRecord,
+  PolicyPackPublisherTarget,
+  PublishPolicyPackParams,
+} from "./policy/policy-pack-publisher.js";
+
+/**
  * `check` command — validate a live env file against a contract and return a
  * machine-readable {@link ReportStatus} (`"ok"` | `"fail"`).
  *

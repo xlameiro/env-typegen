@@ -1,0 +1,13 @@
+{
+  "id": "library",
+  "version": 1,
+  "defaults": {
+    "stage": "advisory-enforce",
+    "enforcementLevel": "standard",
+    "policyChannel": "dev"
+  },
+  "metadata": {
+    "profile": "package",
+    "owner": "platform"
+  }
+}

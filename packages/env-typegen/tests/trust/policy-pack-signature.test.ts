@@ -188,4 +188,30 @@ describe("validatePolicyPackSignature", () => {
 
     expect(validation.enforcement).toBe("enforce");
   });
+
+  it("should resolve keyring from external trust root config", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        algorithm: "rsa-sha256",
+        keyId: "aws-kms://env-typegen/governance/v1",
+        signature: "invalid-signature",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: undefined,
+      config: {
+        mode: "strict",
+        externalTrustRoot: {
+          provider: "aws-kms",
+          keyringPath: path.join(trustFixtureDirectory, "public-keyring.valid.json"),
+        },
+      },
+    });
+
+    expect(validation.verifiedWith).toBe("rsa-signature");
+    expect(validation.reasons.join(" ")).toContain("RSA signature validation failed");
+  });
 });

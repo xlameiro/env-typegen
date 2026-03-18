@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
 import { loadConfig, type EnvTypegenConfig } from "../config.js";
+import { evaluateFleetRollout } from "../fleet/rollout-controller.js";
 import { evaluatePolicy } from "../policy/policy-evaluator.js";
 import { formatPlanOutput } from "../reporting/policy-report.js";
 import { buildChangeSetFromValidationReport, calculateChangeSetHash } from "../sync/change-set.js";
@@ -126,6 +127,22 @@ export async function runPlanCommand(argv: string[]): Promise<number> {
     const changeSetHash = calculateChangeSetHash(changeSet);
     const config = await loadPlanConfig(values.config);
     const policy = evaluatePolicy(report, config?.policy);
+    const rollout = evaluateFleetRollout({
+      stage: policy.decision === "block" ? "advisory" : "enforce",
+      strategy: "fail-fast",
+      orchestration: {
+        aborted: false,
+        rejected: policy.decision === "block" ? 1 : 0,
+      },
+      ...(policy.decision === "block"
+        ? {
+            sloEvaluation: {
+              status: "breach" as const,
+              allowPromotion: false,
+            },
+          }
+        : {}),
+    });
     const preflightProof = createPreflightProof({
       command: "plan",
       provider: "local-validation",
@@ -153,6 +170,7 @@ export async function runPlanCommand(argv: string[]): Promise<number> {
           preflightProof,
           preflightAttestation,
           policy,
+          rollout,
           recommendations: report.recommendations ?? [],
         })}\n`,
       );

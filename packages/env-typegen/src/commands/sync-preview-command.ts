@@ -6,6 +6,7 @@ import { parseArgs } from "node:util";
 import { loadAdapter } from "../adapters/loader.js";
 import type { EnvMap } from "../adapters/types.js";
 import { loadConfig, type EnvTypegenConfig } from "../config.js";
+import { evaluateFleetRollout } from "../fleet/rollout-controller.js";
 import { evaluatePolicy } from "../policy/policy-evaluator.js";
 import { formatSyncPreviewOutput } from "../reporting/policy-report.js";
 import { buildChangeSetFromMaps, calculateChangeSetHash } from "../sync/change-set.js";
@@ -203,6 +204,22 @@ export async function runSyncPreviewCommand(argv: string[]): Promise<number> {
     });
     const changeSetHash = calculateChangeSetHash(changeSet);
     const policy = evaluatePolicy(drift.report, config?.policy);
+    const rollout = evaluateFleetRollout({
+      stage: policy.decision === "block" ? "advisory" : "enforce",
+      strategy: "fail-fast",
+      orchestration: {
+        aborted: false,
+        rejected: policy.decision === "block" ? 1 : 0,
+      },
+      ...(policy.decision === "block"
+        ? {
+            sloEvaluation: {
+              status: "breach" as const,
+              allowPromotion: false,
+            },
+          }
+        : {}),
+    });
     const preflightProof = createPreflightProof({
       command: "sync-preview",
       provider: providerName,
@@ -234,6 +251,7 @@ export async function runSyncPreviewCommand(argv: string[]): Promise<number> {
           preflightAttestation,
           summary: drift.report.summary,
           policy,
+          rollout,
           adapterWarnings: remote.warnings ?? [],
         })}\n`,
       );

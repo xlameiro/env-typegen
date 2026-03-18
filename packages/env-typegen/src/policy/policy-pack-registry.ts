@@ -2,10 +2,11 @@ import {
   type PolicyPackTrustConfig,
   validatePolicyPackSignature,
 } from "../trust/policy-pack-signature.js";
+import { isPolicyDistributionChannel, type PolicyDistributionChannel } from "./policy-channel.js";
 import type { EnvTypegenPolicyConfig, PolicyPackReference } from "./policy-model.js";
 import {
-  type PolicyPackFetchOptions,
   fetchPolicyPackContentWithProvenance,
+  type PolicyPackFetchOptions,
 } from "./policy-pack-fetch.js";
 import {
   type PolicyPackLockFile,
@@ -31,6 +32,7 @@ function normalizeReference(reference: PolicyPackReference): { source: string; c
 async function loadPacksFromReferences(params: {
   references: PolicyPackReference[];
   expectedLayer: "base" | "overlay";
+  channel: PolicyDistributionChannel | undefined;
   cwd: string;
   lock: PolicyPackLockFile | undefined;
   lockStrict: boolean;
@@ -53,6 +55,12 @@ async function loadPacksFromReferences(params: {
       layer: parsedPack.layer,
       expectedLayer: params.expectedLayer,
     });
+    validatePolicyPackChannel({
+      id: parsedPack.id,
+      source: normalizeReference(reference).source,
+      packChannel: parsedPack.distribution?.channel,
+      expectedChannel: params.channel,
+    });
 
     const normalizedPolicy: EnvTypegenPolicyConfig = {
       ...(parsedPack.policy.mode === undefined ? {} : { mode: parsedPack.policy.mode }),
@@ -64,6 +72,23 @@ async function loadPacksFromReferences(params: {
   }
 
   return loadedPolicies;
+}
+
+function validatePolicyPackChannel(params: {
+  id: string;
+  source: string;
+  packChannel: PolicyDistributionChannel | undefined;
+  expectedChannel: PolicyDistributionChannel | undefined;
+}): void {
+  if (params.expectedChannel === undefined || params.packChannel === undefined) {
+    return;
+  }
+
+  if (params.packChannel !== params.expectedChannel) {
+    throw new Error(
+      `Policy pack ${params.id} from ${params.source} targets channel ${params.packChannel}, expected ${params.expectedChannel}.`,
+    );
+  }
 }
 
 async function loadPolicyPackReference(params: {
@@ -145,6 +170,7 @@ function validatePolicyPackLayer(params: {
 
 export async function resolvePolicyWithPacks(params: {
   policy: EnvTypegenPolicyConfig | undefined;
+  channel?: PolicyDistributionChannel;
   cwd?: string;
   lock?: {
     lockFilePath: string;
@@ -153,6 +179,10 @@ export async function resolvePolicyWithPacks(params: {
   fetch?: PolicyPackFetchOptions;
   trust?: PolicyPackTrustConfig;
 }): Promise<Omit<EnvTypegenPolicyConfig, "packs">> {
+  if (params.channel !== undefined && !isPolicyDistributionChannel(params.channel)) {
+    throw new Error(`Invalid policy distribution channel: ${params.channel}.`);
+  }
+
   const inlinePolicy = stripPolicyPacks(params.policy);
   const policyPacks = params.policy?.packs;
   if (policyPacks === undefined) {
@@ -171,6 +201,7 @@ export async function resolvePolicyWithPacks(params: {
   const basePolicies = await loadPacksFromReferences({
     references: policyPacks.base ?? [],
     expectedLayer: "base",
+    channel: params.channel,
     cwd,
     lock,
     lockStrict: params.lock?.strict ?? true,
@@ -180,6 +211,7 @@ export async function resolvePolicyWithPacks(params: {
   const overlayPolicies = await loadPacksFromReferences({
     references: policyPacks.overlay ?? [],
     expectedLayer: "overlay",
+    channel: params.channel,
     cwd,
     lock,
     lockStrict: params.lock?.strict ?? true,

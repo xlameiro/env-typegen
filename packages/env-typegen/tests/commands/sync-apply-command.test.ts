@@ -95,7 +95,15 @@ describe("runSyncApplyCommand", () => {
         signature: { signature: string; signatureId: string };
         forensicsIndex: { indexId: string; indexHash: string };
       };
-      governanceSummary: { outcome: string; stage: string };
+      governanceSummary: {
+        outcome: string;
+        stage: string;
+        rollout: {
+          cohort: string;
+          action: string;
+          canProceed: boolean;
+        };
+      };
     };
 
     expect(payload.mode).toBe("dry-run");
@@ -106,6 +114,9 @@ describe("runSyncApplyCommand", () => {
     expect(payload.evidenceBundle.forensicsIndex.indexHash).toMatch(/^[a-f0-9]{64}$/u);
     expect(payload.governanceSummary.outcome).toBe("pass");
     expect(payload.governanceSummary.stage).toBe("enforce");
+    expect(payload.governanceSummary.rollout.cohort).toBe("ramp");
+    expect(payload.governanceSummary.rollout.action).toBe("advance");
+    expect(payload.governanceSummary.rollout.canProceed).toBe(true);
   });
 
   it("should block apply mode when writePolicy.enableApply is false", async () => {
@@ -166,7 +177,14 @@ describe("runSyncApplyCommand", () => {
         forensicsIndex: { signatureId: string };
       };
       guardResult: { reasons: string[] };
-      governanceSummary: { outcome: string; stage: string };
+      governanceSummary: {
+        outcome: string;
+        stage: string;
+        rollout: {
+          action: string;
+          canProceed: boolean;
+        };
+      };
     };
 
     expect(payload.allowed).toBe(false);
@@ -178,5 +196,7 @@ describe("runSyncApplyCommand", () => {
     expect(payload.guardResult.reasons.join(" ")).toContain("disabled");
     expect(payload.governanceSummary.outcome).toBe("fail");
     expect(payload.governanceSummary.stage).toBe("advisory");
+    expect(payload.governanceSummary.rollout.action).toBe("rollback");
+    expect(payload.governanceSummary.rollout.canProceed).toBe(false);
   });
 });
