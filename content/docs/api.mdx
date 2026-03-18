@@ -42,6 +42,32 @@ import {
 } from "@xlameiro/env-typegen";
 ```
 
+## Governance command usage from code
+
+Use `runValidationCommand` for all validation commands, including `verify`:
+
+```typescript
+const exitCode = await runValidationCommand({
+  command: "verify",
+  argv: ["--env", ".env", "--contract", "env.contract.mjs", "--json"],
+});
+
+if (exitCode !== 0) {
+  process.exit(exitCode);
+}
+```
+
+## Trust, SLO, and forensics outputs
+
+`sync-apply --json` emits governance metadata that can be consumed programmatically:
+
+- `governanceSummary.operationalReadiness` for SLO/incident-derived readiness.
+- `governanceSummary.evidence` for signed evidence correlation fields.
+- `evidenceBundle.signature` and `evidenceBundle.forensicsIndex` for traceability assertions.
+
+Use these outputs to promote only when trust validation, resiliency checks, and forensics
+correlation are all satisfied in CI workflows.
+
 ## Architecture map
 
 | Layer                  | Key functions                                                                          |
@@ -184,10 +210,12 @@ Runs validation subcommands programmatically.
 
 ```typescript
 const exitCode = await runValidationCommand({
-  command: "check",
+  command: "verify",
   argv: ["--env", ".env", "--contract", "env.contract.ts", "--json"],
 });
 ```
+
+`verify` is intended for CI gates and fails on warnings and errors.
 
 ### `loadCloudSource({ provider, filePath })`
 
@@ -231,7 +259,7 @@ await runGenerate({
 
 ```typescript
 const exitCode = await runValidationCommand({
-  command: "doctor",
+  command: "verify",
   argv: [
     "--env",
     ".env",
@@ -247,6 +275,130 @@ if (exitCode !== 0) {
   process.exit(exitCode);
 }
 ```
+
+### Pull command integration
+
+Call the CLI subcommand from scripts when provider configuration is already present:
+
+```bash
+env-typegen pull vercel --env preview
+```
+
+This keeps provider synchronization read-only and separate from validation gate logic.
+
+### Plan and sync-preview command integration
+
+Use CLI invocation from scripts when you need preflight governance decisions:
+
+```bash
+env-typegen plan --env .env --contract env.contract.mjs --json
+env-typegen sync-preview vercel --env-file .env --config env-typegen.config.mjs --json
+```
+
+These commands are read-only and designed for deterministic CI preflight stages.
+
+### Sync-apply command integration
+
+Use `sync-apply` in two stages:
+
+```bash
+# dry-run (default)
+env-typegen sync-apply vercel --env-file .env --config env-typegen.config.mjs --json
+
+# guarded apply
+env-typegen sync-apply vercel \
+  --env production \
+  --env-file .env \
+  --config env-typegen.config.mjs \
+  --apply \
+  --preflight-file reports/preflight.json \
+  --protected-branch \
+  --json
+```
+
+Apply mode exits non-zero when any write guard blocks execution.
+
+### Policy pack resolution integration
+
+Policy pack precedence is deterministic:
+
+1. Inline policy rules from local config.
+2. Overlay packs.
+3. Base packs.
+
+Use packs for shared governance defaults and keep project-specific exceptions inline.
+
+### Governance smoke automation
+
+Repository smoke check:
+
+```bash
+node qa-test/env-typegen-governance-smoke.mjs
+```
+
+The script validates pass/fail verify behavior plus pull/plan/sync-preview execution and writes a machine-readable report.
+
+Apply smoke automation:
+
+```bash
+node qa-test/env-typegen-apply-smoke.mjs --mode=all
+```
+
+This smoke validates dry-run and apply guardrail outcomes and writes `qa-test/reports/env-governance-apply-smoke.json`.
+
+### Governance conformance automation
+
+Conformance smoke command:
+
+```bash
+node qa-test/env-typegen-conformance-smoke.mjs
+```
+
+Conformance smoke report:
+
+- `qa-test/reports/env-governance-conformance-smoke.json`
+
+### Multi-repo bootstrap manifest integration
+
+Use JSON fleet manifests for deterministic repository bootstrap plans.
+
+Valid fixture reference:
+
+- `packages/env-typegen/tests/fixtures/multi-repo/fleet-manifest.valid.json`
+
+Invalid fixture reference:
+
+- `packages/env-typegen/tests/fixtures/multi-repo/fleet-manifest.invalid.json`
+
+Bootstrap modules:
+
+- `packages/env-typegen/src/multi-repo/repo-manifest.ts`
+- `packages/env-typegen/src/multi-repo/bootstrap.ts`
+
+These modules are intended for repository-level orchestration and platform automation flows.
+
+### Governance promotion automation
+
+Promotion smoke command:
+
+```bash
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+Promotion workflow:
+
+- `.github/workflows/env-governance-promotion.yml`
+
+Promotion smoke report:
+
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+Recommended automation sequence:
+
+1. Run `verify` as merge/deploy gate.
+2. Run apply dry-run checks.
+3. Run conformance smoke to validate adapter/orchestration invariants.
+4. Run promotion smoke to validate advisory-enforce -> enforce -> apply progression.
 
 ## FAQ
 

@@ -5,6 +5,10 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inspect, parseArgs } from "node:util";
 
+import { runPlanCommand } from "./commands/plan-command.js";
+import { runPullCommand } from "./commands/pull-command.js";
+import { runSyncApplyCommand } from "./commands/sync-apply-command.js";
+import { runSyncPreviewCommand } from "./commands/sync-preview-command.js";
 import {
   CONFIG_FILE_NAMES,
   loadConfig,
@@ -28,6 +32,11 @@ const HELP_TEXT = [
   "",
   "Usage:",
   "  env-typegen [generate] -i <path> [options]",
+  "  env-typegen pull <provider> [options]",
+  "  env-typegen plan [options]",
+  "  env-typegen sync-apply <provider> [options]",
+  "  env-typegen sync-preview <provider> [options]",
+  "  env-typegen verify [options]",
   "  env-typegen check [options]",
   "  env-typegen diff [options]",
   "  env-typegen doctor [options]",
@@ -43,6 +52,8 @@ const HELP_TEXT = [
   "      --stdout               Print generated output to stdout",
   "      --dry-run              Parse and generate without writing files",
   "      --no-format            Disable prettier formatting",
+  "      --strategy <mode>      sync-apply only: fail-fast | fail-late",
+  "      --max-concurrency <n>  sync-apply only: bounded target parallelism",
   "  -s, --silent               Suppress success logs",
   "  -w, --watch                Watch for changes and regenerate",
   "  -c, --config <path>        Path to config file",
@@ -61,7 +72,7 @@ const HELP_TEXT = [
   "  1  Error — invalid flags or generation failed",
 ].join("\n");
 
-const VALIDATION_SUBCOMMANDS = new Set(["check", "diff", "doctor"]);
+const VALIDATION_SUBCOMMANDS = new Set(["check", "diff", "doctor", "verify"]);
 
 const FORMAT_TO_GENERATOR: Readonly<Record<string, GeneratorName>> = {
   ts: "typescript",
@@ -128,7 +139,7 @@ function applyConfigPaths(config: EnvTypegenConfig, configDir: string): EnvTypeg
   };
 }
 
-type ValidationSubcommand = "check" | "diff" | "doctor";
+type ValidationSubcommand = "check" | "diff" | "doctor" | "verify";
 
 async function runValidationSubcommand(
   subcommand: ValidationSubcommand,
@@ -138,6 +149,62 @@ async function runValidationSubcommand(
   if (exitCode !== 0) {
     process.exitCode = exitCode;
   }
+}
+
+async function maybeRunPullSubcommand(argv: string[]): Promise<boolean> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand !== "pull") {
+    return false;
+  }
+
+  const exitCode = await runPullCommand(argv.slice(1));
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+  }
+
+  return true;
+}
+
+async function maybeRunPlanSubcommand(argv: string[]): Promise<boolean> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand !== "plan") {
+    return false;
+  }
+
+  const exitCode = await runPlanCommand(argv.slice(1));
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+  }
+
+  return true;
+}
+
+async function maybeRunSyncPreviewSubcommand(argv: string[]): Promise<boolean> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand !== "sync-preview") {
+    return false;
+  }
+
+  const exitCode = await runSyncPreviewCommand(argv.slice(1));
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+  }
+
+  return true;
+}
+
+async function maybeRunSyncApplySubcommand(argv: string[]): Promise<boolean> {
+  const maybeSubcommand = argv[0];
+  if (maybeSubcommand !== "sync-apply") {
+    return false;
+  }
+
+  const exitCode = await runSyncApplyCommand(argv.slice(1));
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+  }
+
+  return true;
 }
 
 /** Resolve the config file at an explicit user-supplied path, with an existence check. */
@@ -207,6 +274,18 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<vo
   // "generate" is the implicit default subcommand — accept it explicitly as an alias
   // so `env-typegen generate -i ...` behaves the same as `env-typegen -i ...`.
   const normalizedArgv = parseGenerateAlias(argv);
+  if (await maybeRunPullSubcommand(normalizedArgv)) {
+    return;
+  }
+  if (await maybeRunPlanSubcommand(normalizedArgv)) {
+    return;
+  }
+  if (await maybeRunSyncApplySubcommand(normalizedArgv)) {
+    return;
+  }
+  if (await maybeRunSyncPreviewSubcommand(normalizedArgv)) {
+    return;
+  }
   if (await maybeRunValidationSubcommand(normalizedArgv)) {
     return;
   }

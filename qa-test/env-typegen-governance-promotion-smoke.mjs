@@ -1,0 +1,297 @@
+import { spawn } from "node:child_process";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = path.resolve(scriptDirectory, "..");
+const reportsDirectory = path.join(scriptDirectory, "reports");
+const reportFilePath = path.join(
+  reportsDirectory,
+  "env-governance-promotion-smoke.json",
+);
+
+function runCommand(command, args, cwd) {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+
+    child.stderr.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+
+    child.on("close", (code) => {
+      resolve({
+        name: args.join(" "),
+        exitCode: code ?? 1,
+        stdout,
+        stderr,
+      });
+    });
+  });
+}
+
+async function readJsonReport(filePath) {
+  const raw = await readFile(filePath, "utf8");
+  return JSON.parse(raw);
+}
+
+function toStepResult(params) {
+  const status = params.commandResult.exitCode === 0 ? "pass" : "fail";
+
+  return {
+    step: params.label,
+    status,
+    exitCode: params.commandResult.exitCode,
+    ...(params.report === undefined
+      ? {}
+      : {
+          report: {
+            total: params.report.total,
+            passed: params.report.passed,
+            failed: params.report.failed,
+            ...(params.report.promotionStage === undefined
+              ? {}
+              : { promotionStage: params.report.promotionStage }),
+          },
+        }),
+    details:
+      status === "pass"
+        ? `exitCode=${params.commandResult.exitCode}`
+        : `exitCode=${params.commandResult.exitCode}; stderr=${params.commandResult.stderr.trim()}`,
+  };
+}
+
+function isSha256(value) {
+  return typeof value === "string" && /^[a-f0-9]{64}$/u.test(value);
+}
+
+async function runEvidenceProbe() {
+  const cliEntrypoint = path.join(
+    repositoryRoot,
+    "packages/env-typegen/dist/cli.js",
+  );
+  const workingDirectory = await mkdtemp(
+    path.join(tmpdir(), "env-evidence-smoke-"),
+  );
+
+  try {
+    const envPath = path.join(workingDirectory, ".env");
+    const adapterPath = path.join(workingDirectory, "evidence-adapter.mjs");
+    const configPath = path.join(workingDirectory, "env-typegen.config.mjs");
+
+    await writeFile(
+      envPath,
+      "API_URL=https://example.com\nPORT=3000\n",
+      "utf8",
+    );
+    await writeFile(
+      adapterPath,
+      [
+        "export default {",
+        '  name: "evidence-adapter",',
+        '  pull: async () => ({ values: { API_URL: "https://example.com", PORT: "3000" } }),',
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      configPath,
+      [
+        "export default {",
+        "  input: '.env.example',",
+        "  providers: {",
+        `    smoke: { adapter: ${JSON.stringify(adapterPath)} },`,
+        "  },",
+        "  writePolicy: {",
+        "    enableApply: false,",
+        "    requirePreflight: false,",
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const probe = await runCommand(
+      "node",
+      [
+        cliEntrypoint,
+        "sync-apply",
+        "smoke",
+        "--config",
+        configPath,
+        "--env-file",
+        envPath,
+        "--json",
+      ],
+      repositoryRoot,
+    );
+
+    if (probe.exitCode !== 0) {
+      return {
+        step: "evidence probe",
+        status: "fail",
+        details: `sync-apply probe failed with exitCode=${probe.exitCode}`,
+      };
+    }
+
+    const payload = JSON.parse(probe.stdout.trim());
+    const evidence = payload.evidenceBundle;
+    const governanceEvidence = payload.governanceSummary?.evidence;
+
+    const schemaPass = evidence?.schemaVersion === 1;
+    const hashPass =
+      isSha256(evidence?.bundleHash) &&
+      isSha256(evidence?.audit?.lifecycleHash);
+    const correlationPass =
+      governanceEvidence?.bundleHash === evidence?.bundleHash &&
+      governanceEvidence?.lifecycleHash === evidence?.audit?.lifecycleHash;
+
+    const passed = schemaPass && hashPass && correlationPass;
+
+    return {
+      step: "evidence probe",
+      status: passed ? "pass" : "fail",
+      details: passed
+        ? "evidence schema/hash correlation validated"
+        : "evidence schema/hash correlation validation failed",
+      report: {
+        schemaVersion: evidence?.schemaVersion,
+        hashPass,
+        correlationPass,
+      },
+    };
+  } finally {
+    await rm(workingDirectory, { recursive: true, force: true });
+  }
+}
+
+async function main() {
+  const governanceSmokePath = path.join(
+    scriptDirectory,
+    "env-typegen-governance-smoke.mjs",
+  );
+  const conformanceSmokePath = path.join(
+    scriptDirectory,
+    "env-typegen-conformance-smoke.mjs",
+  );
+  const applySmokePath = path.join(
+    scriptDirectory,
+    "env-typegen-apply-smoke.mjs",
+  );
+
+  const conformanceResult = await runCommand(
+    "node",
+    [conformanceSmokePath],
+    repositoryRoot,
+  );
+  const conformanceReportPath = path.join(
+    reportsDirectory,
+    "env-governance-conformance-smoke.json",
+  );
+  const conformanceReport = await readJsonReport(conformanceReportPath);
+
+  const governanceResult = await runCommand(
+    "node",
+    [governanceSmokePath],
+    repositoryRoot,
+  );
+  const governanceReportPath = path.join(
+    reportsDirectory,
+    "env-governance-smoke.json",
+  );
+  const governanceReport = await readJsonReport(governanceReportPath);
+
+  const dryRunResult = await runCommand(
+    "node",
+    [applySmokePath, "--mode=dry-run"],
+    repositoryRoot,
+  );
+  const applyReportPath = path.join(
+    reportsDirectory,
+    "env-governance-apply-smoke.json",
+  );
+  const dryRunReport = await readJsonReport(applyReportPath);
+
+  const applyResult = await runCommand(
+    "node",
+    [applySmokePath, "--mode=apply"],
+    repositoryRoot,
+  );
+  const applyReport = await readJsonReport(applyReportPath);
+
+  const results = [
+    toStepResult({
+      label: "conformance smoke",
+      commandResult: conformanceResult,
+      report: conformanceReport,
+    }),
+    toStepResult({
+      label: "advisory-enforce smoke",
+      commandResult: governanceResult,
+      report: governanceReport,
+    }),
+    toStepResult({
+      label: "enforce dry-run smoke",
+      commandResult: dryRunResult,
+      report: dryRunReport,
+    }),
+    toStepResult({
+      label: "apply smoke",
+      commandResult: applyResult,
+      report: applyReport,
+    }),
+    await runEvidenceProbe(),
+  ];
+
+  const failed = results.filter((result) => result.status === "fail").length;
+  const passed = results.length - failed;
+
+  await mkdir(reportsDirectory, { recursive: true });
+  await writeFile(
+    reportFilePath,
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        promotionStages: ["advisory", "enforce", "apply"],
+        total: results.length,
+        passed,
+        failed,
+        evidenceSchemaVersion:
+          results.find((result) => result.step === "evidence probe")?.report
+            ?.schemaVersion ?? null,
+        evidenceIntegrityPassed:
+          results.find((result) => result.step === "evidence probe")?.status ===
+          "pass",
+        conformancePassed:
+          results.find((result) => result.step === "conformance smoke")
+            ?.status === "pass",
+        results,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+
+  if (failed > 0) {
+    console.error(`GOVERNANCE_PROMOTION_SMOKE_FAILED:${failed}`);
+    process.exit(1);
+  }
+
+  console.log(`GOVERNANCE_PROMOTION_SMOKE_OK:${passed}/${results.length}`);
+}
+
+await main();

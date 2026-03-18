@@ -16,9 +16,11 @@
 `@xlameiro/env-typegen` reads `.env.example` and helps you:
 
 - generate TypeScript, Zod, t3-env, and declaration outputs
+- pull provider state via adapters (read-only)
 - validate real env files against explicit contracts
 - detect drift across multiple targets
 - produce CI-friendly JSON diagnostics
+- enforce deterministic merge gates with `verify`
 
 ## Installation
 
@@ -63,17 +65,63 @@ npx env-typegen -i .env.example -o src/env.ts -f typescript -f zod -f declaratio
 npx env-typegen check --env .env --contract env.contract.ts
 
 # Compare drift across sources
-npx env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+npx env-typegen diff --targets .env,.env.production --contract env.contract.mjs
 
 # Aggregated diagnostics
-npx env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+npx env-typegen doctor --env .env --targets .env,.env.production --contract env.contract.mjs
+
+# Read-only provider sync
+npx env-typegen pull vercel --env preview
+
+# CI governance gate (fails on warnings and errors)
+npx env-typegen verify --env .env --targets .env,.env.production --contract env.contract.mjs
+
+# Controlled apply (dry-run default)
+npx env-typegen sync-apply vercel --env-file .env --config env-typegen.config.mjs --json
 ```
+
+`pull` is read-only in v1 and does not push values to providers.
+
+`sync-apply` runs in dry-run mode by default and requires explicit guards for apply mode.
+
+Recommended CI policy:
+
+- PRs to `main` and protected branches should treat `verify` as blocking.
+- Feature branches can run the same command in advisory mode when needed.
 
 JSON output for CI:
 
 ```bash
-npx env-typegen check --env .env --json --output-file reports/env-check.json
+npx env-typegen verify --env .env --json=pretty --output-file reports/env-verify.json
 ```
+
+Apply smoke check:
+
+```bash
+node qa-test/env-typegen-apply-smoke.mjs --mode=all
+```
+
+Promotion smoke check:
+
+```bash
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+Conformance smoke check:
+
+```bash
+node qa-test/env-typegen-conformance-smoke.mjs
+```
+
+Promotion policy:
+
+- Stage repositories from advisory-enforce to enforce before enabling apply.
+- Keep apply workflows restricted to protected branches with explicit guardrails.
+
+Conformance policy:
+
+- Run conformance smoke before promotion-stage transitions.
+- Enforce adapter contract v3 metadata and orchestration strategy checks in CI.
 
 Strict mode is enabled by default. Use `--no-strict` to downgrade undeclared variables to warnings.
 
@@ -116,8 +164,9 @@ import {
 
 1. Start with generation-only output (`ts`, `zod`).
 2. Add `check` in CI for contract enforcement.
-3. Add `diff` and `doctor` for drift prevention.
-4. Add cloud snapshots and plugins for advanced workflows.
+3. Add `pull` to read provider state through adapters.
+4. Add `verify` as merge-blocking gate.
+5. Add `diff`, `doctor`, cloud snapshots, and plugins for advanced workflows.
 
 ## FAQ
 
@@ -131,12 +180,16 @@ Yes, but explicit contracts are recommended for governance and CI reliability.
 
 ### Which command should I run in CI?
 
-Start with `check`. Add `diff` or `doctor` as your pipeline maturity grows.
+Use `verify` as the final gate. Keep `check`, `diff`, and `doctor` for stage-specific diagnostics.
 
 ## Docs and references
 
 - Website docs source: [`/content/docs`](../../content/docs)
 - Package docs index: [`/packages/env-typegen/docs`](./docs)
+- Policy packs guide: [`/packages/env-typegen/docs/policy-packs.md`](./docs/policy-packs.md)
+- Sync apply guide: [`/packages/env-typegen/docs/sync-apply.md`](./docs/sync-apply.md)
+- Governance promotion guide: [`/packages/env-typegen/docs/governance-promotion.md`](./docs/governance-promotion.md)
+- Governance conformance guide: [`/packages/env-typegen/docs/governance-conformance.md`](./docs/governance-conformance.md)
 - Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Trust signals

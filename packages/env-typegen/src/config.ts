@@ -3,16 +3,120 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import type { InferenceRule } from "./inferrer/rules.js";
+import type { ExecutionBudget } from "./ops/execution-budget.js";
+import type { IncidentState, IncidentStatus } from "./ops/incident-state.js";
+import type { SloPolicy } from "./ops/slo-policy.js";
 import type { PluginReference } from "./plugins.js";
+import type { EnvTypegenPolicyConfig } from "./policy/policy-model.js";
 
 export type { InferenceRule } from "./inferrer/rules.js";
 export type { PluginReference } from "./plugins.js";
+export type { EnvTypegenPolicyConfig } from "./policy/policy-model.js";
+
+/** Write controls for sync-apply operations. */
+export type EnvTypegenWritePolicyConfig = {
+  /** Enable remote apply mode. Defaults to false. */
+  enableApply?: boolean;
+  /** Environments that require protected branch execution. */
+  protectedEnvironments?: string[];
+  /** Require an explicit preflight artifact path before apply. Defaults to true. */
+  requirePreflight?: boolean;
+  /** Optional JSONL audit trail output path. */
+  auditLogPath?: string;
+  /** Optional execution budget guardrails for apply operations. */
+  executionBudget?: ExecutionBudget;
+  /** Optional SLO policy used to derive operational readiness during apply orchestration. */
+  sloPolicy?: SloPolicy;
+  /** Optional pre-existing incident state used to throttle orchestration safely. */
+  incidentState?:
+    | IncidentState
+    | {
+        status: IncidentStatus;
+        reason?: string;
+        since?: string;
+        consecutiveBreaches?: number;
+        throttleFactor?: number;
+      };
+};
+
+/** Lockfile controls for policy pack integrity pinning. */
+export type EnvTypegenPolicyPackLockConfig = {
+  /** Path to the lock file consumed by policy pack resolution. */
+  path?: string;
+  /** Fail when a referenced pack has no lock entry. Defaults to true. */
+  strict?: boolean;
+};
+
+/** Remote policy pack fetch behavior for retry/cache/offline use cases. */
+export type EnvTypegenPolicyPackFetchConfig = {
+  /** Per-request timeout for remote pack fetches. */
+  timeoutMs?: number;
+  /** Maximum retry attempts for retryable failures. */
+  maxRetries?: number;
+  /** Base retry delay in milliseconds (exponential backoff). */
+  retryDelayMs?: number;
+  /** Cache freshness window in milliseconds. */
+  cacheTtlMs?: number;
+  /** Optional cache directory path for remote policy packs. */
+  cacheDir?: string;
+  /** When true, only cached remote packs are allowed. */
+  offline?: boolean;
+};
+
+/** Trust controls for policy pack signature/provenance validation. */
+export type EnvTypegenPolicyPackTrustConfig = {
+  /** Validation mode. strict blocks on missing/invalid signatures, tolerant allows unsigned packs. */
+  mode?: "strict" | "tolerant";
+  /** Optional signer allow-list for trusted policy pack sources. */
+  allowedSigners?: string[];
+  /** Enforce signature expiration checks when true. */
+  enforceExpiry?: boolean;
+};
 
 /** Generator identifiers supported by env-typegen. */
 export type GeneratorName = "typescript" | "zod" | "t3" | "declaration";
 
+/** Rule set applied globally or per environment during validation. */
+export type EnvTypegenRuleSet = {
+  /** Treat undeclared variables as hard errors when true. */
+  strict?: boolean;
+  /** Allow variables that are not declared in the schema. */
+  allowExtra?: boolean;
+  /** Require all schema variables to be present in the target source. */
+  requireAll?: boolean;
+};
+
+/** Validation policy configuration. */
+export type EnvTypegenRulesConfig = EnvTypegenRuleSet & {
+  /** Optional overrides keyed by logical environment name. */
+  perEnvironment?: Record<string, EnvTypegenRuleSet>;
+};
+
+/** Runtime source mapping for a logical environment. */
+export type EnvTypegenEnvironmentConfig = {
+  /** Source identifier or source chain (e.g. "local", "vercel"). */
+  source: string | string[];
+  /** Optional provider-specific environment aliases. */
+  targets?: string[];
+  /** Provider-specific extension point. */
+  metadata?: Record<string, unknown>;
+};
+
+/** Adapter provider configuration loaded by command runtime. */
+export type EnvTypegenProviderConfig = {
+  /** Adapter module specifier (e.g. "@env-typegen/adapter-vercel"). */
+  adapter: string;
+  /** Common optional credentials/context hints. */
+  token?: string;
+  projectId?: string;
+  /** Adapter-specific extension point. */
+  options?: Record<string, unknown>;
+};
+
 /** Configuration shape accepted by env-typegen's CLI and programmatic API. */
 export type EnvTypegenConfig = {
+  /** Config schema version for compatibility checks. */
+  version?: number;
   /** Path(s) to the .env.example file(s) to parse. */
   input: string | string[];
   /** Output directory for generated files. Defaults to the input file's directory. */
@@ -52,6 +156,30 @@ export type EnvTypegenConfig = {
 
   /** Plugin references (module paths or plugin objects). */
   plugins?: PluginReference[];
+
+  /** Logical environments (development/preview/production) and their source mapping. */
+  environments?: Record<string, EnvTypegenEnvironmentConfig>;
+
+  /** Provider registry used by adapters and runtime sync commands. */
+  providers?: Record<string, EnvTypegenProviderConfig>;
+
+  /** Validation policy for governance workflows. */
+  rules?: EnvTypegenRulesConfig;
+
+  /** Policy engine configuration for plan/sync-preview preflight decisions. */
+  policy?: EnvTypegenPolicyConfig;
+
+  /** Policy pack lockfile controls. */
+  policyPackLock?: EnvTypegenPolicyPackLockConfig;
+
+  /** Policy pack remote fetch controls. */
+  policyPackFetch?: EnvTypegenPolicyPackFetchConfig;
+
+  /** Policy pack trust/signature validation controls. */
+  policyPackTrust?: EnvTypegenPolicyPackTrustConfig;
+
+  /** Write controls for sync-apply runtime behavior. */
+  writePolicy?: EnvTypegenWritePolicyConfig;
 };
 
 /** Config file names searched in order when calling loadConfig(). */

@@ -1,0 +1,50 @@
+---
+title: Governance Chaos and SLO
+description: Operational resilience model for chaos determinism, SLO readiness, and promotion safety decisions.
+---
+
+## Why chaos and SLO are first-class governance inputs
+
+Governance apply decisions should incorporate runtime resiliency, not only static drift checks.
+Chaos validation and SLO policy signals make degradation and breach conditions explicit before
+promotion reaches write-enabled stages.
+
+## Resilience model
+
+- Chaos matrix tests validate deterministic behavior under operation and target failures.
+- SLO policy computes readiness (`healthy`, `degraded`, `breach`) and promotion allowance.
+- Incident state contributes throttle factors and promotion restrictions.
+- Promotion pipeline consumes these outputs before advancing to apply.
+
+## Key workflows and smoke commands
+
+- Chaos workflow: `.github/workflows/env-governance-chaos.yml`
+- Forensics workflow: `.github/workflows/env-governance-forensics.yml`
+- Promotion workflow: `.github/workflows/env-governance-promotion.yml`
+
+Commands:
+
+```bash
+node qa-test/env-typegen-chaos-smoke.mjs
+node qa-test/env-typegen-forensics-smoke.mjs
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+Expected artifacts:
+
+- `qa-test/reports/env-governance-chaos-smoke.json`
+- `qa-test/reports/env-governance-forensics-smoke.json`
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+## Operational guidance
+
+1. Keep chaos smoke deterministic and fixture-driven.
+2. Treat SLO breach outcomes as promotion blockers.
+3. Run forensics smoke to confirm traceability after resilience checks.
+4. Promote only when trust, conformance, chaos, and forensics reports are all green.
+
+## Related docs
+
+- [Governance Trust Model](/docs/governance-trust-model)
+- [Validation & Governance](/docs/validation)
+- [Operations](/docs/operations)

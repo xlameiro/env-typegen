@@ -1,0 +1,76 @@
+---
+title: Governance Promotion
+description: Roll out env governance safely across repositories using staged CI promotion from advisory-enforce to apply.
+---
+
+## Why promotion stages exist
+
+Teams should not enable write paths on day one.
+Promotion stages reduce rollout risk by proving governance behavior before enabling apply.
+
+## Promotion model
+
+Use these stages in order:
+
+1. `advisory-enforce`: validate governance checks and artifacts without write execution.
+2. `enforce`: require deterministic verify and dry-run results.
+3. `apply`: allow controlled writes only with full guardrails.
+
+## Required workflows
+
+- `.github/workflows/env-governance-smoke.yml`
+- `.github/workflows/env-governance-apply-dry-run.yml`
+- `.github/workflows/env-governance-apply.yml`
+- `.github/workflows/env-governance-promotion.yml`
+
+## Smoke commands
+
+```bash
+node qa-test/env-typegen-governance-smoke.mjs
+node qa-test/env-typegen-apply-smoke.mjs --mode=all
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+## Promotion artifact
+
+Promotion smoke produces:
+
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+Use this artifact to confirm stage outcomes and troubleshoot promotion failures.
+
+## Multi-repo rollout playbook
+
+1. Standardize policy packs and lock strategy across repositories.
+2. Enforce `verify` in PRs and protected branches.
+3. Enable apply dry-run workflows in all target repositories.
+4. Promote repositories to apply only after stable enforce-stage evidence.
+5. Track exceptions and roll back to enforce if stage behavior becomes non-deterministic.
+
+## Runbook checks before enabling apply
+
+- `verify` fails on warnings/errors as expected.
+- Dry-run workflow is deterministic.
+- Preflight/protected-branch guards are enforced.
+- Audit and promotion artifacts are generated and retained.
+
+## Troubleshooting
+
+### Promotion stage failed
+
+- Inspect `qa-test/reports/env-governance-promotion-smoke.json`.
+- Identify the failing stage and underlying smoke command.
+- Re-run stage smoke locally before retrying CI.
+
+### Apply stage blocked
+
+- Confirm preflight file exists and matches expected context.
+- Confirm protected branch context is present.
+- Confirm policy decision allows progression beyond enforce.
+
+## Related docs
+
+- [Validation & Governance](/docs/validation)
+- [Operations](/docs/operations)
+- [Sync Apply](/docs/sync-apply)
+- [Policy Packs](/docs/policy-packs)

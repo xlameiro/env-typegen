@@ -1,0 +1,183 @@
+---
+title: Operations
+description: Runbook for env-typegen governance pipelines, smoke checks, and troubleshooting.
+---
+
+## Operations baseline
+
+Use this runbook to operate env governance safely in CI/CD.
+
+Core command lifecycle:
+
+1. `pull` to inspect provider state (read-only).
+2. `diff` and `doctor` to understand drift.
+3. `verify` as blocking merge/deploy gate.
+4. `plan` and `sync-preview` for policy-aware preflight checks.
+5. `sync-apply` in dry-run/apply mode with explicit write guardrails.
+6. `conformance` smoke checks before stage promotion.
+
+## Recommended CI sequence
+
+```bash
+# 1) Type and test safety
+pnpm lint && pnpm type-check && pnpm test && pnpm build
+
+# 2) Governance gate
+env-typegen verify --env .env --contract env.contract.mjs --json=pretty --output-file reports/env-verify.json
+
+# 3) Optional release drift diagnostics
+env-typegen diff --targets .env,.env.staging,.env.production --contract env.contract.mjs --json=pretty --output-file reports/env-drift.json
+
+# 4) Optional write preflight + controlled apply
+env-typegen sync-apply awsSsm --env-file .env --config env-typegen.config.mjs --json
+```
+
+## Smoke automation
+
+The repository includes a smoke script for governance commands:
+
+```bash
+node qa-test/env-typegen-governance-smoke.mjs
+```
+
+The repository also includes a smoke script for apply guardrails:
+
+```bash
+node qa-test/env-typegen-apply-smoke.mjs --mode=all
+```
+
+The repository also includes a conformance smoke script:
+
+```bash
+node qa-test/env-typegen-conformance-smoke.mjs
+```
+
+The repository also includes a forensics smoke script:
+
+```bash
+node qa-test/env-typegen-forensics-smoke.mjs
+```
+
+Expected behavior:
+
+- Valid `verify` returns zero.
+- Invalid `verify` returns non-zero.
+- `pull`, `plan`, and `sync-preview` run in read-only mode and emit stable output.
+- A report is written to `qa-test/reports/env-governance-smoke.json`.
+- Apply guardrail checks emit `qa-test/reports/env-governance-apply-smoke.json`.
+- Conformance checks emit `qa-test/reports/env-governance-conformance-smoke.json`.
+- Chaos checks emit `qa-test/reports/env-governance-chaos-smoke.json`.
+- Forensics checks emit `qa-test/reports/env-governance-forensics-smoke.json`.
+
+## Apply workflows
+
+- PR dry-run workflow: `.github/workflows/env-governance-apply-dry-run.yml`
+- Protected branch apply workflow: `.github/workflows/env-governance-apply.yml`
+- Promotion workflow: `.github/workflows/env-governance-promotion.yml`
+- Conformance workflow: `.github/workflows/env-governance-conformance.yml`
+- Chaos workflow: `.github/workflows/env-governance-chaos.yml`
+- Forensics workflow: `.github/workflows/env-governance-forensics.yml`
+
+Recommended policy:
+
+- Run dry-run workflow for every PR touching env governance.
+- Restrict apply workflow to protected branches and controlled events.
+
+## Promotion pipeline operations
+
+Promotion stages:
+
+1. `advisory-enforce` checks governance behavior and smoke artifacts.
+2. `enforce` requires deterministic dry-run and policy outcomes.
+3. `apply` runs only in controlled protected-branch contexts.
+
+Promotion smoke command:
+
+```bash
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+Promotion report artifact:
+
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+Conformance report artifact:
+
+- `qa-test/reports/env-governance-conformance-smoke.json`
+
+Forensics report artifact:
+
+- `qa-test/reports/env-governance-forensics-smoke.json`
+
+## Multi-repo bootstrap operations
+
+Bootstrap a repository fleet with validated manifest inputs before CI rollout.
+
+Bootstrap modules:
+
+- `packages/env-typegen/src/multi-repo/repo-manifest.ts`
+- `packages/env-typegen/src/multi-repo/bootstrap.ts`
+
+Manifest fixture references:
+
+- `packages/env-typegen/tests/fixtures/multi-repo/fleet-manifest.valid.json`
+- `packages/env-typegen/tests/fixtures/multi-repo/fleet-manifest.invalid.json`
+
+Use these bootstrap artifacts to keep stage transitions consistent across repositories.
+
+## Troubleshooting
+
+### `verify` unexpectedly fails
+
+- Check contract path and env path resolution from current working directory.
+- Run with JSON output to inspect exact issue classes.
+- Confirm strict mode assumptions (`--no-strict` downgrades extras to warnings in diagnostics, but policy may still block).
+
+### `pull` fails to load adapter
+
+- Verify adapter module path is correct and resolvable from execution cwd.
+- Ensure adapter exports a valid shape (`name`, `pull`, optional `compare`, `meta`, `push`).
+- Use absolute paths in temporary smoke configs when diagnosing path issues.
+
+### `sync-preview` exits non-zero
+
+- This is expected when policy decides `block` due to drift.
+- Review JSON output for `missingInRemote`, `extraInRemote`, and `mismatches`.
+
+### `sync-apply` exits non-zero
+
+- Check guard reasons in JSON output (`write disabled`, `missing preflight`, `protected branch`).
+- Confirm `writePolicy` config and CLI flags are aligned (`--apply`, `--preflight-file`, `--protected-branch`).
+- Re-run dry-run first, then apply only after policy decision is `allow` or approved `warn`.
+
+### Promotion workflow fails unexpectedly
+
+- Check stage assertions in `.github/workflows/env-governance-promotion.yml`.
+- Inspect `qa-test/reports/env-governance-promotion-smoke.json` for the failing stage.
+- Verify each stage report contains the expected promotion marker (`advisory-enforce`, `enforce`, `apply`).
+
+### Conformance workflow fails unexpectedly
+
+- Check assertions in `.github/workflows/env-governance-conformance.yml`.
+- Inspect `qa-test/reports/env-governance-conformance-smoke.json` for failing checks.
+- Verify adapter contract v3 metadata and orchestration strategy outputs are valid.
+
+## Incident response checklist
+
+1. Capture failing command output and JSON report artifact.
+2. Identify issue class (`missing`, `extra`, `invalid_type`, `invalid_value`, `conflict`, `secret_exposed`).
+3. Decide whether to fix source values, update contract, or adjust policy configuration.
+4. Re-run `verify` and smoke script before retrying merge/deploy.
+5. If apply was attempted, attach audit output and smoke report to incident notes.
+
+## Security posture
+
+- Keep default redaction enabled for CI output.
+- Avoid `--debug-values` in shared logs.
+- Keep provider operations read-only by default until write flows are formally approved.
+
+## Related docs
+
+- [Governance Conformance](/docs/governance-conformance)
+- [Governance Trust Model](/docs/governance-trust-model)
+- [Governance Chaos and SLO](/docs/governance-chaos-and-slo)

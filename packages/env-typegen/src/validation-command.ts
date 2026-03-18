@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
 import { loadCloudSource, type CloudProvider } from "./cloud/connectors.js";
+import { finalizeVerifyReport } from "./commands/verify-command.js";
 import { loadConfig, type EnvTypegenConfig } from "./config.js";
 import { loadValidationContract } from "./contract.js";
 import {
@@ -13,6 +14,9 @@ import {
   loadPlugins,
   type PluginReference,
 } from "./plugins.js";
+import { evaluatePolicy } from "./policy/policy-evaluator.js";
+import { resolvePolicyWithPacks } from "./policy/policy-pack-registry.js";
+import { attachPolicyEvaluation } from "./reporting/policy-report.js";
 import { warn } from "./utils/logger.js";
 import {
   buildDoctorReport,
@@ -23,7 +27,7 @@ import { loadEnvSource } from "./validation/env-source.js";
 import { emitValidationReport } from "./validation/output.js";
 import type { ValidationIssue, ValidationReport } from "./validation/types.js";
 
-type ValidationCommand = "check" | "diff" | "doctor";
+type ValidationCommand = "check" | "diff" | "doctor" | "verify";
 type JsonMode = "off" | "compact" | "pretty";
 
 type ValidationArgValues = {
@@ -122,6 +126,30 @@ const HELP_TEXT: Record<ValidationCommand, string> = {
     "Exit codes:",
     "  0  All checks passed (status: ok or warn)",
     "  1  One or more checks failed (status: fail) or invalid usage",
+  ].join("\n"),
+  verify: [
+    "Usage: env-typegen verify [options]",
+    "",
+    "Options:",
+    "  --env <path>              Environment file to validate (default: .env)",
+    "  --targets <list>          Comma-separated targets for drift analysis (default: .env,.env.production)",
+    "  --contract <path>         Contract file path (default: env.contract.ts)",
+    "  --example <path>          Fallback .env.example used to bootstrap contract",
+    "  --strict                  Validate extras as errors (default: true)",
+    "  --no-strict               Downgrade extras to warnings",
+    "  --json                    Emit machine-readable JSON report",
+    "  --json=pretty             Emit pretty JSON report",
+    "  --output-file <path>      Persist JSON report to a file",
+    "  --debug-values            Include raw values in issues (unsafe for CI logs)",
+    "  --cloud-provider <name>   vercel | cloudflare | aws",
+    "  --cloud-file <path>       Cloud snapshot JSON file",
+    "  --plugin <path>           Plugin module path (repeatable)",
+    "  -c, --config <path>       Config file path",
+    "  -h, --help                Show this help",
+    "",
+    "Exit codes:",
+    "  0  All checks passed without warnings (status: ok)",
+    "  1  Any warning or error found (status: fail) or invalid usage",
   ].join("\n"),
 };
 
@@ -489,7 +517,23 @@ async function runDiffCommand(args: ParsedValidationArgs): Promise<number> {
   });
 }
 
-async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
+async function runDoctorLikeCommand(
+  args: ParsedValidationArgs,
+  mode: "doctor" | "verify",
+): Promise<number> {
+  const report = await buildDoctorLikeReport(args, mode);
+
+  const outputFile = args.values["output-file"];
+  return emitAndReturnExitCode(report, {
+    jsonMode: args.jsonMode,
+    ...(outputFile !== undefined && { outputFile }),
+  });
+}
+
+async function buildDoctorLikeReport(
+  args: ParsedValidationArgs,
+  mode: "doctor" | "verify",
+): Promise<ValidationReport> {
   const context = await prepareCommonContext(args.values);
   const loadContractOptions = {
     fallbackExamplePath: context.fallbackExamplePath,
@@ -555,12 +599,31 @@ async function runDoctorCommand(args: ParsedValidationArgs): Promise<number> {
 
   const rawReport = buildDoctorReport({ checkReport, diffReport });
   const summarizedReport = summarizeDoctorMissingTargetIssues(rawReport, missingTargets);
-  const report = applyReportPlugins(summarizedReport, context.plugins);
+  const pluginProcessedReport = applyReportPlugins(summarizedReport, context.plugins);
+  let report =
+    mode === "verify"
+      ? finalizeVerifyReport(pluginProcessedReport, { redactValuesByDefault: true })
+      : pluginProcessedReport;
 
-  return emitAndReturnExitCode(report, {
-    jsonMode: args.jsonMode,
-    ...(context.outputFile !== undefined && { outputFile: context.outputFile }),
-  });
+  if (mode === "verify") {
+    const resolvedPolicy = await resolvePolicyWithPacks({
+      policy: context.fileConfig?.policy,
+      cwd: process.cwd(),
+    });
+    const policy = evaluatePolicy(report, resolvedPolicy);
+    report = attachPolicyEvaluation(report, policy);
+  }
+
+  return report;
+}
+
+export async function buildVerifyReport(argv: string[]): Promise<ValidationReport> {
+  const parsed = parseValidationArgs(argv);
+  if (parsed.values.help === true) {
+    throw new Error("--help is not supported for buildVerifyReport");
+  }
+
+  return buildDoctorLikeReport(parsed, "verify");
 }
 
 export async function runValidationCommand(params: {
@@ -579,5 +642,8 @@ export async function runValidationCommand(params: {
   if (params.command === "diff") {
     return runDiffCommand(parsed);
   }
-  return runDoctorCommand(parsed);
+  if (params.command === "doctor") {
+    return runDoctorLikeCommand(parsed, "doctor");
+  }
+  return runDoctorLikeCommand(parsed, "verify");
 }

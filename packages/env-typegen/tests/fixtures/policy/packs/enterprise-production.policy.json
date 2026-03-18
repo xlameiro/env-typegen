@@ -1,0 +1,21 @@
+{
+  "id": "enterprise-production",
+  "version": 1,
+  "layer": "overlay",
+  "policy": {
+    "defaults": {
+      "onWarnings": "block",
+      "onErrors": "block"
+    },
+    "rules": [
+      {
+        "id": "enterprise-overlay-block-errors",
+        "match": {
+          "minErrors": 1
+        },
+        "decision": "block",
+        "reason": "Production overlay blocks applies when validation reports errors."
+      }
+    ]
+  }
+}

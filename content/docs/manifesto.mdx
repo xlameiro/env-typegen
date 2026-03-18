@@ -1,0 +1,51 @@
+---
+title: Manifesto
+description: Why env-typegen exists, what problems it solves, and what it intentionally does not try to be.
+---
+
+## Configuration should be governed, not guessed
+
+Environment variables are infrastructure contracts, not incidental strings.
+When contracts are scattered across `.env.example`, runtime checks, and tribal knowledge, teams ship risk.
+
+env-typegen exists to make configuration explicit, typed, and enforceable.
+
+## Our principles
+
+- One source of truth for configuration contracts.
+- Generation and governance must coexist.
+- CI should fail deterministically on risky drift.
+- Provider integration should be adapter-first and read-safe by default.
+- Diagnostics must be useful for humans and automation.
+
+## The lifecycle we optimize for
+
+1. Define your contract once.
+2. Generate typed artifacts.
+3. Pull provider state when needed.
+4. Compare and diagnose drift.
+5. Verify as the final merge/deploy gate.
+
+This is why `verify` is designed to fail on warnings and errors.
+
+## What env-typegen is not
+
+- It is not a secrets manager.
+- It is not a deployment orchestrator.
+- It is not a replacement for cloud IAM or vault tooling.
+- It is not a write-heavy sync engine by default.
+
+env-typegen focuses on contract correctness and drift governance.
+
+## Adoption model
+
+- Start small: generation only.
+- Add `check` for contract correctness.
+- Add `pull` and `diff` for multi-environment visibility.
+- Add `verify` to block unsafe merges.
+- Extend with snapshots and plugins as complexity grows.
+
+## Promise to users
+
+If your team defines environment contracts clearly, env-typegen will keep the generated artifacts, validation logic, and CI signals aligned.
+That alignment is the foundation for safer releases.

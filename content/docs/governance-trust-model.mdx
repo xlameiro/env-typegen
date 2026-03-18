@@ -1,0 +1,43 @@
+---
+title: Governance Trust Model
+description: Trust verification model for policy packs, signatures, and CI promotion/apply governance gates.
+---
+
+## Why trust model enforcement matters
+
+Governance decisions are only as reliable as the policy inputs and signatures they accept.
+The trust model ensures promotion and apply gates consume authenticated, non-revoked,
+and policy-compliant artifacts.
+
+## Trust model layers
+
+1. Policy pack signature validation.
+2. Trust envelope verification against active keyring material.
+3. Governance policy evaluation with deterministic pass/fail semantics.
+4. CI gate assertions that block promotion/apply when trust evidence is invalid.
+
+## Core trust checks
+
+- Signature presence and checksum validity.
+- Key status checks (active vs revoked).
+- Optional expiry enforcement for signatures.
+- Deterministic rejection reasons for failed trust verification.
+
+## CI workflows enforcing trust
+
+- `.github/workflows/env-governance-promotion.yml`
+- `.github/workflows/env-governance-apply-dry-run.yml`
+- `.github/workflows/env-governance-apply.yml`
+- `.github/workflows/env-governance-forensics.yml`
+
+## Operational recommendation
+
+Treat trust checks as mandatory for PR and protected-branch governance stages.
+If feature branches need onboarding flexibility, keep diagnostics visible but preserve
+strict enforcement for promotion/apply workflows.
+
+## Related docs
+
+- [Governance Chaos and SLO](/docs/governance-chaos-and-slo)
+- [Governance Conformance](/docs/governance-conformance)
+- [Operations](/docs/operations)

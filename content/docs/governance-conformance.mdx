@@ -1,0 +1,88 @@
+---
+title: Governance Conformance
+description: Enforce adapter conformance and orchestration invariants before promoting repositories across governance stages.
+---
+
+## Why conformance exists
+
+Conformance checks keep adapter behavior and orchestration semantics predictable.
+Without them, multi-repo promotion can drift across teams and environments.
+
+## What is validated
+
+Conformance coverage targets:
+
+- Adapter contract v3 metadata (`conformanceVersion`, reconciliation mode, idempotency).
+- Push result shape and failure-kind consistency.
+- Bounded orchestration behavior (`fail-fast`, `fail-late`, max concurrency).
+- Deterministic smoke output and report artifacts.
+
+## Commands
+
+Run conformance smoke locally:
+
+```bash
+node qa-test/env-typegen-conformance-smoke.mjs
+```
+
+Run governance promotion smoke:
+
+```bash
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+## CI workflow
+
+Conformance workflow:
+
+- `.github/workflows/env-governance-conformance.yml`
+
+Promotion workflow:
+
+- `.github/workflows/env-governance-promotion.yml`
+
+## Multi-repo bootstrap model
+
+Use a fleet manifest to bootstrap repositories with consistent governance defaults.
+
+Manifest fields per repository:
+
+- `id`
+- `repository`
+- `root`
+- `provider`
+- `environment`
+- `stage`
+
+Stages:
+
+1. `advisory-enforce`
+2. `enforce`
+3. `apply`
+
+## Expected artifacts
+
+- `qa-test/reports/env-governance-conformance-smoke.json`
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+Use these artifacts to confirm deterministic outcomes before stage promotion.
+
+## Troubleshooting
+
+### Conformance smoke failed
+
+- Inspect `qa-test/reports/env-governance-conformance-smoke.json`.
+- Identify failing adapter contract or orchestration assertion.
+- Re-run smoke locally after fixing contract metadata or strategy behavior.
+
+### Promotion drift across repositories
+
+- Validate fleet manifest entries and stage declarations.
+- Confirm repositories run identical conformance workflow versions.
+- Re-run promotion smoke before retrying staged rollout.
+
+## Related docs
+
+- [Validation & Governance](/docs/validation)
+- [Operations](/docs/operations)
+- [Governance Promotion](/docs/governance-promotion)

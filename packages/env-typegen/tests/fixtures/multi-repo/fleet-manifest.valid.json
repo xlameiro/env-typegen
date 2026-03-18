@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "fleet": [
+    {
+      "id": "catalog",
+      "repository": "github.com/acme/catalog-service",
+      "root": "services/catalog",
+      "provider": "awsSsm",
+      "environment": "production",
+      "stage": "enforce"
+    },
+    {
+      "id": "checkout",
+      "repository": "github.com/acme/checkout-service",
+      "root": "services/checkout",
+      "provider": "awsSecretsManager",
+      "environment": "production",
+      "stage": "apply",
+      "verifyCommand": "env-typegen verify --env .env --contract env.contract.mjs --json=pretty --output-file reports/env-verify.checkout.json",
+      "conformanceCommand": "node qa-test/env-typegen-conformance-smoke.mjs --repo checkout"
+    }
+  ]
+}

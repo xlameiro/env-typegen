@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install env-typegen, generate typed outputs in minutes, and add contract-based environment checks to CI.
+description: Install env-typegen, generate typed outputs in minutes, then adopt pull/diff/verify as your governance lifecycle.
 ---
 
 ## Installation
@@ -67,12 +67,27 @@ env-typegen diff --targets .env,.env.example,.env.production --contract env.cont
 
 # Aggregate and prioritize diagnostics
 env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.mjs
+
+# Deterministic CI gate
+env-typegen verify --env .env --targets .env,.env.production --contract env.contract.mjs
 ```
 
-## 6) Export JSON output for CI pipelines
+`verify` is the governance gate command. It returns exit code `1` when warnings or errors exist.
+
+## 6) Pull provider state (read-only)
+
+Add providers in your config and pull by logical environment:
 
 ```bash
-env-typegen check --env .env --json --output-file reports/env-check.json
+env-typegen pull vercel --env preview
+```
+
+Use `pull` to inspect and normalize remote state before drift checks. It does not write back to the provider.
+
+## 7) Export JSON output for CI pipelines
+
+```bash
+env-typegen verify --env .env --json=pretty --output-file reports/env-verify.json
 ```
 
 For direct Node.js runtime execution, prefer `.mjs` or `.js` for contract files.
@@ -82,12 +97,13 @@ Strict mode is enabled by default for validation commands. Use `--no-strict` to 
 
 All command paths (`--env`, `--contract`, `--targets`, and `--output-file`) are resolved from your current working directory.
 
-## Recommended rollout path
+## Recommended rollout path by maturity
 
 1. Start with generation-only (`ts` + `zod`) to remove manual typing.
 2. Add `check` in CI to enforce required variables and types.
-3. Add `diff` and `doctor` to prevent drift between environments.
-4. Add cloud snapshots and plugins only when your team needs them.
+3. Add `pull` and provider config to inspect remote state safely.
+4. Add `verify` as the merge-blocking governance gate.
+5. Add `diff`, `doctor`, cloud snapshots, and plugins when your team needs deeper diagnostics.
 
 ## FAQ
 

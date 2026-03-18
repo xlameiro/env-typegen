@@ -1,0 +1,83 @@
+import type { PolicyDecision } from "../policy/policy-model.js";
+
+export type WriteGuardMode = "dry-run" | "apply";
+
+export type WriteGuardContext = {
+  mode: WriteGuardMode;
+  environment: string;
+  policyDecision: PolicyDecision;
+  writeEnabled: boolean;
+  isProtectedEnvironment: boolean;
+  isProtectedBranch: boolean;
+  preflightValidation: {
+    isValid: boolean;
+    reasons: string[];
+  };
+  attestationValidation?: {
+    isValid: boolean;
+    reasons: string[];
+  };
+  hasConfirmationToken: boolean;
+  hasOverrideReason: boolean;
+};
+
+export type WriteGuardResult = {
+  allowed: boolean;
+  reasons: string[];
+  requiredChecks: string[];
+};
+
+export function evaluateWriteGuards(context: WriteGuardContext): WriteGuardResult {
+  if (context.mode === "dry-run") {
+    return {
+      allowed: true,
+      reasons: ["Dry-run mode does not mutate remote state."],
+      requiredChecks: ["policy-evaluation", "change-set-generation"],
+    };
+  }
+
+  const reasons: string[] = [];
+  const requiredChecks: string[] = [
+    "policy-evaluation",
+    "change-set-generation",
+    "preflight-proof-validation",
+    "one-time-confirmation-token",
+    "branch-protection",
+  ];
+
+  if (context.attestationValidation !== undefined) {
+    requiredChecks.push("preflight-attestation-validation");
+  }
+
+  if (context.writeEnabled === false) {
+    reasons.push("Write mode is disabled in current configuration.");
+  }
+
+  if (context.policyDecision === "block") {
+    reasons.push("Policy decision BLOCK prevents remote write operations.");
+  }
+
+  if (!context.preflightValidation.isValid) {
+    reasons.push(...context.preflightValidation.reasons);
+  }
+
+  if (!context.hasConfirmationToken) {
+    reasons.push("A one-time confirmation token is required for apply mode.");
+  }
+
+  if (!context.hasOverrideReason) {
+    reasons.push("Override mode requires an explicit emergency reason.");
+  }
+
+  if (context.isProtectedEnvironment && context.isProtectedBranch === false) {
+    reasons.push(
+      `Environment ${context.environment} is protected and requires execution from a protected branch.`,
+    );
+  }
+
+  return {
+    allowed: reasons.length === 0,
+    reasons,
+    requiredChecks,
+  };
+}

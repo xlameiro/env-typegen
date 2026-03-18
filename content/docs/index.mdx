@@ -1,13 +1,15 @@
 ---
 title: Overview
-description: env-typegen turns .env.example files into typed artifacts and enforces environment contracts with drift-aware validation.
+description: env-typegen turns .env.example files into typed artifacts and enforces environment contracts with pull, diff, and verify governance workflows.
 ---
 
 env-typegen combines code generation and governance in one workflow:
 
 - Generate typed artifacts from `.env.example`
+- Pull provider state through adapters
 - Validate real environments against a contract
 - Detect drift before production deploys
+- Enforce CI gates with `verify`
 - Export JSON diagnostics for CI and automation
 
 ## Why teams adopt env-typegen
@@ -30,6 +32,7 @@ env-typegen combines code generation and governance in one workflow:
 | Contract + source (`check`) | Compliance report for one environment             |
 | Contract + targets (`diff`) | Drift report across multiple sources              |
 | `check` + `diff` (`doctor`) | Prioritized diagnostics and recommendations       |
+| Contract + drift (`verify`) | Deterministic CI gate (warning/error => fail)     |
 | Optional plugins            | Contract, source, and report transformation hooks |
 
 ## Quick start
@@ -40,6 +43,9 @@ env-typegen --input .env.example --output env.generated.ts --format ts
 
 # Validate one env source against a contract (strict by default)
 env-typegen check --env .env --contract env.contract.mjs
+
+# CI gate
+env-typegen verify --env .env --contract env.contract.mjs
 ```
 
 ## Choose your path
@@ -48,6 +54,7 @@ env-typegen check --env .env --contract env.contract.mjs
 | ------------------------------ | ------------------------------------------- |
 | Generate typed outputs quickly | [Getting Started](/docs/getting-started)    |
 | Enforce env governance in CI   | [Validation & Governance](/docs/validation) |
+| Understand the product vision  | [Manifesto](/docs/manifesto)                |
 | Tune CLI behavior and defaults | [Configuration](/docs/configuration)        |
 | Pick the right output format   | [Generators](/docs/generators)              |
 | Integrate with custom scripts  | [Programmatic API](/docs/api)               |
@@ -80,3 +87,4 @@ Yes. Validation commands accept snapshot JSON files for Vercel, Cloudflare, and 
 - [Validation & Governance](/docs/validation)
 - [Generators](/docs/generators)
 - [Programmatic API](/docs/api)
+- [Manifesto](/docs/manifesto)

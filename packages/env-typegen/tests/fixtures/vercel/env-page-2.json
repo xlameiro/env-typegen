@@ -1,0 +1,9 @@
+{
+  "environmentVariables": [
+    { "key": "QUEUE_URL", "value": "https://sqs.local", "target": ["development", "preview"] },
+    { "name": "FEATURE_FLAG", "value": "enabled", "target": "development" }
+  ],
+  "pagination": {
+    "next": null
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "base-governance",
+  "version": 1,
+  "layer": "base",
+  "policy": {
+    "mode": "read-only",
+    "defaults": {
+      "onClean": "allow",
+      "onWarnings": "block",
+      "onErrors": "block"
+    },
+    "rules": [
+      {
+        "id": "base-allow-extra",
+        "match": {
+          "issueTypes": ["extra"]
+        },
+        "decision": "allow",
+        "reason": "Base governance tolerates undeclared extras in non-protected contexts."
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure env-typegen with reusable presets, command overrides, and environment governance defaults.
+description: Configure env-typegen with reusable presets, command overrides, providers, environments, and governance rules.
 ---
 
 ## Config file
@@ -11,6 +11,7 @@ Create `env-typegen.config.mjs` at your project root:
 import { defineConfig } from "@xlameiro/env-typegen";
 
 export default defineConfig({
+  version: 1,
   input: ".env.example",
   output: "env.generated.ts",
   generators: ["typescript", "zod"],
@@ -18,6 +19,23 @@ export default defineConfig({
   schemaFile: "env.contract.mjs",
   strict: true,
   diffTargets: [".env", ".env.example", ".env.production"],
+  providers: {
+    vercel: {
+      adapter: "./src/adapters/vercel-adapter.ts",
+      projectId: "project_123",
+      token: "${VERCEL_TOKEN}",
+    },
+  },
+  environments: {
+    development: { source: "local" },
+    preview: { source: "vercel", targets: ["preview"] },
+    production: { source: "vercel", targets: ["production"] },
+  },
+  rules: {
+    strict: true,
+    allowExtra: false,
+    requireAll: true,
+  },
   plugins: ["./plugins/custom-validator.mjs"],
 });
 ```
@@ -26,6 +44,54 @@ For direct Node.js runtime execution, prefer `.mjs` or `.js` config files.
 TypeScript config files (`.ts`) require a runtime loader such as `tsx` or `ts-node`.
 
 ## Advanced config options
+
+### `providers`
+
+Registers adapter-backed providers for `pull` and governance workflows.
+
+```typescript
+export default defineConfig({
+  providers: {
+    vercel: {
+      adapter: "./src/adapters/vercel-adapter.ts",
+      projectId: "project_123",
+      token: process.env.VERCEL_TOKEN,
+    },
+  },
+});
+```
+
+### `environments`
+
+Maps logical environments to source providers and target aliases.
+
+```typescript
+export default defineConfig({
+  environments: {
+    development: { source: "local" },
+    preview: { source: "vercel", targets: ["preview"] },
+    production: { source: "vercel", targets: ["production"] },
+  },
+});
+```
+
+### `rules`
+
+Defines governance policy defaults globally and by environment.
+
+```typescript
+export default defineConfig({
+  rules: {
+    strict: true,
+    allowExtra: false,
+    requireAll: true,
+    perEnvironment: {
+      development: { allowExtra: true },
+      production: { strict: true, allowExtra: false, requireAll: true },
+    },
+  },
+});
+```
 
 ### `schemaMode`
 
@@ -114,26 +180,26 @@ CLI flags override config file values when both are provided.
 | `--version`   | `-v`  | Print version                                  |
 | `--help`      | `-h`  | Show help                                      |
 
-## Validation command flags (`check`, `diff`, `doctor`)
+## Validation command flags (`check`, `diff`, `doctor`, `verify`)
 
-| Flag                      | Commands          | Description                                                          |
-| ------------------------- | ----------------- | -------------------------------------------------------------------- |
-| `--env <path>`            | `check`, `doctor` | Environment source path to validate                                  |
-| `--targets <list>`        | `diff`, `doctor`  | Comma-separated env targets for drift analysis                       |
-| `--contract <path>`       | all               | Contract file path (`env.contract.mjs` / `.js` / `.ts`)              |
-| `--example <path>`        | all               | Fallback `.env.example` used when no contract file is available      |
-| `--strict`                | all               | Validate extras as errors (default behavior)                         |
-| `--no-strict`             | all               | Downgrade undeclared variables to warnings                           |
-| `--json`                  | all               | Emit compact machine-readable JSON report                            |
-| `--json=compact`          | all               | Explicit alias of `--json` (compact machine-readable JSON)           |
-| `--json=pretty`           | all               | Emit pretty JSON report                                              |
-| `--output-file <path>`    | all               | Persist JSON report to file                                          |
-| `--debug-values`          | all               | Include raw values in issues (unsafe for CI logs)                    |
-| `--cloud-provider <name>` | all               | Add cloud snapshot source: `vercel`, `cloudflare`, `aws`             |
-| `--cloud-file <path>`     | all               | Cloud snapshot JSON file path                                        |
-| `--plugin <path>`         | all               | Plugin module path (repeatable). Module must export a `name` string. |
-| `--config <path>`         | all               | Config file path                                                     |
-| `--help`                  | all               | Show command help                                                    |
+| Flag                      | Commands                    | Description                                                          |
+| ------------------------- | --------------------------- | -------------------------------------------------------------------- |
+| `--env <path>`            | `check`, `doctor`, `verify` | Environment source path to validate                                  |
+| `--targets <list>`        | `diff`, `doctor`, `verify`  | Comma-separated env targets for drift analysis                       |
+| `--contract <path>`       | all                         | Contract file path (`env.contract.mjs` / `.js` / `.ts`)              |
+| `--example <path>`        | all                         | Fallback `.env.example` used when no contract file is available      |
+| `--strict`                | all                         | Validate extras as errors (default behavior)                         |
+| `--no-strict`             | all                         | Downgrade undeclared variables to warnings                           |
+| `--json`                  | all                         | Emit compact machine-readable JSON report                            |
+| `--json=compact`          | all                         | Explicit alias of `--json` (compact machine-readable JSON)           |
+| `--json=pretty`           | all                         | Emit pretty JSON report                                              |
+| `--output-file <path>`    | all                         | Persist JSON report to file                                          |
+| `--debug-values`          | all                         | Include raw values in issues (unsafe for CI logs)                    |
+| `--cloud-provider <name>` | all                         | Add cloud snapshot source: `vercel`, `cloudflare`, `aws`             |
+| `--cloud-file <path>`     | all                         | Cloud snapshot JSON file path                                        |
+| `--plugin <path>`         | all                         | Plugin module path (repeatable). Module must export a `name` string. |
+| `--config <path>`         | all                         | Config file path                                                     |
+| `--help`                  | all                         | Show command help                                                    |
 
 ## Plugin contract
 

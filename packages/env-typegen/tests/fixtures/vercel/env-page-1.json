@@ -1,0 +1,11 @@
+{
+  "envs": [
+    { "key": "DATABASE_URL", "value": "postgres://dev", "target": ["development"] },
+    { "name": "API_URL", "content": "https://preview.example.com", "target": ["preview"] },
+    { "key": "COMMON", "value": "shared" },
+    { "key": "MISSING_VALUE", "target": ["development"] }
+  ],
+  "pagination": {
+    "next": "cursor-2"
+  }
+}

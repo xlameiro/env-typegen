@@ -1,0 +1,23 @@
+{
+  "Parameters": [
+    {
+      "Name": "/app/prod/DB_URL",
+      "Type": "SecureString",
+      "Value": "postgres://prod",
+      "Version": 3
+    },
+    {
+      "Name": "/app/prod/API_KEY",
+      "Type": "SecureString",
+      "Value": "super-secret",
+      "Version": 7
+    },
+    {
+      "Name": "/app/prod/FEATURE_FLAG",
+      "Type": "String",
+      "Value": "enabled",
+      "Version": 1
+    }
+  ],
+  "NextToken": "token-page-2"
+}

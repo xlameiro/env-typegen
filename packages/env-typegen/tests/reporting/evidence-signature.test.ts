@@ -1,0 +1,53 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  signEvidenceHash,
+  verifyEvidenceSignature,
+} from "../../src/reporting/evidence-signature.js";
+
+describe("evidence-signature", () => {
+  it("should produce a deterministic signature for the same payload and secret", () => {
+    const first = signEvidenceHash({
+      bundleHash: "bundle-hash",
+      lifecycleHash: "lifecycle-hash",
+      secret: "test-secret",
+      signedAt: "2026-03-18T00:00:00.000Z",
+    });
+    const second = signEvidenceHash({
+      bundleHash: "bundle-hash",
+      lifecycleHash: "lifecycle-hash",
+      secret: "test-secret",
+      signedAt: "2026-03-18T00:00:00.000Z",
+    });
+
+    expect(first.signature).toBe(second.signature);
+    expect(first.signatureId).toBe(second.signatureId);
+    expect(first.algorithm).toBe("hmac-sha256");
+  });
+
+  it("should verify signatures generated from matching payload and secret", () => {
+    const signature = signEvidenceHash({
+      bundleHash: "bundle-hash",
+      lifecycleHash: "lifecycle-hash",
+      secret: "test-secret",
+    });
+
+    expect(
+      verifyEvidenceSignature({
+        bundleHash: "bundle-hash",
+        lifecycleHash: "lifecycle-hash",
+        signature,
+        secret: "test-secret",
+      }),
+    ).toBe(true);
+
+    expect(
+      verifyEvidenceSignature({
+        bundleHash: "bundle-hash",
+        lifecycleHash: "different",
+        signature,
+        secret: "test-secret",
+      }),
+    ).toBe(false);
+  });
+});

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "fleet": [
+    {
+      "id": "broken-service",
+      "repository": "github.com/acme/broken-service",
+      "root": "services/broken",
+      "provider": "",
+      "environment": "production",
+      "stage": "enforce"
+    }
+  ]
+}

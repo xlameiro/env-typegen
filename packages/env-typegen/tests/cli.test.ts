@@ -405,6 +405,16 @@ describe("runCli", () => {
     expect(output).toContain("status: ok or warn");
   });
 
+  it("should document strict CI semantics in verify --help", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["verify", "--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Usage: env-typegen verify");
+    expect(output).toContain("Any warning or error found");
+  });
+
   // F1: generate subcommand alias regression test
   it("should accept 'generate' as an explicit subcommand alias", async () => {
     const inputPath = path.join(dir, ".env.example");
@@ -437,5 +447,139 @@ describe("runCli", () => {
     const content = await readFile(outputPath, "utf8");
     expect(content).toContain("z.string");
     expect(content).toContain("API_KEY");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// runCli — verify subcommand routing
+// ---------------------------------------------------------------------------
+
+describe("runCli — verify subcommand routing", () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "env-typegen-verify-cli-"));
+    // Reset process.exitCode so tests don't bleed into each other
+    process.exitCode = undefined;
+  });
+
+  afterEach(() => {
+    process.exitCode = undefined;
+    vi.restoreAllMocks();
+  });
+
+  it("should display verify help without accessing any files", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["verify", "--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Usage: env-typegen verify");
+    expect(output).toContain("Any warning or error found");
+  });
+
+  it("should display pull help without requiring an adapter", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCli(["pull", "--help"]);
+
+    const output = spy.mock.calls.map((c) => String(c[0])).join("\n");
+    expect(output).toContain("Usage: env-typegen pull");
+  });
+
+  it("should set exitCode 0 when all required variables are present and valid", async () => {
+    const envPath = path.join(dir, ".env");
+    const contractPath = path.join(dir, "env.contract.mjs");
+
+    await writeFile(envPath, "PORT=3000\n");
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    await runCli([
+      "verify",
+      "--env",
+      envPath,
+      "--contract",
+      contractPath,
+      "--targets",
+      envPath, // override default .env,.env.production to avoid scanning project root
+    ]);
+
+    // cli.ts only sets process.exitCode when exitCode !== 0; undefined means success (0)
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("should set exitCode 1 when a required variable is missing from the env file", async () => {
+    const envPath = path.join(dir, ".env");
+    const contractPath = path.join(dir, "env.contract.mjs");
+
+    // Only EXTRA_VAR is present — PORT (required) is missing
+    await writeFile(envPath, "EXTRA_VAR=hello\n");
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    await runCli([
+      "verify",
+      "--env",
+      envPath,
+      "--contract",
+      contractPath,
+      "--targets",
+      envPath, // override default .env,.env.production to avoid scanning project root
+    ]);
+
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("should set exitCode 1 when a variable fails type validation", async () => {
+    const envPath = path.join(dir, ".env");
+    const contractPath = path.join(dir, "env.contract.mjs");
+
+    // PORT is present but has a non-numeric value
+    await writeFile(envPath, "PORT=not-a-number\n");
+    await writeFile(
+      contractPath,
+      [
+        "export default {",
+        "  schemaVersion: 1,",
+        "  variables: {",
+        '    PORT: { expected: { type: "number" }, required: true, clientSide: false },',
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    await runCli([
+      "verify",
+      "--env",
+      envPath,
+      "--contract",
+      contractPath,
+      "--targets",
+      envPath, // override default .env,.env.production to avoid scanning project root
+    ]);
+
+    expect(process.exitCode).toBe(1);
   });
 });

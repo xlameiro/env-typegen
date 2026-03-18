@@ -19,7 +19,7 @@ env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaratio
 ```
 
 When multiple formats are specified, each generator writes a separate file:
-`env.generated.typescript.ts`, `env.generated.zod.ts`, `env.generated.t3.ts`, `env.generated.d.ts`.
+`env.generated.typescript.ts`, `env.generated.zod.ts`, `env.generated.t3.ts`, `env.generated.declaration.d.ts`.
 
 ### Watch mode
 
@@ -38,12 +38,31 @@ env-typegen diff --targets .env,.env.example,.env.production --contract env.cont
 
 # Aggregate and prioritize diagnostics
 env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+
+# CI governance gate (fails on warnings and errors)
+env-typegen verify --env .env --targets .env,.env.production --contract env.contract.mjs
+
+# Read-only provider sync
+env-typegen pull vercel --env preview
+
+# Governance preflight (read-only)
+env-typegen plan --env .env --contract env.contract.mjs
+
+# Read-only sync simulation
+env-typegen sync-preview vercel --env-file .env --config env-typegen.config.mjs
 ```
+
+`pull` is read-only in v1 and does not write values back to cloud providers.
 
 ### JSON output for CI
 
 ```bash
-env-typegen check --env .env --json --output-file reports/env-check.json
+env-typegen verify --env .env --json=pretty --output-file reports/env-verify.json
 ```
 
 All command paths are resolved from the current working directory where you run `env-typegen`.
+
+## Operations references
+
+- Package operations guide: `packages/env-typegen/docs/operations.md`
+- Repository smoke command: `node qa-test/env-typegen-governance-smoke.mjs`

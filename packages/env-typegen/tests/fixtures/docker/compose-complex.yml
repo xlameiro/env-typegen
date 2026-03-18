@@ -1,0 +1,11 @@
+services:
+  app:
+    env_file:
+      - ./base.env
+      - ./override.env
+    environment:
+      - APP_ENV=development
+      - DB_PORT=7000
+      - FEATURE_FLAG=true
+      - INLINE_TOKEN=abc123
+      - COMMON=compose

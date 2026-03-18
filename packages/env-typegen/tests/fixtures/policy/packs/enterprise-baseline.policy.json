@@ -1,0 +1,23 @@
+{
+  "id": "enterprise-baseline",
+  "version": 1,
+  "layer": "base",
+  "policy": {
+    "mode": "read-only",
+    "defaults": {
+      "onClean": "allow",
+      "onWarnings": "warn",
+      "onErrors": "block"
+    },
+    "rules": [
+      {
+        "id": "enterprise-base-allow-extra",
+        "match": {
+          "issueTypes": ["extra"]
+        },
+        "decision": "allow",
+        "reason": "Enterprise baseline allows extra variables in non-protected contexts."
+      }
+    ]
+  }
+}

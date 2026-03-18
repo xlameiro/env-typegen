@@ -1,0 +1,20 @@
+{
+  "id": "production-strict",
+  "version": 1,
+  "layer": "overlay",
+  "policy": {
+    "defaults": {
+      "onWarnings": "block"
+    },
+    "rules": [
+      {
+        "id": "overlay-block-extra",
+        "match": {
+          "issueTypes": ["extra"]
+        },
+        "decision": "block",
+        "reason": "Production overlay blocks extra variables by default."
+      }
+    ]
+  }
+}

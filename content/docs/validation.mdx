@@ -1,6 +1,6 @@
 ---
 title: Validation & Governance
-description: Enforce environment contracts with check, diff, and doctor, detect drift early, and export CI-ready diagnostics.
+description: Enforce environment contracts with check, diff, doctor, and verify to block drift before merges and deploys.
 ---
 
 ## Why validation matters
@@ -15,6 +15,7 @@ Validation commands let you enforce contracts before deployment.
 | `check`  | You want to validate one source against a contract | Pass/fail findings for one source   |
 | `diff`   | You need parity across multiple sources            | Drift report across targets         |
 | `doctor` | You want one consolidated diagnostic report        | Combined findings + recommendations |
+| `verify` | You need a deterministic CI gate                   | Fails on warnings or errors         |
 
 ## Contract file
 
@@ -52,17 +53,95 @@ env-typegen diff --targets .env,.env.example,.env.production --contract env.cont
 
 # Aggregate diagnostics
 env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.mjs
+
+# Governance gate for CI
+env-typegen verify --env .env --targets .env,.env.production --contract env.contract.mjs
 ```
+
+## Recommended command lifecycle
+
+1. `check` for local contract correctness.
+2. `diff` to compare parity across targets.
+3. `doctor` when you want consolidated recommendations.
+4. `plan` for policy-aware preflight in read-only mode.
+5. `sync-preview` to simulate sync impact in read-only mode.
+6. `verify` in CI as the final merge/deploy gate and precondition for `sync-apply`.
+7. `conformance` smoke before promotion stage transitions.
+
+## Preflight commands
+
+```bash
+env-typegen plan --env .env --contract env.contract.mjs --json=pretty
+env-typegen sync-preview vercel --env-file .env --config env-typegen.config.mjs --json
+```
+
+Both commands are read-only and intended for governance planning before merge/deploy gates.
+
+## Verify as apply precondition
+
+Before any `sync-apply --apply` execution:
+
+1. Run `verify` and confirm policy decision is acceptable.
+2. Run `sync-apply` in dry-run mode first.
+3. Execute apply mode only with required preflight and branch protections.
+
+```bash
+env-typegen verify --env .env --contract env.contract.mjs --json=pretty
+env-typegen sync-apply vercel --env-file .env --config env-typegen.config.mjs --json
+```
+
+## Verify in promotion stages
+
+Use `verify` as the stable gate across promotion stages:
+
+1. Advisory-enforce stage: verify policy and artifact consistency without enabling apply writes.
+2. Enforce stage: require deterministic verify and dry-run results.
+3. Apply stage: allow write path only when verify + guardrails are satisfied.
+
+Promotion smoke command:
+
+```bash
+node qa-test/env-typegen-governance-promotion-smoke.mjs
+```
+
+Conformance smoke command:
+
+```bash
+node qa-test/env-typegen-conformance-smoke.mjs
+```
+
+Promotion report artifact:
+
+- `qa-test/reports/env-governance-promotion-smoke.json`
+
+Conformance report artifact:
+
+- `qa-test/reports/env-governance-conformance-smoke.json`
+
+Chaos report artifact:
+
+- `qa-test/reports/env-governance-chaos-smoke.json`
+
+Forensics report artifact:
+
+- `qa-test/reports/env-governance-forensics-smoke.json`
 
 ## CI pipeline pattern
 
 ```bash
-# Pull request check
-env-typegen check --env .env --contract env.contract.mjs --json --output-file reports/env-check.json
+# Pull request and merge gate
+env-typegen verify --env .env --contract env.contract.mjs --json=pretty --output-file reports/env-verify.json
 
-# Release gate drift scan
+# Release drift scan (optional second stage)
 env-typegen diff --targets .env,.env.staging,.env.production --contract env.contract.mjs --json=pretty --output-file reports/env-drift.json
 ```
+
+By design, `verify` exits with code `1` when any warning or error exists.
+
+Recommended governance policy:
+
+- Run `verify` as a blocking gate for PRs to `main` and protected branches.
+- For feature branches, teams may keep the same check as non-blocking while onboarding.
 
 ## Strict mode
 
@@ -91,6 +170,8 @@ env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env
 
 Supported providers: `vercel`, `cloudflare`, `aws`.
 
+Provider sync remains read-only in v1. Use `pull` to inspect and normalize provider state without remote writes.
+
 ## Plugins
 
 Plugins can transform contract, source values, and final report.
@@ -117,6 +198,10 @@ TypeScript contract files (`.ts`) require a runtime loader such as `tsx` or `ts-
 
 Use `doctor` when you want one command for diagnostics. Use `check` and `diff` separately when your CI has stage-specific gates.
 
+### Which command should block merge in CI?
+
+Use `verify`. Keep `check`, `diff`, and `doctor` for diagnostics and staged pipelines.
+
 ### Can I include sensitive values in JSON reports?
 
 Only when intentionally debugging. Use `--debug-values` with care because values may leak into logs.
@@ -124,3 +209,30 @@ Only when intentionally debugging. Use `--debug-values` with care because values
 ### Do cloud snapshots replace local `.env` checks?
 
 No. They complement local checks and help detect cross-environment drift before rollout.
+
+### Is there an operational smoke check for governance flows?
+
+Yes. Run `node qa-test/env-typegen-governance-smoke.mjs` to validate verify/pull/plan/sync-preview behavior and generate `qa-test/reports/env-governance-smoke.json`.
+
+### Is there a smoke check for apply guardrails?
+
+Yes. Run `node qa-test/env-typegen-apply-smoke.mjs --mode=all` to validate dry-run/apply pass/fail behavior and generate `qa-test/reports/env-governance-apply-smoke.json`.
+
+### Is there a conformance smoke check for adapter/orchestration behavior?
+
+Yes. Run `node qa-test/env-typegen-conformance-smoke.mjs` to validate adapter contract v3 and bounded orchestration semantics.
+
+### Is there a forensics smoke check for signed evidence integrity?
+
+Yes. Run `node qa-test/env-typegen-forensics-smoke.mjs` to validate signed evidence,
+forensics chain integrity, and governance evidence correlation.
+
+## Related docs
+
+- [Policy Packs](/docs/policy-packs)
+- [Sync Apply](/docs/sync-apply)
+- [Operations](/docs/operations)
+- [Governance Promotion](/docs/governance-promotion)
+- [Governance Conformance](/docs/governance-conformance)
+- [Governance Trust Model](/docs/governance-trust-model)
+- [Governance Chaos and SLO](/docs/governance-chaos-and-slo)

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "keys": [
+    {
+      "keyId": "aws-kms://env-typegen/governance/v1",
+      "signer": "governance-bot",
+      "provider": "aws-kms",
+      "algorithm": "rsa-sha256",
+      "status": "revoked",
+      "fingerprint": "sha256:governance-v1",
+      "activatedAt": "2026-03-18T00:00:00.000Z",
+      "revokedAt": "2026-03-20T00:00:00.000Z",
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmS9edHY3qsD0FXlrOaY7\nziqUOv8rNxc671tiH3PR3NPidxizsBMot0hWSQZeCsGUQfi9PQTc4T1NtzNPUR4l\nH68p1D/Of0Gthwt/Yn8Tmd2+zZ/8Q9mi/EUETRTLp3L1fVdAV+hBh/y4dVd9RAlt\nEcYkb2u7sShuWfwIOlzTEXe8eU8q6htnKxhfzK46Dul+Ag/CeqNkaRy5L75jvJiK\nSUMYQf5ZOannsuOYaFYEfznM8BzhRt2oIfFBO5uod1oXLabSu3WqNcYT4jhiGzpB\n8d7P3dkh38r56zkbf3S20OsrfQo+/4Q0nJam6uq2gmDLYDlqapM7XWVzMPiB2Gib\nUQIDAQAB\n-----END PUBLIC KEY-----\n"
+    }
+  ]
+}

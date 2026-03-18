@@ -1,0 +1,102 @@
+---
+title: Policy Packs
+description: Compose base and overlay policy packs for federated governance across repositories.
+---
+
+## Why policy packs
+
+Policy packs let teams share governance rules without duplicating config across every repository.
+Use packs to centralize defaults, then layer project-specific overrides.
+
+## Layer model
+
+Policy packs support two layers:
+
+- `base`: default governance profile shared by many projects.
+- `overlay`: stricter or context-specific rules for production-sensitive repos.
+
+Inline policy in `env-typegen.config.mjs` remains highest precedence.
+
+Precedence order:
+
+1. Inline policy rules in local config.
+2. Overlay packs.
+3. Base packs.
+
+## Config example
+
+```typescript
+export default {
+  policy: {
+    packs: {
+      base: ["./policy/base-governance.policy.json"],
+      overlay: ["./policy/production-strict.policy.json"],
+    },
+    rules: [
+      {
+        id: "inline-allow-extra-for-preview",
+        match: { issueTypes: ["extra"] },
+        decision: "allow",
+        reason: "Preview environment accepts temporary extra variables.",
+      },
+    ],
+  },
+};
+```
+
+## Policy pack file format
+
+```json
+{
+  "id": "production-strict",
+  "version": 1,
+  "layer": "overlay",
+  "policy": {
+    "defaults": {
+      "onWarnings": "block"
+    },
+    "rules": [
+      {
+        "id": "overlay-block-extra",
+        "match": {
+          "issueTypes": ["extra"]
+        },
+        "decision": "block",
+        "reason": "Production overlay blocks undeclared variables."
+      }
+    ]
+  }
+}
+```
+
+## Optional checksum enforcement
+
+When loading packs, include a checksum to detect tampering:
+
+```typescript
+export default {
+  policy: {
+    packs: {
+      base: [
+        {
+          source: "./policy/base-governance.policy.json",
+          checksum: "<sha256>",
+        },
+      ],
+    },
+  },
+};
+```
+
+## Operational guidance
+
+- Keep pack IDs and versions explicit.
+- Treat pack updates as governance changes requiring review.
+- Validate pack behavior with `verify` in CI before rollout.
+- Keep local inline rules minimal and documented.
+
+## Related docs
+
+- [Validation & Governance](/docs/validation)
+- [Sync Apply](/docs/sync-apply)
+- [Operations](/docs/operations)

@@ -96,6 +96,22 @@ describe("validation command", () => {
     expect((parsed.recommendations ?? []).length).toBeGreaterThan(0);
   });
 
+  it("should fail in verify mode when warnings exist", async () => {
+    const dir = await createTempDir("env-typegen-validation-cmd-");
+    const contractPath = await createContractFile(dir);
+    const envPath = path.join(dir, ".env");
+    await writeFile(envPath, "PORT=3000\nEXTRA=true\n", "utf8");
+
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const exitCode = await runValidationCommand({
+      command: "verify",
+      argv: ["--env", envPath, "--contract", contractPath, "--no-strict", "--json"],
+    });
+
+    expect(exitCode).toBe(1);
+  });
+
   it("should print help text and exit successfully", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
 

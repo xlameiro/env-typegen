@@ -1,0 +1,28 @@
+[
+  {
+    "name": "single-transient-failure",
+    "operations": [
+      { "status": "applied", "failureKind": "none" },
+      { "status": "failed", "failureKind": "transient" },
+      { "status": "applied", "failureKind": "none" }
+    ],
+    "expected": {
+      "allowed": true,
+      "sloStatus": "healthy",
+      "orchestrationStatus": "fulfilled"
+    }
+  },
+  {
+    "name": "multi-failure-breach",
+    "operations": [
+      { "status": "failed", "failureKind": "permanent" },
+      { "status": "failed", "failureKind": "permanent" },
+      { "status": "applied", "failureKind": "none" }
+    ],
+    "expected": {
+      "allowed": false,
+      "sloStatus": "breach",
+      "orchestrationStatus": "rejected"
+    }
+  }
+]

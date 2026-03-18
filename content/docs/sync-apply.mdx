@@ -1,0 +1,92 @@
+---
+title: Sync Apply
+description: Controlled write workflow with dry-run preflight, policy checks, and audit evidence.
+---
+
+## What `sync-apply` does
+
+`sync-apply` executes a controlled synchronization flow against a provider adapter.
+It supports two modes:
+
+- `dry-run` (default): computes operations without mutating remote state.
+- `apply`: performs writes only when all guards pass.
+
+## Safety model
+
+`sync-apply` is guarded by design:
+
+1. Policy decision must not be `block`.
+2. Write mode must be enabled in config.
+3. Preflight artifact must exist when required.
+4. Protected environments require protected branch execution.
+
+If any check fails, command exits non-zero and emits a blocked audit event.
+
+## Config example
+
+```typescript
+export default {
+  providers: {
+    awsSsm: {
+      adapter: "./adapters/aws-ssm-adapter.ts",
+    },
+  },
+  writePolicy: {
+    enableApply: true,
+    requirePreflight: true,
+    protectedEnvironments: ["production"],
+    auditLogPath: "reports/env-sync-audit.jsonl",
+  },
+};
+```
+
+## Command examples
+
+```bash
+# Default dry-run mode
+env-typegen sync-apply awsSsm --env-file .env --config env-typegen.config.mjs --json
+
+# Apply mode with preflight artifact and protected branch marker
+env-typegen sync-apply awsSsm \
+  --env production \
+  --env-file .env \
+  --config env-typegen.config.mjs \
+  --apply \
+  --preflight-file reports/preflight.json \
+  --protected-branch \
+  --json
+```
+
+## Exit code semantics
+
+- `0`: operation allowed and completed.
+- `1`: blocked by guards/policy, or apply execution failed.
+
+## CI rollout recommendation
+
+- Pull requests: run dedicated dry-run workflow only.
+- Protected branches: allow apply workflow only with explicit controls.
+- Always upload smoke and audit artifacts for traceability.
+
+## Troubleshooting
+
+### Apply blocked with policy `block`
+
+- Run `verify` and inspect recommendations.
+- Resolve drift before re-attempting apply.
+
+### Apply blocked due to preflight
+
+- Generate and persist preflight artifact first.
+- Pass `--preflight-file` with a valid path.
+
+### Apply blocked in protected environments
+
+- Ensure execution is from a protected branch context.
+- Pass `--protected-branch` for controlled CI environments.
+
+## Related docs
+
+- [Policy Packs](/docs/policy-packs)
+- [Validation & Governance](/docs/validation)
+- [Operations](/docs/operations)
