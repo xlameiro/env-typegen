@@ -9,7 +9,10 @@ import { resolvePolicyWithPacks } from "../../src/policy/policy-pack-registry.js
 import {
   computePolicyPackChecksum,
   mergePolicyConfigs,
+  normalizePolicyPackSource,
   parsePolicyPack,
+  stripPolicyPacks,
+  validatePolicyPackChecksum,
 } from "../../src/policy/policy-pack.js";
 import type { ValidationReport } from "../../src/validation/types.js";
 
@@ -311,5 +314,138 @@ describe("policy packs", () => {
         channel: "prod",
       }),
     ).rejects.toThrowError(/targets channel dev, expected prod/u);
+  });
+
+  it("should reject malformed policy pack JSON", () => {
+    expect(() => parsePolicyPack("{", "invalid.policy.json")).toThrowError(
+      /Failed to parse policy pack/u,
+    );
+  });
+
+  it("should reject policy packs with invalid layer", () => {
+    expect(() =>
+      parsePolicyPack(
+        JSON.stringify({
+          id: "invalid-layer",
+          version: 1,
+          layer: "invalid",
+          policy: {},
+        }),
+        "invalid-layer.policy.json",
+      ),
+    ).toThrowError(/layer/u);
+  });
+
+  it("should reject policy packs with invalid trust envelope", () => {
+    expect(() =>
+      parsePolicyPack(
+        JSON.stringify({
+          id: "invalid-trust",
+          version: 1,
+          layer: "base",
+          trust: {
+            signer: "governance-bot",
+            issuedAt: "2026-03-18T00:00:00.000Z",
+          },
+          policy: {},
+        }),
+        "invalid-trust.policy.json",
+      ),
+    ).toThrowError(/trust must include either signatureChecksum/u);
+  });
+
+  it("should parse policy packs with rsa trust envelope", () => {
+    const parsed = parsePolicyPack(
+      JSON.stringify({
+        id: "rsa-trust",
+        version: 1,
+        layer: "base",
+        trust: {
+          signer: "governance-bot",
+          algorithm: "rsa-sha256",
+          keyId: "aws-kms://env-typegen/governance/v1",
+          signature: "signed-payload",
+          issuedAt: "2026-03-18T00:00:00.000Z",
+        },
+        policy: {},
+      }),
+      "rsa-trust.policy.json",
+    );
+
+    expect(parsed.trust?.algorithm).toBe("rsa-sha256");
+    expect(parsed.trust?.keyId).toBe("aws-kms://env-typegen/governance/v1");
+  });
+
+  it("should reject policy packs with invalid distribution type", () => {
+    expect(() =>
+      parsePolicyPack(
+        JSON.stringify({
+          id: "invalid-distribution",
+          version: 1,
+          layer: "base",
+          distribution: "invalid",
+          policy: {},
+        }),
+        "invalid-distribution.policy.json",
+      ),
+    ).toThrowError(/distribution/u);
+  });
+
+  it("should reject policy packs with invalid distribution channel", () => {
+    expect(() =>
+      parsePolicyPack(
+        JSON.stringify({
+          id: "invalid-channel",
+          version: 1,
+          layer: "base",
+          distribution: {
+            channel: "qa",
+          },
+          policy: {},
+        }),
+        "invalid-channel.policy.json",
+      ),
+    ).toThrowError(/distribution.channel/u);
+  });
+
+  it("should normalize local and remote policy pack sources", () => {
+    const cwd = process.cwd();
+    const local = normalizePolicyPackSource("./packs/base.policy.json", cwd);
+    const remote = normalizePolicyPackSource("https://example.com/base.policy.json", cwd);
+
+    expect(local).toContain(path.join("packs", "base.policy.json"));
+    expect(remote).toBe("https://example.com/base.policy.json");
+  });
+
+  it("should validate policy pack checksum and reject mismatches", () => {
+    const content = '{"id":"checksum"}';
+    const checksum = computePolicyPackChecksum(content);
+
+    expect(() => validatePolicyPackChecksum(content, checksum)).not.toThrow();
+    expect(() =>
+      validatePolicyPackChecksum(content, computePolicyPackChecksum("different")),
+    ).toThrow(/checksum mismatch/u);
+  });
+
+  it("should strip pack declarations from policy config", () => {
+    const stripped = stripPolicyPacks({
+      mode: "read-only",
+      defaults: { onWarnings: "warn" },
+      rules: [
+        {
+          id: "rule-1",
+          match: { issueTypes: ["extra"] },
+          decision: "warn",
+          reason: "warn extras",
+        },
+      ],
+      packs: {
+        base: ["./base.policy.json"],
+      },
+    });
+
+    expect(stripped.mode).toBe("read-only");
+    expect(stripped.defaults?.onWarnings).toBe("warn");
+    expect(stripped.rules?.[0]?.id).toBe("rule-1");
   });
 });

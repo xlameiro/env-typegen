@@ -98,7 +98,7 @@ const nextConfig: NextConfig = {
   },
   logging: {
     fetches: {
-      fullUrl: true,
+      fullUrl: process.env.NODE_ENV !== "production",
     },
   },
 };

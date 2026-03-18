@@ -153,4 +153,198 @@ describe("evaluatePolicy", () => {
     expect(evaluation.decision).toBe("block");
     expect(evaluation.matchedRule).toBe("high-risk-block");
   });
+
+  it("should skip rules when minErrors is not satisfied", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 0, warnings: 1, total: 1 },
+      issues: [
+        {
+          code: "ENV_EXTRA",
+          type: "extra",
+          severity: "warning",
+          key: "EXTRA",
+          environment: ".env",
+          message: "Extra variable",
+          value: null,
+        },
+      ],
+    });
+
+    const policy: EnvTypegenPolicyConfig = {
+      rules: [
+        {
+          id: "requires-errors",
+          match: { minErrors: 1 },
+          decision: "allow",
+          reason: "Would allow only if errors are present.",
+        },
+      ],
+    };
+
+    const evaluation = evaluatePolicy(report, policy);
+    expect(evaluation.decision).toBe("block");
+    expect(evaluation.matchedRule).toBeUndefined();
+  });
+
+  it("should skip rules when minWarnings is not satisfied", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 1, warnings: 0, total: 1 },
+      issues: [
+        {
+          code: "ENV_MISSING",
+          type: "missing",
+          severity: "error",
+          key: "API_KEY",
+          environment: ".env",
+          message: "Missing variable",
+          value: null,
+        },
+      ],
+    });
+
+    const policy: EnvTypegenPolicyConfig = {
+      rules: [
+        {
+          id: "requires-warnings",
+          match: { minWarnings: 1 },
+          decision: "allow",
+          reason: "Would allow only if warnings are present.",
+        },
+      ],
+    };
+
+    const evaluation = evaluatePolicy(report, policy);
+    expect(evaluation.decision).toBe("block");
+    expect(evaluation.matchedRule).toBeUndefined();
+  });
+
+  it("should skip rules when issueCodes do not match report issues", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 1, warnings: 0, total: 1 },
+      issues: [
+        {
+          code: "ENV_MISSING",
+          type: "missing",
+          severity: "error",
+          key: "API_KEY",
+          environment: ".env",
+          message: "Missing variable",
+          value: null,
+        },
+      ],
+    });
+
+    const policy: EnvTypegenPolicyConfig = {
+      rules: [
+        {
+          id: "requires-invalid-type",
+          match: { issueCodes: ["ENV_INVALID_TYPE"] },
+          decision: "allow",
+          reason: "Would allow if invalid type was present.",
+        },
+      ],
+    };
+
+    const evaluation = evaluatePolicy(report, policy);
+    expect(evaluation.decision).toBe("block");
+    expect(evaluation.matchedRule).toBeUndefined();
+  });
+
+  it("should skip rules when issueTypes do not match report issues", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 0, warnings: 1, total: 1 },
+      issues: [
+        {
+          code: "ENV_EXTRA",
+          type: "extra",
+          severity: "warning",
+          key: "EXTRA",
+          environment: ".env",
+          message: "Extra variable",
+          value: null,
+        },
+      ],
+    });
+
+    const policy: EnvTypegenPolicyConfig = {
+      rules: [
+        {
+          id: "requires-conflict",
+          match: { issueTypes: ["conflict"] },
+          decision: "allow",
+          reason: "Would allow only for conflict issues.",
+        },
+      ],
+    };
+
+    const evaluation = evaluatePolicy(report, policy);
+    expect(evaluation.decision).toBe("block");
+    expect(evaluation.matchedRule).toBeUndefined();
+  });
+
+  it("should skip rules when riskAtLeast is not satisfied", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 0, warnings: 1, total: 1 },
+      issues: [
+        {
+          code: "ENV_EXTRA",
+          type: "extra",
+          severity: "warning",
+          key: "EXTRA",
+          environment: ".env",
+          message: "Extra variable",
+          value: null,
+        },
+      ],
+    });
+
+    const policy: EnvTypegenPolicyConfig = {
+      rules: [
+        {
+          id: "requires-high-risk",
+          match: { riskAtLeast: "high" },
+          decision: "allow",
+          reason: "Would allow only for high-risk reports.",
+        },
+      ],
+    };
+
+    const evaluation = evaluatePolicy(report, policy);
+    expect(evaluation.decision).toBe("block");
+    expect(evaluation.matchedRule).toBeUndefined();
+  });
+
+  it("should add warn fallback reason when defaults allow execution with warnings", () => {
+    const report = createReport({
+      status: "fail",
+      summary: { errors: 0, warnings: 1, total: 1 },
+      issues: [
+        {
+          code: "ENV_EXTRA",
+          type: "extra",
+          severity: "warning",
+          key: "EXTRA",
+          environment: ".env",
+          message: "Extra variable",
+          value: null,
+        },
+      ],
+    });
+
+    const evaluation = evaluatePolicy(report, {
+      defaults: {
+        onWarnings: "warn",
+      },
+    });
+
+    expect(evaluation.decision).toBe("warn");
+    expect(
+      evaluation.reasons.some((reason) => reason.includes("allows execution with warnings")),
+    ).toBe(true);
+  });
 });

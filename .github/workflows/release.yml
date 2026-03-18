@@ -19,6 +19,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @xlameiro/env-typegen lint
+      - run: pnpm --filter @xlameiro/env-typegen type-check
+      - run: pnpm --filter @xlameiro/env-typegen test:coverage
       - run: pnpm --filter @xlameiro/env-typegen build
       - run: pnpm --filter @xlameiro/env-typegen release
         env:

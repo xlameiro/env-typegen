@@ -165,4 +165,26 @@ describe("runPlanCommand", () => {
     expect(parsed.changeSet.source).toBe("validation-report");
     expect(parsed.changeSet.summary.total).toBeGreaterThan(0);
   });
+
+  it("should return 1 when a relative config file does not exist", async () => {
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    const code = await runPlanCommand(["--config", "./missing-env-typegen.config.mjs"]);
+
+    expect(code).toBe(1);
+    const output = stderrSpy.mock.calls.map((call) => String(call[0])).join("");
+    expect(output).toContain("Config file not found:");
+    expect(output).toContain("(resolved:");
+  });
+
+  it("should return 1 when an absolute config file does not exist", async () => {
+    const missingAbsolutePath = path.join(dir, "missing-absolute-env-typegen.config.mjs");
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    const code = await runPlanCommand(["--config", missingAbsolutePath]);
+
+    expect(code).toBe(1);
+    const output = stderrSpy.mock.calls.map((call) => String(call[0])).join("");
+    expect(output).toContain(`Config file not found: ${missingAbsolutePath}`);
+  });
 });

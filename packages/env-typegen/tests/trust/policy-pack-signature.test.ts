@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { parsePolicyPackKeyring } from "../../src/trust/keyring.js";
 import { validatePolicyPackSignature } from "../../src/trust/policy-pack-signature.js";
 
 const trustFixtureDirectory = path.resolve("tests/fixtures/trust");
@@ -83,6 +84,29 @@ describe("validatePolicyPackSignature", () => {
     expect(validation.reasons.join(" ")).toContain("expired");
   });
 
+  it("should treat invalid expiry timestamps as expired when enforceExpiry is enabled", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        signatureChecksum: "7ae19929cb6cc1de8f72cc112d8b000d46802b2b853772f42da816d11d8a2fb8",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+        expiresAt: "not-a-date",
+      },
+      lockProvenance: undefined,
+      config: {
+        mode: "strict",
+        enforceExpiry: true,
+      },
+      now: new Date("2026-03-18T10:05:00.000Z"),
+    });
+
+    expect(validation.isValid).toBe(false);
+    expect(validation.reasons.join(" ")).toContain("expired");
+  });
+
   it("should reject lock provenance signer mismatch", async () => {
     const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
     const validation = await validatePolicyPackSignature({
@@ -103,6 +127,85 @@ describe("validatePolicyPackSignature", () => {
 
     expect(validation.isValid).toBe(false);
     expect(validation.reasons.join(" ")).toContain("Lock provenance signer mismatch");
+  });
+
+  it("should reject lock provenance signature checksum mismatch", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        signatureChecksum: "7ae19929cb6cc1de8f72cc112d8b000d46802b2b853772f42da816d11d8a2fb8",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: {
+        expectedSignatureChecksum:
+          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      },
+      config: {
+        mode: "strict",
+      },
+    });
+
+    expect(validation.isValid).toBe(false);
+    expect(validation.reasons.join(" ")).toContain("Lock provenance signature checksum mismatch");
+  });
+
+  it("should reject lock provenance key mismatch when keyId differs", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        algorithm: "rsa-sha256",
+        keyId: "aws-kms://env-typegen/governance/v1",
+        signature: "aW52YWxpZC1zaWduYXR1cmU=",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: {
+        expectedKeyId: "aws-kms://env-typegen/governance/v2",
+      },
+      config: {
+        mode: "strict",
+        externalTrustRoot: {
+          provider: "aws-kms",
+          keyringPath: path.join(trustFixtureDirectory, "public-keyring.valid.json"),
+        },
+      },
+    });
+
+    expect(validation.isValid).toBe(false);
+    expect(validation.reasons.join(" ")).toContain("Lock provenance key mismatch");
+  });
+
+  it("should reject lock provenance fingerprint mismatch", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        algorithm: "rsa-sha256",
+        keyId: "aws-kms://env-typegen/governance/v1",
+        signature: "aW52YWxpZC1zaWduYXR1cmU=",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: {
+        expectedFingerprint: "sha256:unexpected",
+      },
+      config: {
+        mode: "strict",
+        externalTrustRoot: {
+          provider: "aws-kms",
+          keyringPath: path.join(trustFixtureDirectory, "public-keyring.valid.json"),
+        },
+      },
+    });
+
+    expect(validation.isValid).toBe(false);
+    expect(validation.reasons.join(" ")).toContain("Lock provenance fingerprint mismatch");
   });
 
   it("should reject fixture trust envelope when checksum does not match content", async () => {
@@ -187,6 +290,58 @@ describe("validatePolicyPackSignature", () => {
     });
 
     expect(validation.enforcement).toBe("enforce");
+  });
+
+  it("should resolve keyring from inline trust config", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const keyringContent = readFileSync(
+      path.join(trustFixtureDirectory, "public-keyring.valid.json"),
+      "utf8",
+    );
+    const keyring = parsePolicyPackKeyring(keyringContent, "public-keyring.valid.json");
+
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        algorithm: "rsa-sha256",
+        keyId: "aws-kms://env-typegen/governance/v1",
+        signature: "aW52YWxpZC1zaWduYXR1cmU=",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: undefined,
+      config: {
+        mode: "strict",
+        keyring,
+      },
+    });
+
+    expect(validation.verifiedWith).toBe("rsa-signature");
+    expect(validation.reasons.join(" ")).toContain("RSA signature validation failed");
+  });
+
+  it("should resolve keyring from keyringPath config", async () => {
+    const content = '{"id":"pack","version":1,"layer":"base","policy":{}}';
+    const validation = await validatePolicyPackSignature({
+      source: "./pack.json",
+      content,
+      trust: {
+        signer: "governance-bot",
+        algorithm: "rsa-sha256",
+        keyId: "aws-kms://env-typegen/governance/v1",
+        signature: "aW52YWxpZC1zaWduYXR1cmU=",
+        issuedAt: "2026-03-18T10:00:00.000Z",
+      },
+      lockProvenance: undefined,
+      config: {
+        mode: "strict",
+        keyringPath: path.join(trustFixtureDirectory, "public-keyring.valid.json"),
+      },
+    });
+
+    expect(validation.verifiedWith).toBe("rsa-signature");
+    expect(validation.reasons.join(" ")).toContain("RSA signature validation failed");
   });
 
   it("should resolve keyring from external trust root config", async () => {

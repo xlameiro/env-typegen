@@ -1,5 +1,4 @@
 import { ThemeProvider } from "@/components/theme-provider";
-import { ANTI_FOUC_SCRIPT } from "@/lib/anti-fouc-script";
 import {
   APP_DESCRIPTION,
   APP_LOCALE,
@@ -9,6 +8,7 @@ import {
 } from "@/lib/constants";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
@@ -113,19 +113,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang={APP_LOCALE} suppressHydrationWarning>
-      <head>
-        {/*
-         * Apply the dark class before first paint to prevent a flash of the light
-         * theme for users who have manually selected dark mode via ThemeToggle.
-         * Script content lives in lib/anti-fouc-script.ts and is allowed by the
-         * Content-Security-Policy configured in next.config.ts.
-         * This keeps the root layout synchronous, which is required for PPR.
-         */}
-        <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/*
+         * Runs before hydration and keeps dark-mode selection stable on first paint.
+         * Loaded as a first-party static file so CSP can avoid relying on inline scripts.
+         */}
+        <Script src="/anti-fouc.js" strategy="beforeInteractive" />
         <a
           href="#maincontent"
           className="sr-only absolute left-4 top-4 z-100 rounded-md bg-background px-3 py-2 text-sm font-medium text-foreground shadow focus:not-sr-only focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"

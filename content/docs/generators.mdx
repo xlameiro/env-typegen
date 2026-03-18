@@ -16,42 +16,48 @@ description: Choose the right output generator for your workflow, from TypeScrip
 
 ### `ts` — TypeScript types
 
-Produces a `type Env` declaration and `ProcessEnv` namespace augmentation:
+Produces an exported `EnvVars` type and `NodeJS.ProcessEnv` namespace augmentation:
 
 ```typescript
 // env.generated.typescript.ts
-export type Env = {
+declare namespace NodeJS {
+  interface ProcessEnv {
+    readonly DATABASE_URL: string;
+    readonly PORT: string;
+  }
+}
+
+export type EnvVars = {
   DATABASE_URL: string;
   PORT: number;
   DEBUG: boolean;
 };
-
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv extends Env {}
-  }
-}
 ```
 
 ### `zod` — Zod schema
 
-Produces a Zod v4 schema split into `server` and `client` objects:
+Produces a Zod v4 schema split into `serverEnvSchema` and `clientEnvSchema` objects:
 
 ```typescript
 // env.generated.zod.ts
 import { z } from "zod";
 
-export const serverSchema = z.object({
+export const serverEnvSchema = z.object({
   DATABASE_URL: z.string(),
   PORT: z.coerce.number(),
 });
 
-export const clientSchema = z.object({
+export const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
+});
+
+export const envSchema = z.object({
+  ...serverEnvSchema.shape,
+  ...clientEnvSchema.shape,
 });
 ```
 
-Variables prefixed with `NEXT_PUBLIC_` are placed in `clientSchema`; all others go in `serverSchema`.
+Variables prefixed with `NEXT_PUBLIC_` are placed in `clientEnvSchema`; all others go in `serverEnvSchema`.
 
 ### `t3` — @t3-oss/env-nextjs
 
@@ -69,7 +75,10 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url(),
   },
-  runtimeEnv: process.env,
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  },
 });
 ```
 

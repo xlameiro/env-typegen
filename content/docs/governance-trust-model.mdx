@@ -35,6 +35,8 @@ and policy-compliant artifacts.
 Treat trust checks as mandatory for PR and protected-branch governance stages.
 If feature branches need onboarding flexibility, keep diagnostics visible but preserve
 strict enforcement for promotion/apply workflows.
+In production runtimes, require `ENV_TYPEGEN_EVIDENCE_SIGNING_KEY` so evidence
+signatures do not rely on deterministic local fallback keys.
 
 ## Related docs
 

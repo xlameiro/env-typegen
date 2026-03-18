@@ -24,6 +24,18 @@ describe("cloud connectors", () => {
     expect(values.DATABASE_URL).toBe("postgres://db");
   });
 
+  it("should skip malformed Vercel entries and fall back to content values", async () => {
+    const filePath = await makeJsonFixture(
+      "vercel-mixed.json",
+      JSON.stringify({
+        envs: [null, { value: "missing-key" }, { name: "TOKEN", content: "abc123" }],
+      }),
+    );
+
+    const values = await loadCloudSource({ provider: "vercel", filePath });
+    expect(values).toEqual({ TOKEN: "abc123" });
+  });
+
   it("should parse Cloudflare snapshot payload", async () => {
     const filePath = await makeJsonFixture(
       "cloudflare.json",
@@ -32,6 +44,18 @@ describe("cloud connectors", () => {
 
     const values = await loadCloudSource({ provider: "cloudflare", filePath });
     expect(values.API_URL).toBe("https://api.example.com");
+  });
+
+  it("should skip malformed Cloudflare entries and support secret fallback values", async () => {
+    const filePath = await makeJsonFixture(
+      "cloudflare-mixed.json",
+      JSON.stringify({
+        result: [true, { value: "missing-name" }, { key: "CF_SECRET", secret: "redacted" }],
+      }),
+    );
+
+    const values = await loadCloudSource({ provider: "cloudflare", filePath });
+    expect(values).toEqual({ CF_SECRET: "redacted" });
   });
 
   it("should parse alternate key/value shapes across providers", async () => {
@@ -66,6 +90,25 @@ describe("cloud connectors", () => {
     expect(values.REDIS_URL).toBe("redis://cache");
   });
 
+  it("should skip malformed AWS entries and preserve raw slash-only names", async () => {
+    const filePath = await makeJsonFixture(
+      "aws-mixed.json",
+      JSON.stringify({
+        Parameters: [
+          "not-an-object",
+          { Name: "///", Value: "slash-key" },
+          { Name: "/prod/API_TOKEN", Value: "token-value" },
+          { name: "RAW_NAME", value: "raw-value" },
+        ],
+      }),
+    );
+
+    const values = await loadCloudSource({ provider: "aws", filePath });
+    expect(values["///"]).toBe("slash-key");
+    expect(values.API_TOKEN).toBe("token-value");
+    expect(values.RAW_NAME).toBe("raw-value");
+  });
+
   it("should normalize aws names and default missing values to empty strings", async () => {
     const filePath = await makeJsonFixture(
       "aws-empty-value.json",
@@ -84,5 +127,33 @@ describe("cloud connectors", () => {
     await expect(
       loadCloudSource({ provider: "vercel", filePath: "nonexistent-cloud.json" }),
     ).rejects.toThrow("File not found:");
+  });
+
+  it("should include absolute path directly in not-found errors", async () => {
+    const missingAbsolutePath = path.resolve(
+      tmpdir(),
+      "env-typegen-cloud-test-absolute",
+      "missing.json",
+    );
+
+    await expect(
+      loadCloudSource({ provider: "aws", filePath: missingAbsolutePath }),
+    ).rejects.toThrow(`File not found: ${missingAbsolutePath}`);
+  });
+
+  it("should rethrow non-ENOENT file read errors", async () => {
+    const directoryPath = await mkdtemp(path.join(tmpdir(), "env-typegen-cloud-dir-"));
+
+    await expect(loadCloudSource({ provider: "vercel", filePath: directoryPath })).rejects.toThrow(
+      /EISDIR|directory/u,
+    );
+  });
+
+  it("should surface JSON parsing failures", async () => {
+    const filePath = await makeJsonFixture("invalid-json.json", "{ invalid json ");
+
+    await expect(loadCloudSource({ provider: "cloudflare", filePath })).rejects.toThrow(
+      /Unexpected token|JSON/u,
+    );
   });
 });

@@ -165,6 +165,93 @@ describe("runSyncApplyCommand hardening", () => {
     expect(parsed.apply.summary.failed).toBe(0);
   });
 
+  it("should allow reusing the same attestation across separate command executions", async () => {
+    const adapterPath = await writeAdapter(
+      "apply-adapter.mjs",
+      [
+        "export default {",
+        '  name: "apply-adapter",',
+        '  pull: async () => ({ values: { PORT: "3000" } }),',
+        "  push: async () => undefined,",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    const configPath = await writeConfig(
+      [
+        "export default {",
+        '  input: ".env.example",',
+        "  providers: {",
+        `    demo: { adapter: ${JSON.stringify(adapterPath)} },`,
+        "  },",
+        "  writePolicy: {",
+        "    enableApply: true,",
+        "    requirePreflight: true,",
+        "  },",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    const envPath = path.join(dir, ".env");
+    await writeFile(envPath, "PORT=3000\n", "utf8");
+
+    const proofFilePath = path.join(dir, "preflight-reused.json");
+    const changeSetHash = calculateChangeSetHash(
+      buildChangeSetFromMaps({
+        localValues: { PORT: "3000" },
+        remoteValues: { PORT: "3000" },
+      }),
+    );
+    const attestation = createPreflightAttestation({
+      command: "sync-preview",
+      provider: "demo",
+      environment: "development",
+      policyDecision: "allow",
+      changeSetHash,
+      correlationId: "demo:development:apply:reuse-proof",
+      now: new Date(),
+      ttlSeconds: 300,
+    });
+    await writeFile(
+      proofFilePath,
+      JSON.stringify({ preflightAttestation: attestation }, null, 2),
+      "utf8",
+    );
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const baseArgs = [
+      "demo",
+      "--config",
+      configPath,
+      "--env-file",
+      envPath,
+      "--apply",
+      "--preflight-file",
+      proofFilePath,
+      "--confirmation-token",
+      "token-once",
+      "--protected-branch",
+      "--json",
+    ];
+
+    const firstCode = await runSyncApplyCommand(baseArgs);
+    expect(firstCode).toBe(0);
+
+    stdoutSpy.mockClear();
+
+    const secondCode = await runSyncApplyCommand(baseArgs);
+    expect(secondCode).toBe(0);
+
+    const raw = stdoutSpy.mock.calls
+      .map((call) => String(call[0]))
+      .join("")
+      .trim();
+    const parsed = JSON.parse(raw) as { apply: { summary: { failed: number } } };
+    expect(parsed.apply.summary.failed).toBe(0);
+  });
+
   it("should block apply when attestation context mismatches execution context", async () => {
     const adapterPath = await writeAdapter(
       "apply-adapter.mjs",

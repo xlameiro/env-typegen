@@ -20,3 +20,5 @@ Trust enforcement ensures policy packs and governance decisions are validated be
 
 Keep trust validation mandatory for PR and protected-branch governance pipelines.
 Treat missing or invalid signatures as blocking conditions in promotion and apply stages.
+Require `ENV_TYPEGEN_EVIDENCE_SIGNING_KEY` in production runtimes so evidence
+signatures never fall back to deterministic local defaults.

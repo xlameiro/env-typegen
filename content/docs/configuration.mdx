@@ -249,13 +249,13 @@ export default defineConfig({
 ## Defaults and path resolution
 
 - Strict mode is enabled by default for validation commands.
-- `diff` defaults to `.env,.env.example,.env.production` when targets are not provided.
-- When `--contract` is omitted, env-typegen auto-discovers `env.contract.mjs`, `env.contract.js`, or `env.contract.ts`.
+- `diff` defaults to `.env,.env.production` when targets are not provided.
+- When `--contract` is omitted, env-typegen auto-discovers `env.contract.mjs` or `env.contract.js`.
 - All paths are resolved from your current working directory.
 
 ## FAQ
 
-### Should I always commit `env-typegen.config.ts`?
+### Should I always commit `env-typegen.config.mjs`?
 
 Yes for team consistency. It centralizes defaults and reduces CI/local mismatch.
 

@@ -132,12 +132,12 @@ Reads a `.env.example` file from disk and returns a `ParsedEnvFile`.
 const parsed = parseEnvFile(".env.example");
 ```
 
-### `parseEnvFileContent(content, filePath?)`
+### `parseEnvFileContent(content, filePath, options?)`
 
 Parses raw `.env` string content — useful in tests or streaming pipelines.
 
 ```typescript
-const parsed = parseEnvFileContent("DATABASE_URL=\nPORT=3000");
+const parsed = parseEnvFileContent("DATABASE_URL=\nPORT=3000", "inline.env");
 ```
 
 ### `inferType(key, value, options?)`
@@ -159,7 +159,7 @@ const typed = inferTypes(parsed);
 
 ### `generateTypeScriptTypes(parsed)`
 
-Produces a `type Env = { ... }` TypeScript declaration string.
+Produces an exported `EnvVars` type plus `NodeJS.ProcessEnv` namespace augmentation.
 
 ```typescript
 const output = generateTypeScriptTypes(typed);
@@ -211,7 +211,7 @@ Runs validation subcommands programmatically.
 ```typescript
 const exitCode = await runValidationCommand({
   command: "verify",
-  argv: ["--env", ".env", "--contract", "env.contract.ts", "--json"],
+  argv: ["--env", ".env", "--contract", "env.contract.mjs", "--json"],
 });
 ```
 
@@ -266,7 +266,7 @@ const exitCode = await runValidationCommand({
     "--targets",
     ".env,.env.staging,.env.production",
     "--contract",
-    "env.contract.ts",
+    "env.contract.mjs",
     "--json",
   ],
 });

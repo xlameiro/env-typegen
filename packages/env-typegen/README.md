@@ -37,7 +37,7 @@ npm install --save-dev @xlameiro/env-typegen
 npx env-typegen --input .env.example --output src/env.generated.ts
 
 # Generate only Zod schema
-npx env-typegen -i .env.example -o src/env.schema.ts -g zod
+npx env-typegen -i .env.example -o src/env.schema.ts -f zod
 
 # Watch mode
 npx env-typegen -i .env.example -o src/env.generated.ts --watch
@@ -52,6 +52,8 @@ npx env-typegen -i .env.example -o src/env.generated.ts --watch
 | `t3`                 | `@t3-oss/env-nextjs` `createEnv(...)` config |
 | `declaration`        | Ambient `.d.ts` env declaration              |
 
+`--generator` remains available as a backward-compatible alias for `--format`.
+
 Multiple outputs in one run:
 
 ```bash
@@ -62,7 +64,7 @@ npx env-typegen -i .env.example -o src/env.ts -f typescript -f zod -f declaratio
 
 ```bash
 # Validate one source
-npx env-typegen check --env .env --contract env.contract.ts
+npx env-typegen check --env .env --contract env.contract.mjs
 
 # Compare drift across sources
 npx env-typegen diff --targets .env,.env.production --contract env.contract.mjs
@@ -78,11 +80,22 @@ npx env-typegen verify --env .env --targets .env,.env.production --contract env.
 
 # Controlled apply (dry-run default)
 npx env-typegen sync-apply vercel --env-file .env --config env-typegen.config.mjs --json
+
+# Controlled apply (write mode with explicit guards)
+npx env-typegen sync-apply vercel \
+  --env production \
+  --env-file .env \
+  --config env-typegen.config.mjs \
+  --apply \
+  --preflight-file reports/preflight.json \
+  --confirmation-token CHGSET-APPROVED-001 \
+  --protected-branch \
+  --json
 ```
 
 `pull` is read-only in v1 and does not push values to providers.
 
-`sync-apply` runs in dry-run mode by default and requires explicit guards for apply mode.
+`sync-apply` runs in dry-run mode by default and requires explicit guards for apply mode, including a one-time confirmation token.
 
 Recommended CI policy:
 
@@ -130,9 +143,9 @@ Strict mode is enabled by default. Use `--no-strict` to downgrade undeclared var
 Validation commands can include cloud snapshot sources:
 
 ```bash
-npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.ts
-npx env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.ts
-npx env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.ts
+npx env-typegen check --cloud-provider vercel --cloud-file vercel-env.json --contract env.contract.mjs
+npx env-typegen diff --cloud-provider cloudflare --cloud-file cloudflare-env.json --contract env.contract.mjs
+npx env-typegen doctor --cloud-provider aws --cloud-file aws-env.json --contract env.contract.mjs
 ```
 
 Supported providers: `vercel`, `cloudflare`, `aws`.
@@ -145,7 +158,7 @@ Use plugins to customize validation behavior:
 - `transformSource`
 - `transformReport`
 
-Load plugins with repeated `--plugin` flags or via `plugins` in `env-typegen.config.ts`.
+Load plugins with repeated `--plugin` flags or via `plugins` in `env-typegen.config.mjs`.
 
 ## Programmatic API
 

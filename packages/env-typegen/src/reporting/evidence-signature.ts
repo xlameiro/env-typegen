@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 
 export type EvidenceSignature = {
   version: 1;
@@ -16,6 +16,8 @@ function toHexDigest(input: string): string {
     .digest("hex");
 }
 
+let nonProductionSigningSecret: string | undefined;
+
 function resolveSigningSecret(secret: string | undefined): string {
   if (secret !== undefined && secret.length > 0) {
     return secret;
@@ -26,8 +28,17 @@ function resolveSigningSecret(secret: string | undefined): string {
     return envSecret;
   }
 
-  // Deterministic default for local/CI runs when no secret is configured.
-  return "env-typegen-evidence-default-signing-key";
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ENV_TYPEGEN_EVIDENCE_SIGNING_KEY is required in production for evidence signing.",
+    );
+  }
+
+  if (nonProductionSigningSecret === undefined) {
+    nonProductionSigningSecret = randomBytes(32).toString("hex");
+  }
+
+  return nonProductionSigningSecret;
 }
 
 export function signEvidenceHash(params: {

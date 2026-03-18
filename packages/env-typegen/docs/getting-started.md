@@ -21,6 +21,8 @@ env-typegen -i .env.example -o env.generated.ts -f ts -f zod -f t3 -f declaratio
 When multiple formats are specified, each generator writes a separate file:
 `env.generated.typescript.ts`, `env.generated.zod.ts`, `env.generated.t3.ts`, `env.generated.declaration.d.ts`.
 
+`--generator` is still accepted as a backward-compatible alias for `--format`.
+
 ### Watch mode
 
 ```bash
@@ -31,13 +33,13 @@ env-typegen -i .env.example -o env.generated.ts -f ts --watch
 
 ```bash
 # Validate one environment file
-env-typegen check --env .env --contract env.contract.ts
+env-typegen check --env .env --contract env.contract.mjs
 
 # Compare drift across environments
-env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen diff --targets .env,.env.example,.env.production --contract env.contract.mjs
 
 # Aggregate and prioritize diagnostics
-env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.ts
+env-typegen doctor --env .env --targets .env,.env.example,.env.production --contract env.contract.mjs
 
 # CI governance gate (fails on warnings and errors)
 env-typegen verify --env .env --targets .env,.env.production --contract env.contract.mjs
@@ -53,6 +55,8 @@ env-typegen sync-preview vercel --env-file .env --config env-typegen.config.mjs
 ```
 
 `pull` is read-only in v1 and does not write values back to cloud providers.
+
+Apply mode in `sync-apply` requires a one-time `--confirmation-token` in addition to other guardrails.
 
 ### JSON output for CI
 

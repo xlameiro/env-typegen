@@ -18,7 +18,8 @@ It supports two modes:
 1. Policy decision must not be `block`.
 2. Write mode must be enabled in config.
 3. Preflight artifact must exist when required.
-4. Protected environments require protected branch execution.
+4. Apply mode requires a one-time confirmation token.
+5. Protected environments require protected branch execution.
 
 If any check fails, command exits non-zero and emits a blocked audit event.
 
@@ -53,6 +54,7 @@ env-typegen sync-apply awsSsm \
   --config env-typegen.config.mjs \
   --apply \
   --preflight-file reports/preflight.json \
+  --confirmation-token CHGSET-APPROVED-001 \
   --protected-branch \
   --json
 ```
@@ -79,6 +81,11 @@ env-typegen sync-apply awsSsm \
 
 - Generate and persist preflight artifact first.
 - Pass `--preflight-file` with a valid path.
+
+### Apply blocked due to missing confirmation token
+
+- Generate a one-time token in your release workflow.
+- Pass `--confirmation-token <token>` when running `--apply`.
 
 ### Apply blocked in protected environments
 

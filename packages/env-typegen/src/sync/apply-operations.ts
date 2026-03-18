@@ -52,7 +52,7 @@ export async function executeApplyOperations(params: {
 
     const payload = toOperationPayload({ operation, localValues: params.localValues });
     const retryResult = await runWithRetry({
-      policy: params.retryPolicy,
+      ...(params.retryPolicy === undefined ? {} : { policy: params.retryPolicy }),
       task: async () => params.adapter.push?.(params.adapterContext, payload),
     });
 

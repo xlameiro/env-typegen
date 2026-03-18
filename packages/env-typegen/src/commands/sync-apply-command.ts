@@ -78,8 +78,6 @@ const SYNC_APPLY_HELP_TEXT = [
   "  1  Operation blocked by guards/policy or provider apply failure",
 ].join("\n");
 
-const consumedAttestationIds = new Set<string>();
-
 function resolveProviderName(values: SyncApplyArgValues, positionals: string[]): string {
   const providerName = values.provider ?? positionals[0];
   if (providerName === undefined || providerName.trim().length === 0) {
@@ -336,6 +334,7 @@ async function resolvePreflightValidation(params: {
   providerName: string;
   environment: string;
   changeSetHash: string;
+  usedAttestationIds: Set<string>;
 }): Promise<{ isValid: boolean; reasons: string[] }> {
   if (!(params.mode === "apply" && params.requiresPreflight)) {
     return { isValid: true, reasons: [] };
@@ -354,12 +353,12 @@ async function resolvePreflightValidation(params: {
     provider: params.providerName,
     environment: params.environment,
     changeSetHash: params.changeSetHash,
-    usedAttestationIds: consumedAttestationIds,
+    usedAttestationIds: params.usedAttestationIds,
   });
 
   if (attestationValidation.isValid) {
     const parsed = payload as { attestationId: string };
-    consumedAttestationIds.add(parsed.attestationId);
+    params.usedAttestationIds.add(parsed.attestationId);
     return attestationValidation;
   }
 
@@ -602,6 +601,7 @@ async function executeSyncApplyUnsafe(
     changeSetHash,
   });
   const evidenceBundleId = `${correlationId}:evidence:v1`;
+  const usedAttestationIds = new Set<string>();
 
   const requiresPreflight = writePolicy.requirePreflight ?? true;
   const preflightValidation = await resolvePreflightValidation({
@@ -611,6 +611,7 @@ async function executeSyncApplyUnsafe(
     providerName,
     environment,
     changeSetHash,
+    usedAttestationIds,
   });
 
   const hasOverrideReason =

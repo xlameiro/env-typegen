@@ -19,7 +19,7 @@ Validation commands let you enforce contracts before deployment.
 
 ## Contract file
 
-By default, env-typegen auto-discovers `env.contract.mjs`, `env.contract.js`, or `env.contract.ts`.
+By default, env-typegen auto-discovers `env.contract.mjs` or `env.contract.js`.
 
 ```typescript
 export default {
@@ -186,7 +186,7 @@ export default {
 };
 ```
 
-Load them via `--plugin` flags or `plugins` in `env-typegen.config.ts`.
+Load them via `--plugin` flags or `plugins` in `env-typegen.config.mjs`.
 
 All validation paths (`--env`, `--contract`, `--targets`, `--cloud-file`, `--output-file`) are resolved from your current working directory.
 For direct Node.js runtime execution, prefer `.mjs` or `.js` contract files.
