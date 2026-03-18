@@ -21,8 +21,10 @@ echo "✅ Lockfile is up to date."
 echo "🧹 Running dead code detection (knip)..."
 pnpm knip
 
-echo "🧪 Running unit tests..."
-pnpm test
+echo "🧪 Running unit tests with coverage..."
+# Run with coverage so the same thresholds enforced in CI are also checked here.
+# Prevents silent divergence between local passes and CI failures.
+pnpm test:coverage
 
 echo "🔐 Running security audit..."
 pnpm audit --audit-level=moderate
